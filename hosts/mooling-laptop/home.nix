@@ -27,6 +27,7 @@
     # Qt theming
     qt6Packages.qt6ct
     libsForQt5.qt5ct
+    kdePackages.breeze
 
     # Basic
     python3
