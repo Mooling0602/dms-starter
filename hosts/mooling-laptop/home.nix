@@ -19,7 +19,7 @@
         default = [ "kde" "gtk" ];
       };
     };
-    extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+    extraPortals = [ ];
   };
 
   # 默认字体：普通应用 / 等宽终端
