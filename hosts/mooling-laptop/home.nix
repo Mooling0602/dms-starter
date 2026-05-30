@@ -209,6 +209,11 @@
         place-within-backdrop = true;
       }
     ];
+    recent-windows = {
+      highlight = {
+        active-color = "#00000000";
+      };
+    };
   };
 
   # systemd.user.services.niri-flake-polkit.enable = false;
