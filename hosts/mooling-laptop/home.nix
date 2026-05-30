@@ -179,7 +179,15 @@
     };
     Service = {
       Type = "oneshot";
-      ExecStart = "${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage %h/nixos-config/assets/avatar.jpg";
+      ExecStart = "${pkgs.writeShellScript "dms-set-avatar" ''
+        for i in $(seq 1 30); do
+          if ${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
+            exit 0
+          fi
+          sleep 1
+        done
+        exit 1
+      ''}";
     };
     Install = {
       WantedBy = [ "dms.service" ];
