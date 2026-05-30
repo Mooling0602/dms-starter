@@ -21,6 +21,13 @@
     # Icon theme
     tela-icon-theme
 
+    # GTK theme (DMS 动态主题依赖)
+    adw-gtk3
+
+    # Qt theming
+    qt6ct
+    qt5ct
+
     # Basic
     python3
 
@@ -112,6 +119,7 @@
 
   programs.dank-material-shell = {
     enable = true;
+    enableDynamicTheming = true;
     enableSystemMonitoring = true;
     niri.enableSpawn = true;
     niri.includes = {
@@ -130,7 +138,12 @@
     };
   };
 
-  programs.niri.settings = {}; 
+  programs.niri.settings = {
+    environment = {
+      QT_QPA_PLATFORMTHEME = "qt6ct";
+      QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
+    };
+  }; 
 
   # systemd.user.services.niri-flake-polkit.enable = false;
 
