@@ -21,7 +21,7 @@
       nvidiaBusId = "PCI:1:0:0";
     };
 
-    # 使用稳定版专有驱动
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    # 使用 latest 驱动
+    package = config.boot.kernelPackages.nvidiaPackages.latest;
   };
 }
