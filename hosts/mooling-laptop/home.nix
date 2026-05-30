@@ -16,7 +16,7 @@
     enable = true;
     defaultFonts = {
       sansSerif = [ "Sarasa UI SC" ];
-      serif = [ "Sarasa UI SC" ];
+      serif = [ "Noto Serif CJK SC" ];
       monospace = [ "Sarasa Mono SC" ];
     };
   };
@@ -27,6 +27,7 @@
   home.packages = with pkgs;[
     # Fonts
     sarasa-gothic
+    noto-fonts-cjk-serif
 
     # Icon theme
     tela-icon-theme
