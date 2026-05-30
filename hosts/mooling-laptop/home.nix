@@ -11,6 +11,13 @@
     "Xft.dpi" = 168;
   };
 
+  # XDG Portal 偏好：KDE 优先
+  xdg.configFile."xdg-desktop-portal/portals.conf".text = ''
+    [preferred]
+    default=kde;gtk
+    org.freedesktop.impl.portal.FileChooser=kde
+  '';
+
   # 默认字体：普通应用 / 等宽终端
   fonts.fontconfig = {
     enable = true;
