@@ -121,6 +121,7 @@
     settings = {
       window = {
         decorations = "None";
+        opacity = 0.9;
         padding = { x = 8; y = 4; };
       };
     };
