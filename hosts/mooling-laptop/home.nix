@@ -14,7 +14,7 @@
   # Qt 平台主题
   qt = {
     enable = true;
-    platformTheme = "qtct";
+    platformTheme.name = "qtct";
     style = {
       name = "breeze";
       package = pkgs.kdePackages.breeze;
