@@ -11,6 +11,16 @@
     "Xft.dpi" = 168;
   };
 
+  # Qt 平台主题
+  qt = {
+    enable = true;
+    platformTheme = "qtct";
+    style = {
+      name = "breeze";
+      package = pkgs.kdePackages.breeze;
+    };
+  };
+
   # XDG Portal 偏好：KDE 优先
   xdg.portal = {
     enable = true;
