@@ -109,6 +109,7 @@
     # common apps
     kdePackages.dolphin
     kdePackages.dolphin-plugins
+    kdePackages.kate
     qq
     wechat
     wpsoffice-cn
