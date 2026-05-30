@@ -15,5 +15,11 @@
     kdePackages.xdg-desktop-portal-kde
   ];
 
-  environment.variables.EDITOR = "nvim";
+  environment.variables = {
+    EDITOR = "nvim";
+    QT_PLUGIN_PATH = [
+      "${pkgs.qt6Packages.qt6ct}/${pkgs.qt6.qtbase.qtPluginPrefix}"
+      "${pkgs.kdePackages.breeze}/${pkgs.qt6.qtbase.qtPluginPrefix}"
+    ];
+  };
 }
