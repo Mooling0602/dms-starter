@@ -16,6 +16,7 @@
     enable = true;
     defaultFonts = {
       sansSerif = [ "Sarasa UI SC" ];
+      serif = [ "Sarasa UI SC" ];
       monospace = [ "Sarasa Mono SC" ];
     };
   };
