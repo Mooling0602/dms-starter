@@ -190,7 +190,7 @@
       ''}";
     };
     Install = {
-      WantedBy = [ "dms.service" ];
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
