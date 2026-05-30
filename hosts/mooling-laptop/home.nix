@@ -127,6 +127,9 @@
     };
   };
 
+  # 用户头像，DMS 锁屏等处使用
+  home.file.".face.icon".source = ../../assets/avatar.jpg;
+
   programs.dank-material-shell = {
     enable = true;
     enableDynamicTheming = true;
