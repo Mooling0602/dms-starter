@@ -26,15 +26,6 @@
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
   };
 
-  # 去掉 niri 概览中工作区卡片的彩色边框
-  xdg.configFile."niri/dms/overview.kdl".text = ''
-    layout {
-      shadow {
-        color "#00000000"
-      }
-    }
-  '';
-
   # XDG Portal 偏好：KDE 优先
   xdg.portal = {
     enable = true;
@@ -200,7 +191,6 @@
         "layout"
         "outputs"
         "wpblur"
-        "overview"
       ];
     };
   };
