@@ -201,7 +201,15 @@
       QT_WAYLAND_DECORATION = "ssd";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
     };
-  }; 
+    layer-rules = [
+      {
+        matches = [
+          { namespace = "^quickshell$"; }
+        ];
+        place-within-backdrop = true;
+      }
+    ];
+  };
 
   # systemd.user.services.niri-flake-polkit.enable = false;
 
