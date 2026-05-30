@@ -116,6 +116,7 @@
     # productivity
     hugo # static site generator
     glow # markdown previewer in terminal
+    lazygit # terminal git UI
 
     btop  # replacement of htop/nmon
     iotop # io monitoring
