@@ -191,6 +191,7 @@
         "layout"
         "outputs"
         "wpblur"
+        "overview"
       ];
     };
   };
