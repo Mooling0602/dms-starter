@@ -29,7 +29,9 @@
   # 去掉 niri 概览中工作区卡片的彩色边框
   xdg.configFile."niri/dms/overview.kdl".text = ''
     layout {
-      shadow { off }
+      shadow {
+        color "#00000000"
+      }
     }
   '';
 
