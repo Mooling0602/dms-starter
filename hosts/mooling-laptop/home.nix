@@ -189,7 +189,6 @@
   programs.niri.settings = {
     environment = {
       QT_QPA_PLATFORMTHEME = "qt6ct";
-      QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
     };
   }; 
 
