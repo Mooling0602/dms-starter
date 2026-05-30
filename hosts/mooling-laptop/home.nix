@@ -28,6 +28,8 @@
     qt6Packages.qt6ct
     libsForQt5.qt5ct
     kdePackages.breeze
+    kdePackages.plasma-integration
+    kdePackages.qqc2-desktop-style
 
     # Basic
     python3
