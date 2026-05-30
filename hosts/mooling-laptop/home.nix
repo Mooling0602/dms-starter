@@ -17,7 +17,7 @@
     defaultFonts = {
       sansSerif = [ "Sarasa UI SC" ];
       serif = [ "Noto Serif CJK SC" ];
-      monospace = [ "Sarasa Mono SC" ];
+      monospace = [ "Maple Mono NF CN" ];
     };
   };
 
@@ -28,6 +28,9 @@
     # Fonts
     sarasa-gothic
     noto-fonts-cjk-serif
+
+    # Monospace font
+    maple-mono.NF-CN
 
     # Icon theme
     tela-icon-theme
