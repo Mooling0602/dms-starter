@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, dms, ... }:
 
 {
   # 注意修改这里的用户名与用户目录
@@ -170,5 +170,21 @@
   # You can update Home Manager without changing this value. See
   # the Home Manager release notes for a list of state version
   # changes in each release.
+  # DMS 启动后自动设置用户头像（头像只在内存中，重启丢失）
+  systemd.user.services.dms-set-avatar = {
+    Unit = {
+      Description = "Set DMS profile avatar after DMS starts";
+      After = [ "dms.service" ];
+      Requires = [ "dms.service" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage %h/nixos-config/assets/avatar.jpg";
+    };
+    Install = {
+      WantedBy = [ "dms.service" ];
+    };
+  };
+
   home.stateVersion = "25.11";
 }
