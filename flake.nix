@@ -29,6 +29,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "backup";
           home-manager.users.mooling = { config, pkgs, ... }: {
             imports = [
               ./hosts/mooling-laptop/home.nix
