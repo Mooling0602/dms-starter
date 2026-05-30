@@ -121,6 +121,9 @@
     google-chrome
     bilibili
     claude-code
+
+    # Portal backend (KDE file chooser)
+    kdePackages.xdg-desktop-portal-kde
   ];
 
   # git 相关配置
