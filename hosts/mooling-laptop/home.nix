@@ -190,6 +190,7 @@
         "cursor"
         "layout"
         "outputs"
+        "windowrules"
         "wpblur"
         "overview"
       ];
