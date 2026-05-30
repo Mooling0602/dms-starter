@@ -119,7 +119,10 @@
   programs.alacritty = {
     enable = true;
     settings = {
-      window.decorations = "None";
+      window = {
+        decorations = "None";
+        padding = { x = 8; y = 4; };
+      };
     };
   };
 
