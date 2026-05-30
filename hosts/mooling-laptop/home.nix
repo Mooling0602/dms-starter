@@ -118,6 +118,9 @@
   # alacritty - 一个跨平台终端，带 GPU 加速功能
   programs.alacritty = {
     enable = true;
+    settings = {
+      window.decorations = "None";
+    };
   };
 
   programs.dank-material-shell = {
