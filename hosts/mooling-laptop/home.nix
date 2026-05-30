@@ -25,8 +25,8 @@
     adw-gtk3
 
     # Qt theming
-    qt6ct
-    qt5ct
+    qt6Packages.qt6ct
+    libsForQt5.qt5ct
 
     # Basic
     python3
