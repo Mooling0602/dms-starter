@@ -15,10 +15,6 @@
   qt = {
     enable = true;
     platformTheme.name = "qtct";
-    style = {
-      name = "breeze";
-      package = pkgs.kdePackages.breeze;
-    };
   };
 
   # XDG Portal 偏好：KDE 优先
