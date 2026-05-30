@@ -17,6 +17,13 @@
     platformTheme.name = "qtct";
   };
 
+  # Qt 环境变量（对 niri 和 systemd/DMS 均生效）
+  home.sessionVariables = {
+    QT_QPA_PLATFORMTHEME = "qt6ct";
+    QT_WAYLAND_DECORATION = "ssd";
+    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+  };
+
   # XDG Portal 偏好：KDE 优先
   xdg.portal = {
     enable = true;
