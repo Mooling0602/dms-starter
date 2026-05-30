@@ -150,7 +150,8 @@
     enable = true;
     enableDynamicTheming = true;
     enableSystemMonitoring = true;
-    niri.enableSpawn = true;
+    # DMS 由 systemd 管理，不使用 niri spawn
+    systemd.enable = true;
     niri.includes = {
       enable = true;             # Enable config includes hack. Enabled by default.
 
