@@ -12,11 +12,15 @@
   };
 
   # XDG Portal 偏好：KDE 优先
-  xdg.configFile."xdg-desktop-portal/portals.conf".text = ''
-    [preferred]
-    default=kde;gtk
-    org.freedesktop.impl.portal.FileChooser=kde
-  '';
+  xdg.portal = {
+    enable = true;
+    config = {
+      common = {
+        default = [ "kde" "gtk" ];
+      };
+    };
+    extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+  };
 
   # 默认字体：普通应用 / 等宽终端
   fonts.fontconfig = {
@@ -128,9 +132,6 @@
     google-chrome
     bilibili
     claude-code
-
-    # Portal backend (KDE file chooser)
-    kdePackages.xdg-desktop-portal-kde
   ];
 
   # git 相关配置
