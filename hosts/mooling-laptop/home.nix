@@ -175,7 +175,7 @@
     Unit = {
       Description = "Set DMS profile avatar after DMS starts";
       After = [ "dms.service" ];
-      Requires = [ "dms.service" ];
+      Wants = [ "dms.service" ];
     };
     Service = {
       Type = "oneshot";
