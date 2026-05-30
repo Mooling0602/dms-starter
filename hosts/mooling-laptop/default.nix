@@ -5,6 +5,7 @@
     ./hardware-configuration.nix
     ../../modules/system/i18n.nix
     ../../modules/system/desktop.nix
+    ../../modules/system/fonts.nix
     ../../modules/system/gpu.nix
     ../../modules/system/networking.nix
     ../../modules/system/packages.nix
