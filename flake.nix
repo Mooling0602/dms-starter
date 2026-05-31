@@ -32,7 +32,7 @@
           home-manager.backupFileExtension = "backup";
           home-manager.users.mooling = { config, pkgs, ... }: {
             imports = [
-              ./hosts/mooling-laptop/home.nix
+              ./modules/home
               inputs.dms.homeModules.dank-material-shell
             ];
           };

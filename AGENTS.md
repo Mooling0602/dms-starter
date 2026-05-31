@@ -2,6 +2,8 @@
 
 ## 项目结构
 
+> 该部分信息存在滞后性，当前版本：2026-05-31 14:15
+
 ```
 ~/nixos-config/
 ├── assets/                        # 静态资源
@@ -10,19 +12,26 @@
 │   └── wallpaper-light-kokomi.png # 浅色模式壁纸
 ├── flake.nix                      # 入口，home-manager + DMS + greetd 集成
 ├── flake.lock
-├── hosts/mooling-laptop/          # 机器专属
-│   ├── default.nix               # boot、hostname、stateVersion、imports
-│   ├── hardware-configuration.nix # 自动生成（磁盘 UUID、内核模块）
-│   └── home.nix                  # Home Manager 主配置（包、主题、Qt、alacritty 等）
-├── modules/system/                # 通用系统模块（可跨机器复用）
-│   ├── desktop.nix               # dms-greeter + niri + Firefox
-│   ├── fonts.nix                 # 系统级字体
+├── hosts/mooling-laptop/          # 机器专属（硬件驱动 + boot + hostname）
+│   ├── default.nix               # imports 系统/home 模块 + boot + hostname + stateVersion
 │   ├── gpu.nix                   # NVIDIA 驱动 + Intel/NVIDIA Prime offload
-│   ├── i18n.nix                  # zh_CN 语言 + fcitx5 中文输入法（waylandFrontend）
-│   ├── networking.nix            # NetworkManager + 防火墙关闭 + Clash Verge
-│   ├── packages.nix              # 系统包 + unfree + nautilus 排除 + Dolphin 右键菜单修复
-│   ├── services.nix              # 蓝牙 + 打印 + PipeWire + SSH
-│   └── users.nix                 # 用户 mooling + fish + sudo NOPASSWD
+│   └── hardware-configuration.nix # 自动生成（磁盘 UUID、内核模块）
+├── modules/
+│   ├── home/                     # Home Manager 模块（跨机器复用）
+│   │   ├── default.nix           # 入口：username、homeDirectory、imports
+│   │   ├── packages.nix          # 用户包（CLI 工具、GUI 应用）
+│   │   ├── theme.nix             # Qt、fontconfig、xdg.portal、xresources、主题相关包
+│   │   ├── desktop.nix           # DMS、niri symlinks、alacritty、壁纸/头像、dms-set-avatar
+│   │   └── git.nix               # git 用户配置
+│   └── system/                   # 通用系统模块（可跨机器复用）
+│       ├── desktop.nix           # dms-greeter + niri + Firefox
+│       ├── fonts.nix             # 系统级字体
+│       ├── i18n.nix              # zh_CN 语言 + fcitx5 中文输入法（waylandFrontend）
+│       ├── networking.nix        # NetworkManager + 防火墙关闭 + Clash Verge
+│       ├── nix.nix               # nix.settings + 自动 GC
+│       ├── packages.nix          # 系统包 + unfree + nautilus 排除 + Dolphin 右键菜单修复
+│       ├── services.nix          # 蓝牙 + 打印 + PipeWire + SSH
+│       └── users.nix             # 用户 mooling + fish + sudo NOPASSWD
 ├── niri/                          # Niri KDL 配置（mkOutOfStoreSymlink 管理，DMS 可写）
 │   ├── config.kdl                # 手动维护：input、环境变量、layer-rules、DMS includes
 │   └── dms/                      # DMS 生成的文件（dms setup 产出）
@@ -48,10 +57,16 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 每次修改配置时按此顺序操作：
 
 1. **修改** — 编辑配置文件
+
 2. **提交** — `git commit` 到本地
+
 3. **重建验证** — `sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop`，确认无报错
+
 4. **推送** — `git push`
+
 5. **提交信息格式** — 使用 `Co-Authored-By: Claude Code CLI <noreply@anthropic.com>`
+
+> 非Claude Code客户端请忽略，或使用适合自己的正确信息。
 
 ## 关键设计决策
 
@@ -95,7 +110,6 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 
 ## 待优化
 
-- `home.nix` 太重（256 行），可以拆分为 `modules/home/` 下的通用模块
 - `niri/hm.kdl` 是旧残留，可以删除
 - `assets/README.md` 是自动生成的，可以删除
 - 详情参见 `https://github.com/AvengeMedia/DankMaterialShell/issues/1788`
