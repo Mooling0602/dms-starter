@@ -53,12 +53,12 @@ edid[35:38] = b"\x00\x00\x00"
 # Standard timings (none)
 edid[38:54] = b"\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
 
-# --- 1920x1080@60Hz detailed timing ---
-h_active, v_active = 1920, 1080
-h_blank, v_blank = 280, 45
-h_sync, v_sync = 44, 5
-h_front, v_front = 88, 4
-pixel_clock = 14850  # 148.5 MHz in 10kHz units
+# --- 2460x1080@60Hz (Redmi Note 11T Pro) detailed timing ---
+h_active, v_active = 2460, 1080
+h_blank, v_blank = 160, 46
+h_sync, v_sync = 32, 5
+h_front, v_front = 48, 3
+pixel_clock = 17701  # 177.01 MHz in 10kHz units
 
 edid[54:56] = struct.pack("<H", pixel_clock)
 edid[56] = h_active & 0xff
