@@ -1,4 +1,4 @@
-{ pkgs, config, lib, ... }:
+{ pkgs, config, lib, dms, ... }:
 
 let
   dmsThemeConfig = ''
@@ -33,6 +33,7 @@ in
       lua-language-server
       bash-language-server
       python3Packages.python-lsp-server
+      dms.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
     extraPlugins = ''
       return {
