@@ -108,9 +108,6 @@ in
 
   hardware.firmware = [ virtualDisplayEDID ];
 
-  boot.initrd.systemd.contents."/lib/firmware/edid/virtual-display.bin" =
-    "${virtualDisplayEDID}/lib/firmware/edid/virtual-display.bin";
-
   boot.kernelParams = [
     "video=HDMI-A-1:e"
     "drm.edid_firmware=HDMI-A-1:edid/virtual-display.bin"
