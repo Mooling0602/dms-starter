@@ -6,6 +6,7 @@
     ./theme.nix
     ./desktop.nix
     ./git.nix
+    ./ssh.nix
   ];
 
   home.username = username;
