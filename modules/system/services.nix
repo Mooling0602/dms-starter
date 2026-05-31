@@ -31,6 +31,7 @@
       locale = "zh_CN";
       upnp = "enabled";
       native_pen_touch = "enabled";
+      output_name = "1";
     };
   };
 }
