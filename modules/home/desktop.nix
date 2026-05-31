@@ -109,7 +109,7 @@
   systemd.user.services.sunshine-display-toggle = let
     wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
     toggleScript = pkgs.writeShellScript "sunshine-display-toggle" ''
-      journalctl --user -u sunshine.service -f -n 0 | while read -r line; do
+      journalctl --user -u apollo.service -f -n 0 | while read -r line; do
         if echo "$line" | grep -q "CLIENT CONNECTED"; then
           sleep 2
           ${wlr-randr} --output eDP-1 --off

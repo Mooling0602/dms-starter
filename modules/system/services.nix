@@ -20,18 +20,17 @@
     pulse.enable = true;
   };
 
-  services.sunshine = {
+  services.apollo = {
     enable = true;
-    autoStart = true;
     capSysAdmin = true;
     openFirewall = true;
-    settings = {
-      adapter_name = "/dev/dri/renderD128";
-      capture = "kms";
-      locale = "zh_CN";
-      upnp = "enabled";
-      native_pen_touch = "enabled";
-      output_name = "1";
+    applications = {
+      apps = [
+        {
+          name = "Desktop";
+          auto-detach = "true";
+        }
+      ];
     };
   };
 }

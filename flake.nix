@@ -23,9 +23,13 @@
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    apollo-flake = {
+      url = "github:nil-andreas/apollo-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, ... }:
+  outputs = inputs@{ nixpkgs, home-manager, apollo-flake, ... }:
     let
       username = "mooling";  # ← 改这里即可替换用户名
     in
@@ -34,6 +38,10 @@
         modules = [
           ./hosts/mooling-laptop
           home-manager.nixosModules.home-manager
+          (apollo-flake.nixosModules.${nixpkgs.stdenv.hostPlatform.system}.default)
+          ({ pkgs, ... }: {
+            services.apollo.package = apollo-flake.packages.${pkgs.stdenv.hostPlatform.system}.default;
+          })
           {
             my.username = username;
             home-manager.useGlobalPkgs = true;
