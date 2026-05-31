@@ -106,16 +106,11 @@ in
     intel-media-driver
   ];
 
-  hardware.firmware = [ virtualDisplayEDID ];
-
-  # Symlink EDID firmware to kernel firmware path (required by drm.edid_firmware)
-  systemd.tmpfiles.rules = [
-    "L+ /lib/firmware/edid/virtual-display.bin - - - - ${virtualDisplayEDID}/lib/firmware/edid/virtual-display.bin"
-  ];
+  # Note: EDID firmware override (drm.edid_firmware) does not work with NVIDIA proprietary driver.
+  # Virtual display resolution is set via kernel video= parameter instead.
 
   boot.kernelParams = [
-    "video=HDMI-A-1:e"
-    "drm.edid_firmware=HDMI-A-1:edid/virtual-display.bin"
+    "video=HDMI-A-1:2460x1080@60e"
   ];
 
   services.xserver.videoDrivers = [ "nvidia" ];
