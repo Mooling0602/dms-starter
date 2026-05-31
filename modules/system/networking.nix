@@ -1,6 +1,8 @@
 { config, pkgs, ... }:
 
 {
+  networking.firewall.enable = false;
+
   networking.networkmanager.enable = true;
 
   programs.clash-verge = {
