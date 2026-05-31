@@ -4,6 +4,8 @@
 
 ## 结构
 
+> 该部分信息存在滞后性，当前版本：2026-05-31 14:41
+
 ```
 ├── flake.nix                     # Flake 入口（username let 绑定在此）
 ├── flake.lock
