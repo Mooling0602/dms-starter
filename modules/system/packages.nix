@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 
 {
+  programs.steam.enable = true;
   nixpkgs.config.allowUnfree = true;
 
   # 排除 GNOME 文件管理器，使用 KDE/Dolphin
