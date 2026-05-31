@@ -136,6 +136,4 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 
 ## 待优化
 
-- `niri/hm.kdl` 是旧残留，可以删除
-- `assets/README.md` 是自动生成的，可以删除
 - 详情参见 `https://github.com/AvengeMedia/DankMaterialShell/issues/1788`
