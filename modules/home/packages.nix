@@ -36,6 +36,9 @@
     # KDE Connect
     kdePackages.kdeconnect-kde
 
+    # virtual display mode utility
+    wlr-randr
+
     # misc
     file
     which

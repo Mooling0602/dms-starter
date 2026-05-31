@@ -88,6 +88,24 @@
     "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
   };
 
+  systemd.user.services.virtual-display-mode = let
+    wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
+  in {
+    Unit = {
+      Description = "Add custom modes to virtual display HDMI-A-1";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'";
+      RemainAfterExit = true;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.kdeconnectd = {
     Unit = {
       Description = "KDE Connect daemon";
