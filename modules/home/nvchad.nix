@@ -8,8 +8,6 @@ let
       once = true,
       callback = function()
         vim.schedule(function()
-          local base46 = require("base46")
-          base46.setup({ transparency = true })
           local ok, _ = pcall(vim.cmd.colorscheme, "dms")
           if not ok then
             vim.notify("DMS theme not found, run dms setup", vim.log.levels.WARN)
@@ -17,6 +15,14 @@ let
         end)
       end,
     })
+  '';
+
+  chadrc = ''
+    local M = {}
+    M.base46 = {
+      transparency = true,
+    }
+    return M
   '';
 in
 {
@@ -38,6 +44,7 @@ in
       }
     '';
     extraConfig = dmsThemeConfig;
+    chadrcConfig = chadrc;
     backup = true;
   };
 
