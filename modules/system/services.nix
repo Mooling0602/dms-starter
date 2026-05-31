@@ -16,4 +16,16 @@
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+    settings = {
+      encoder = "quicksync";
+      adapter_name = "/dev/dri/renderD128";
+      origin_pin_allowed = "wayland";
+    };
+  };
 }
