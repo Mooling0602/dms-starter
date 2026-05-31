@@ -28,10 +28,44 @@
     systemd.enable = true;
 
     session = {
+      # WALLPAPER
       wallpaperPath = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
       wallpaperPathLight = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-light.png";
       wallpaperPathDark = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
       perModeWallpaper = true;
+      perMonitorWallpaper = false;
+      wallpaperTransition = "fade";
+      wallpaperCyclingEnabled = false;
+
+      # LOCATION
+      latitude = 25.839;
+      longitude = 114.913;
+
+      # NIGHT MODE
+      nightModeEnabled = false;
+      nightModeTemperature = 4500;
+      nightModeAutoEnabled = true;
+      nightModeAutoMode = "location";
+      nightModeStartHour = 18;
+      nightModeEndHour = 6;
+      nightModeUseIPLocation = false;
+
+      # AUTO THEME
+      themeModeAutoEnabled = true;
+      themeModeAutoMode = "location";
+      themeModeStartHour = 18;
+      themeModeEndHour = 6;
+      themeModeShareGammaSettings = true;
+
+      # WEATHER
+      weatherLocation = "Ganzhou";
+      weatherCoordinates = "25.839,114.913";
+      weatherHourlyDetailed = true;
+
+      # MISC
+      showThirdPartyPlugins = false;
+      searchAppActions = true;
+      configVersion = 3;
     };
   };
 
