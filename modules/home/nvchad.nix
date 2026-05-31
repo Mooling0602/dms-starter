@@ -22,14 +22,29 @@ let
       local base46 = require("base46")
 
       -- Sync nvconfig settings (chadrc overrides) into base46.
-      -- This must happen here because during plugin build, nvconfig
-      -- isn't available yet when load_all_highlights first runs.
       local nvcfg_ok, nvcfg = pcall(require, "nvconfig")
       if nvcfg_ok and nvcfg.base46 then
         base46.setup(nvcfg.base46)
       end
 
       pcall(vim.cmd.colorscheme, "dms")
+
+      -- Nvim-tree uses winhighlight which bypasses base46's hl_override.
+      -- Set nvim-tree highlights directly using current theme colors.
+      local theme = base46.theme_tables["dms"]
+      if theme then
+        local c = theme.base_30
+        vim.api.nvim_set_hl(0, "NvimTreeNormal",    { bg = c.black })
+        vim.api.nvim_set_hl(0, "NvimTreeNormalNC",  { bg = c.black })
+        vim.api.nvim_set_hl(0, "NvimTreeCursorLine", { bg = c.black2 })
+        vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { fg = c.darker_black, bg = c.black })
+        vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = c.darker_black, bg = c.darker_black })
+        vim.api.nvim_set_hl(0, "NvimTreeFolderName", { fg = "#2e5a4c" })
+        vim.api.nvim_set_hl(0, "NvimTreeFolderIcon", { fg = "#2e5a4c" })
+        vim.api.nvim_set_hl(0, "NvimTreeEmptyFolderName", { fg = "#2e5a4c" })
+        vim.api.nvim_set_hl(0, "NvimTreeRootFolder", { fg = "#1a6b5a", bold = true })
+        vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = "#c2ddc8" })
+      end
     end
 
     vim.defer_fn(load_dms_theme, 1000)
