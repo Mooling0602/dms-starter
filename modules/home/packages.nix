@@ -82,5 +82,6 @@
     google-chrome
     bilibili
     claude-code
+    opencode
   ];
 }
