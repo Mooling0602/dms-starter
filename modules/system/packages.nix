@@ -20,6 +20,10 @@
     kdePackages.xdg-desktop-portal-kde
   ];
 
+  # 修复 Dolphin 右键「打开方式」看不到应用的问题
+  environment.etc."xdg/menus/applications.menu".source =
+    "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
+
   environment.variables = {
     EDITOR = "nvim";
     QT_PLUGIN_PATH = [
