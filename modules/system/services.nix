@@ -23,9 +23,9 @@
     capSysAdmin = true;
     openFirewall = true;
     settings = {
-      encoder = "quicksync";
+      encoder = "qsv";
       adapter_name = "/dev/dri/renderD128";
-      origin_pin_allowed = "wayland";
+      capture = "wlr";
     };
   };
 }
