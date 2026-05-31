@@ -18,13 +18,32 @@ let
     end
     vim.api.nvim_create_user_command("DmsDebug", dms_debug, {})
 
-    local function fix_ui_colors()
+    local function fix_popup_colors()
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
       if not theme then return end
       local c = theme.base_30
 
-      -- NvimTree: solid background + readable colors
+      -- Floating window borders
+      vim.api.nvim_set_hl(0, "FloatBorder",           { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopeBorder",       { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopeResultsBorder",{ fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "CmpDocBorder",          { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "BlinkCmpDocBorder",     { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder",    { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "NotifyBorder",          { fg = c.line, bg = "NONE" })
+      -- Solid backgrounds for popup content
+      vim.api.nvim_set_hl(0, "NormalFloat",           { bg = c.black })
+      vim.api.nvim_set_hl(0, "MasonNormal",           { bg = c.black })
+    end
+
+    local function fix_nvimtree_colors()
+      local base46 = require("base46")
+      local theme = base46.theme_tables["dms"]
+      if not theme then return end
+      local c = theme.base_30
+
       vim.api.nvim_set_hl(0, "NvimTreeNormal",    { bg = c.black })
       vim.api.nvim_set_hl(0, "NvimTreeNormalNC",  { bg = c.black })
       vim.api.nvim_set_hl(0, "NvimTreeCursorLine", { bg = c.black2 })
@@ -35,40 +54,31 @@ let
       vim.api.nvim_set_hl(0, "NvimTreeEmptyFolderName", { fg = "#2e5a4c" })
       vim.api.nvim_set_hl(0, "NvimTreeRootFolder", { fg = "#1a6b5a", bold = true })
       vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = c.one_bg3 })
-
-      -- Floating window borders: visible divider between popups and editor
-      vim.api.nvim_set_hl(0, "FloatBorder",           { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "TelescopeBorder",       { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "TelescopeResultsBorder",{ fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "CmpDocBorder",          { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "BlinkCmpDocBorder",     { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder",    { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "NotifyBorder",          { fg = c.line, bg = "NONE" })
-      vim.api.nvim_set_hl(0, "MasonNormal",           { bg = c.black })
     end
 
     local function load_dms_theme()
       local base46 = require("base46")
 
-      -- Sync nvconfig settings (chadrc overrides) into base46.
       local nvcfg_ok, nvcfg = pcall(require, "nvconfig")
       if nvcfg_ok and nvcfg.base46 then
         base46.setup(nvcfg.base46)
       end
 
       pcall(vim.cmd.colorscheme, "dms")
+
+      -- Fix popup borders/backgrounds immediately after theme loads
+      vim.defer_fn(fix_popup_colors, 100)
     end
 
     -- Load DMS theme after startup delay
     vim.defer_fn(load_dms_theme, 1000)
 
-    -- Fix nvim-tree colors: apply AFTER nvim-tree loads (it overwrites our hl)
+    -- Fix nvim-tree: runs AFTER nvim-tree lazy-loads (it overwrites our hl)
     vim.api.nvim_create_autocmd("FileType", {
       pattern = "NvimTree",
       once = true,
       callback = function()
-        vim.defer_fn(fix_ui_colors, 100)
+        vim.defer_fn(fix_nvimtree_colors, 100)
       end,
     })
   '';
