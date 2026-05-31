@@ -18,21 +18,33 @@ let
     end
     vim.api.nvim_create_user_command("DmsDebug", dms_debug, {})
 
-    local function fix_nvimtree_colors()
+    local function fix_ui_colors()
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
       if not theme then return end
       local c = theme.base_30
+
+      -- NvimTree: solid background + readable colors
       vim.api.nvim_set_hl(0, "NvimTreeNormal",    { bg = c.black })
       vim.api.nvim_set_hl(0, "NvimTreeNormalNC",  { bg = c.black })
       vim.api.nvim_set_hl(0, "NvimTreeCursorLine", { bg = c.black2 })
       vim.api.nvim_set_hl(0, "NvimTreeEndOfBuffer", { fg = c.darker_black, bg = c.black })
-      vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = c.darker_black, bg = c.darker_black })
+      vim.api.nvim_set_hl(0, "NvimTreeWinSeparator", { fg = c.line, bg = c.darker_black })
       vim.api.nvim_set_hl(0, "NvimTreeFolderName", { fg = "#2e5a4c" })
       vim.api.nvim_set_hl(0, "NvimTreeFolderIcon", { fg = "#2e5a4c" })
       vim.api.nvim_set_hl(0, "NvimTreeEmptyFolderName", { fg = "#2e5a4c" })
       vim.api.nvim_set_hl(0, "NvimTreeRootFolder", { fg = "#1a6b5a", bold = true })
-      vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = "#c2ddc8" })
+      vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = c.one_bg3 })
+
+      -- Floating window borders: visible divider between popups and editor
+      vim.api.nvim_set_hl(0, "FloatBorder",           { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopeBorder",       { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "TelescopeResultsBorder",{ fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "CmpDocBorder",          { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "BlinkCmpDocBorder",     { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder",    { fg = c.line, bg = "NONE" })
+      vim.api.nvim_set_hl(0, "NotifyBorder",          { fg = c.line, bg = "NONE" })
     end
 
     local function load_dms_theme()
@@ -55,7 +67,7 @@ let
       pattern = "NvimTree",
       once = true,
       callback = function()
-        vim.defer_fn(fix_nvimtree_colors, 100)
+        vim.defer_fn(fix_ui_colors, 100)
       end,
     })
   '';
