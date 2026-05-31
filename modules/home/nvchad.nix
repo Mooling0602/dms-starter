@@ -29,7 +29,7 @@ in
     extraPlugins = ''
       return {
         {
-          "AvengeMedia/base46",
+          "Mooling0602/base46",
           branch = "v3.0",
           lazy = true,
         },
