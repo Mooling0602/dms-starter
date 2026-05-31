@@ -28,6 +28,7 @@
     settings = {
       adapter_name = "/dev/dri/renderD128";
       capture = "kms";
+      locale = "zh_CN";
     };
   };
 }
