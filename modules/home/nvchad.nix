@@ -40,7 +40,13 @@ let
     M.base46 = {
       transparency = true,
       hl_override = {
-        NvimTreeEndOfBuffer = { fg = "NONE" },
+        -- Solid background for file tree (transparency looks dark)
+        NvimTreeNormal = { bg = "black" },
+        NvimTreeNormalNC = { bg = "black" },
+        NvimTreeCursorLine = { bg = "black2" },
+        NvimTreeEndOfBuffer = { fg = "darker_black", bg = "black" },
+        NvimTreeWinSeparator = { fg = "darker_black", bg = "darker_black" },
+        -- Readable folder colors
         NvimTreeFolderName = { fg = "#2e5a4c" },
         NvimTreeFolderIcon = { fg = "#2e5a4c" },
         NvimTreeEmptyFolderName = { fg = "#2e5a4c" },
