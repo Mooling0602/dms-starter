@@ -45,8 +45,14 @@ in
     nvim_colors="${config.xdg.configHome}/nvim/colors"
     nvim_lualine="${config.xdg.configHome}/nvim/lua/lualine/themes"
     $DRY_RUN_CMD mkdir -p "$nvim_colors" "$nvim_lualine"
-    if systemctl --user -q is-active dms.service 2>/dev/null; then
-      $DRY_RUN_CMD systemctl --user restart dms.service
+
+    # Restore DMS-generated theme from newest backup
+    latest_bak=$(ls -dt ${config.xdg.configHome}/nvim_*.bak 2>/dev/null | head -1)
+    if [ -n "$latest_bak" ] && [ -f "$latest_bak/colors/dms.lua" ]; then
+      $DRY_RUN_CMD cp "$latest_bak/colors/dms.lua" "$nvim_colors/dms.lua"
+    fi
+    if [ -n "$latest_bak" ] && [ -f "$latest_bak/lua/lualine/themes/dms.lua" ]; then
+      $DRY_RUN_CMD cp "$latest_bak/lua/lualine/themes/dms.lua" "$nvim_lualine/dms.lua"
     fi
   '';
 }
