@@ -1,6 +1,9 @@
 { config, pkgs, ... }:
 
 {
+  services.power-profiles-daemon.enable = true;
+  services.thermald.enable = true;
+
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
 
