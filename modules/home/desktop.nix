@@ -81,6 +81,22 @@
     "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
   };
 
+  systemd.user.services.kdeconnectd = {
+    Unit = {
+      Description = "KDE Connect daemon";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "exec";
+      ExecStart = "${pkgs.kdePackages.kdeconnect-kde}/bin/kdeconnectd";
+      Restart = "on-failure";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   systemd.user.services.dms-set-avatar = {
     Unit = {
       Description = "Set DMS profile avatar after DMS starts";
