@@ -108,8 +108,10 @@ in
 
   hardware.firmware = [ virtualDisplayEDID ];
 
-  boot.initrd.extraFiles."lib/firmware/edid/virtual-display.bin".source =
-    "${virtualDisplayEDID}/lib/firmware/edid/virtual-display.bin";
+  # Symlink EDID firmware to kernel firmware path (required by drm.edid_firmware)
+  systemd.tmpfiles.rules = [
+    "L+ /lib/firmware/edid/virtual-display.bin - - - - ${virtualDisplayEDID}/lib/firmware/edid/virtual-display.bin"
+  ];
 
   boot.kernelParams = [
     "video=HDMI-A-1:e"
