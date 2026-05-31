@@ -2,6 +2,22 @@
 
 let
   dmsThemeConfig = ''
+    local function dms_debug()
+      local base46 = require("base46")
+      local mode = vim.fn.system({ "dms", "ipc", "call", "theme", "getMode" }):gsub("%s+", "")
+      local dms_ok = vim.fn.filereadable(vim.fn.stdpath("config") .. "/colors/dms.lua") == 1
+      local hl = vim.api.nvim_get_hl(0, { name = "Normal" })
+      vim.print("--- DMS debug ---")
+      vim.print("DMS mode:     " .. mode)
+      vim.print("vim.o.bg:     " .. vim.o.background)
+      vim.print("colors_name:  " .. (vim.g.colors_name or "nil"))
+      vim.print("transparency: " .. tostring(base46.opts.transparency))
+      vim.print("dms.lua:      " .. (dms_ok and "found" or "missing"))
+      vim.print("Normal.bg:    " .. tostring(hl.bg))
+      vim.print("---")
+    end
+    vim.api.nvim_create_user_command("DmsDebug", dms_debug, {})
+
     local function load_dms_theme()
       local base46 = require("base46")
 
