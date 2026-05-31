@@ -11,7 +11,6 @@
   environment.systemPackages = with pkgs; [
     git
     vim
-    neovim
     curl
     wget
     clash-verge-rev

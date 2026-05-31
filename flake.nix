@@ -19,6 +19,10 @@
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix4nvchad = {
+      url = "github:nix-community/nix4nvchad";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, ... }:
@@ -35,10 +39,11 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} = { config, pkgs, ... }: {
+            home-manager.users.${username} = { config, pkgs, inputs, ... }: {
               imports = [
                 ./modules/home
                 inputs.dms.homeModules.dank-material-shell
+                inputs.nix4nvchad.homeManagerModule
               ];
             };
             home-manager.extraSpecialArgs = inputs // { inherit username; };

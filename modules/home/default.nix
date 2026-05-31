@@ -7,6 +7,7 @@
     ./desktop.nix
     ./git.nix
     ./ssh.nix
+    ./nvchad.nix
   ];
 
   home.username = username;
