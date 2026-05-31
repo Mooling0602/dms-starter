@@ -111,9 +111,12 @@
     toggleScript = pkgs.writeShellScript "sunshine-display-toggle" ''
       journalctl --user -u sunshine.service -f -n 0 | while read -r line; do
         if echo "$line" | grep -q "CLIENT CONNECTED"; then
+          sleep 2
           ${wlr-randr} --output eDP-1 --off
+          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'
         elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
           ${wlr-randr} --output eDP-1 --on
+          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'
         fi
       done
     '';
