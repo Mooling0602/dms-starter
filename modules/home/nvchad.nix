@@ -33,9 +33,7 @@ let
       vim.api.nvim_set_hl(0, "BlinkCmpDocBorder",     { fg = c.line, bg = "NONE" })
       vim.api.nvim_set_hl(0, "BlinkCmpMenuBorder",    { fg = c.line, bg = "NONE" })
       vim.api.nvim_set_hl(0, "NotifyBorder",          { fg = c.line, bg = "NONE" })
-      -- Solid backgrounds for popup content
-      vim.api.nvim_set_hl(0, "NormalFloat",           { bg = c.black })
-      vim.api.nvim_set_hl(0, "MasonNormal",           { bg = c.black })
+      vim.api.nvim_set_hl(0, "NormalFloat", { bg = c.black })
     end
 
     local function fix_nvimtree_colors()
