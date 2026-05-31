@@ -38,9 +38,9 @@
         modules = [
           ./hosts/mooling-laptop
           home-manager.nixosModules.home-manager
-          apollo-flake.nixosModules.default
+          apollo-flake.nixosModules.x86_64-linux.default
           ({ pkgs, ... }: {
-            services.apollo.package = apollo-flake.packages.default;
+            services.apollo.package = apollo-flake.packages.x86_64-linux.default;
           })
           {
             my.username = username;
