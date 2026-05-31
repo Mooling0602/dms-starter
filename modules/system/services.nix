@@ -23,7 +23,6 @@
     capSysAdmin = true;
     openFirewall = true;
     settings = {
-      encoder = "qsv";
       adapter_name = "/dev/dri/renderD128";
       capture = "wlr";
     };
