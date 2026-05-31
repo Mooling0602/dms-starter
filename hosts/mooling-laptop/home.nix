@@ -197,16 +197,16 @@
   };
 
   # Niri 配置通过 mkOutOfStoreSymlink 管理，DMS 可自由修改
-  xdg.configFile = {
-    "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/config.kdl;
-    "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/alttab.kdl;
-    "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/binds.kdl;
-    "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/colors.kdl;
-    "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/cursor.kdl;
-    "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/layout.kdl;
-    "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/outputs.kdl;
-    "niri/dms/windowrules.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/windowrules.kdl;
-    "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink ../../niri/dms/wpblur.kdl;
+  xdg.configFile = let niriDir = "${config.home.homeDirectory}/nixos-config/niri"; in {
+    "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
+    "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
+    "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
+    "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/colors.kdl";
+    "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/cursor.kdl";
+    "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/layout.kdl";
+    "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/outputs.kdl";
+    "niri/dms/windowrules.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/windowrules.kdl";
+    "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
   };
 
   # systemd.user.services.niri-flake-polkit.enable = false;
