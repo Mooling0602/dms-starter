@@ -30,6 +30,7 @@
       capture = "kms";
       locale = "zh_CN";
       upnp = "enabled";
+      native_pen_touch = "enabled";
     };
   };
 }
