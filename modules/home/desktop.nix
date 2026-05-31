@@ -113,9 +113,9 @@
         if echo "$line" | grep -q "CLIENT CONNECTED"; then
           sleep 2
           ${wlr-randr} --output eDP-1 --off
-          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'
+          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz' --pos 0,0
         elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
-          ${wlr-randr} --output eDP-1 --on
+          ${wlr-randr} --output eDP-1 --on --pos 0,0
           ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'
         fi
       done
