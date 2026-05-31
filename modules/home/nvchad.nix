@@ -3,35 +3,31 @@
 let
   dmsThemeConfig = ''
     local function load_dms_theme()
-      local mode = vim.fn.system({ "dms", "ipc", "call", "theme", "getMode" }):gsub("%s+", "")
       local base46 = require("base46")
-      local chadrc_ok, chadrc = pcall(require, "chadrc")
+
+      -- Sync settings from nvconfig (includes chadrc overrides) into base46
+      -- nvconfig isn't available when load_all_highlights first runs during
+      -- plugin build, so we need to manually apply the settings here.
       local nvcfg_ok, nvcfg = pcall(require, "nvconfig")
+      if nvcfg_ok and nvcfg.base46 then
+        base46.setup(nvcfg.base46)
+      end
+
+      local mode = vim.fn.system({ "dms", "ipc", "call", "theme", "getMode" }):gsub("%s+", "")
       vim.print("--- DMS debug ---")
       vim.print("DMS mode: " .. mode)
       vim.print("bg before: " .. vim.o.background)
-      vim.print("base46 opts.transparency: " .. tostring(base46.opts.transparency))
-      if chadrc_ok and chadrc.base46 then
-        vim.print("chadrc base46.transparency: " .. tostring(chadrc.base46.transparency))
-      else
-        vim.print("chadrc: " .. (chadrc_ok and "loaded but no base46" or "not found"))
-      end
-      if nvcfg_ok and nvcfg.base46 then
-        vim.print("nvconfig base46.transparency: " .. tostring(nvcfg.base46.transparency))
-      else
-        vim.print("nvconfig: " .. (nvcfg_ok and "loaded but no base46" or "not found"))
-      end
+      vim.print("transparency after sync: " .. tostring(base46.opts.transparency))
       local ok, _ = pcall(vim.cmd.colorscheme, "dms")
       if ok then
         local hl = vim.api.nvim_get_hl(0, { name = "Normal" })
-        vim.print("loaded dms ok: bg=" .. vim.o.background .. " Normal.bg=" .. tostring(hl.bg))
+        vim.print("loaded dms: bg=" .. vim.o.background .. " Normal.bg=" .. tostring(hl.bg))
       else
-        vim.print("ERROR: DMS theme not found, run dms setup")
+        vim.print("ERROR: DMS theme not found")
       end
       vim.print("---")
     end
 
-    -- Defer to let lazy.nvim finish loading plugins
     vim.defer_fn(load_dms_theme, 1000)
   '';
 
