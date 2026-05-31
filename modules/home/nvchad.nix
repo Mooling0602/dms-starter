@@ -8,8 +8,17 @@ let
       once = true,
       callback = function()
         vim.schedule(function()
+          local mode = vim.fn.system({ "dms", "ipc", "call", "theme", "getMode" }):gsub("%s+", "")
+          vim.notify(string.format("DMS mode: %s | bg before: %s | base46 transparency: %s",
+            mode, vim.o.background, tostring(require("base46").opts.transparency)),
+            vim.log.levels.INFO, { title = "DMS debug" })
           local ok, _ = pcall(vim.cmd.colorscheme, "dms")
-          if not ok then
+          if ok then
+            local hl = vim.api.nvim_get_hl(0, { name = "Normal" })
+            vim.notify(string.format("Loaded dms | bg after: %s | Normal bg: %s",
+              vim.o.background, tostring(hl.bg)),
+              vim.log.levels.INFO, { title = "DMS debug" })
+          else
             vim.notify("DMS theme not found, run dms setup", vim.log.levels.WARN)
           end
         end)
