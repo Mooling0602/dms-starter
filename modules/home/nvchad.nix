@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, lib, ... }:
 
 let
   dmsThemeConfig = ''
@@ -38,4 +38,13 @@ in
     extraConfig = dmsThemeConfig;
     backup = true;
   };
+
+  home.activation.dmsNvimColors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    nvim_colors="${config.xdg.configHome}/nvim/colors"
+    nvim_lualine="${config.xdg.configHome}/nvim/lua/lualine/themes"
+    $DRY_RUN_CMD mkdir -p "$nvim_colors" "$nvim_lualine"
+    if systemctl --user -q is-active dms.service 2>/dev/null; then
+      $DRY_RUN_CMD systemctl --user restart dms.service
+    fi
+  '';
 }
