@@ -24,7 +24,7 @@
     openFirewall = true;
     settings = {
       adapter_name = "/dev/dri/renderD128";
-      capture = "wlr";
+      capture = "kms";
     };
   };
 }
