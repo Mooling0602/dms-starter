@@ -24,6 +24,7 @@
 │   │   ├── desktop.nix           # DMS、niri symlinks、alacritty、壁纸/头像、dms-set-avatar
 │   │   └── git.nix               # git 用户配置
 │   └── system/                   # 通用系统模块（可跨机器复用）
+│       ├── config.nix            # my.username 选项定义
 │       ├── desktop.nix           # dms-greeter + niri + Firefox
 │       ├── fonts.nix             # 系统级字体
 │       ├── i18n.nix              # zh_CN 语言 + fcitx5 中文输入法（waylandFrontend）
@@ -52,6 +53,27 @@
 sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 ```
 
+## 自定义用户名
+
+`flake.nix` 顶部 `let username = "mooling"` 是唯一需要修改的地方。所有系统模块和 Home Manager 配置都引用此变量，无需手动替换。
+
+## 新机器部署
+
+```fish
+# 1. 克隆配置
+git clone git@github.com:Mooling0602/dms-starter.git ~/nixos-config
+
+# 2. 生成硬件配置
+sudo nixos-generate-config --root / --dir ~/nixos-config/hosts/<hostname>
+
+# 3. 创建机器专属 default.nix（参考 hosts/mooling-laptop/default.nix）
+# 4. 创建机器专属 gpu.nix（参考 hosts/mooling-laptop/gpu.nix）
+# 5. 在 flake.nix 中添加 nixosConfigurations.<hostname>
+# 6. 修改 flake.nix 中的 username（若不同）
+# 7. 重建
+sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
+```
+
 ## 工作流程
 
 每次修改配置时按此顺序操作：
@@ -59,6 +81,8 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 1. **修改** — 编辑配置文件
 
 2. **提交** — `git commit` 到本地
+
+> 在重建前进行提交，以避免`warning: Git tree '/home/mooling/nixos-config' is dirty`警告。
 
 3. **重建验证** — `sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop`，确认无报错
 
@@ -79,6 +103,8 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 4. **字体分两级** — 系统级 `fonts.packages`（greeter 可见）+ 用户级 `home.packages`（fontconfig 使用）。
 
 5. **DMS session 持久化** — `programs.dank-material-shell.session` 声明了壁纸路径、`perModeWallpaper`。壁纸文件通过 `home.file` 拷贝到 `~/.local/share/wallpapers/`。
+
+6. **用户名参数化** — `flake.nix` 的 `let username` 注入到 `my.username`（系统模块）和 `extraSpecialArgs`（Home Manager 模块）。`users.nix`、`desktop.nix`、`home/default.nix` 均通过 `${username}` 或 `${config.my.username}` 引用，消除所有硬编码。
 
 ## Niri 配置文件管理
 
