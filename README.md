@@ -54,22 +54,13 @@ outputs = inputs@{ nixpkgs, home-manager, ... }:
 # 1. 安装 NixOS 后，克隆配置仓库
 git clone git@github.com:Mooling0602/dms-starter.git ~/nixos-config
 
-# 2. 生成硬件配置
-sudo nixos-generate-config --root / --dir ~/nixos-config/hosts/<hostname>
+# 2. 运行部署脚本（交互式）
+cd ~/nixos-config && ./deploy.sh
 
-# 3. 创建机器专属 default.nix（参考 hosts/mooling-laptop/default.nix）
-#    必须 import: hardware-configuration.nix、gpu.nix、modules/system/*、modules/home/*
-#    根据机器调整: boot.loader、networking.hostName、stateVersion
+# 3. 设置密码
+sudo passwd <username>
 
-# 4. 创建 GPU 配置（参考 hosts/mooling-laptop/gpu.nix，按需调整）
-
-# 5. 在 flake.nix 的 outputs 中注册新机器:
-#    nixosConfigurations.<hostname> = nixpkgs.lib.nixosSystem { ... }
-#    （复制 mooling-laptop 的配置块，修改 host 路径和 hostname）
-
-# 6. 修改 flake.nix 中的 username（如需要）
-
-# 7. 重建
+# 4. 重建
 sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 ```
 
