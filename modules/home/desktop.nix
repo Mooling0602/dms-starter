@@ -62,6 +62,13 @@
       weatherCoordinates = "25.839,114.913";
       weatherHourlyDetailed = true;
 
+      # APP OVERRIDES
+      appOverrides = {
+        qq = {
+          extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
+        };
+      };
+
       # MISC
       showThirdPartyPlugins = false;
       searchAppActions = true;
