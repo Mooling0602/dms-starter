@@ -23,6 +23,7 @@
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     QT_WAYLAND_DECORATION = "ssd";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+    SSH_ASKPASS = "${pkgs.openssh-askpass}/bin/ssh-askpass";
   };
 
   # XDG Portal 偏好：KDE 优先
@@ -118,6 +119,7 @@
     glow # markdown previewer in terminal
     lazygit # terminal git UI
     gh # GitHub CLI
+    openssh-askpass  # SSH 密码弹窗
 
     btop  # replacement of htop/nmon
     iotop # io monitoring
