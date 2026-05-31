@@ -1,0 +1,44 @@
+input {
+    keyboard {
+        xkb {
+            layout ""
+            model ""
+            rules ""
+            variant ""
+        }
+        repeat-delay 600
+        repeat-rate 25
+        track-layout "global"
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+layout {
+    gaps 16
+    struts {
+        left 0
+        right 0
+        top 0
+        bottom 0
+    }
+    focus-ring { width 4; }
+    border { off; }
+    default-column-width
+    center-focused-column "never"
+}
+cursor {
+    xcursor-theme "default"
+    xcursor-size 24
+}
+environment {
+    "QT_QPA_PLATFORMTHEME" "qt6ct"
+    "QT_WAYLAND_DECORATION" "ssd"
+    "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1"
+}
+layer-rule {
+    match namespace="^quickshell$"
+    place-within-backdrop true
+}

@@ -34,8 +34,6 @@
             imports = [
               ./hosts/mooling-laptop/home.nix
               inputs.dms.homeModules.dank-material-shell
-              inputs.dms.homeModules.niri
-              inputs.niri.homeModules.niri
             ];
           };
           home-manager.extraSpecialArgs = inputs;

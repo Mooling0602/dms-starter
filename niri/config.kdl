@@ -1,0 +1,48 @@
+// Niri config — managed manually in flake, symlinked via mkOutOfStoreSymlink
+// DMS files are included first so they can be overridden by settings below
+
+input {
+    keyboard {
+        xkb {
+            layout "cn"
+            model ""
+            rules ""
+            variant ""
+        }
+        repeat-delay 600
+        repeat-rate 25
+        track-layout "global"
+    }
+    touchpad {
+        tap
+        natural-scroll
+    }
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+cursor {
+    xcursor-theme "breeze_cursors"
+    xcursor-size 24
+}
+
+environment {
+    "QT_QPA_PLATFORMTHEME" "qt6ct"
+    "QT_WAYLAND_DECORATION" "ssd"
+    "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1"
+}
+
+layer-rule {
+    match namespace="^quickshell$"
+    place-within-backdrop true
+}
+
+// DMS 生成的文件
+include "dms/alttab.kdl"
+include "dms/binds.kdl"
+include "dms/colors.kdl"
+include "dms/cursor.kdl"
+include "dms/layout.kdl"
+include "dms/outputs.kdl"
+include "dms/windowrules.kdl"
+include "dms/wpblur.kdl"
