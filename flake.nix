@@ -39,7 +39,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} = { config, pkgs, inputs, ... }: {
+            home-manager.users.${username} = { config, pkgs, ... }: {
               imports = [
                 ./modules/home
                 inputs.dms.homeModules.dank-material-shell
