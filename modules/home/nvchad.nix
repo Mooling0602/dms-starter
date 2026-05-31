@@ -39,6 +39,14 @@ let
     local M = {}
     M.base46 = {
       transparency = true,
+      hl_override = {
+        NvimTreeEndOfBuffer = { fg = "NONE" },
+        NvimTreeFolderName = { fg = "#2e5a4c" },
+        NvimTreeFolderIcon = { fg = "#2e5a4c" },
+        NvimTreeEmptyFolderName = { fg = "#2e5a4c" },
+        NvimTreeRootFolder = { fg = "#1a6b5a", bold = true },
+        NvimTreeIndentMarker = { fg = "#c2ddc8" },
+      },
     }
     return M
   '';
