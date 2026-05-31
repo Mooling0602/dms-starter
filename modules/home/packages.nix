@@ -30,6 +30,9 @@
     nmap
     ipcalc
 
+    # dev tools
+    gcc
+
     # misc
     file
     which
