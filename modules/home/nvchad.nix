@@ -5,18 +5,18 @@ let
     local function load_dms_theme()
       local mode = vim.fn.system({ "dms", "ipc", "call", "theme", "getMode" }):gsub("%s+", "")
       local base46 = require("base46")
-      vim.notify(string.format("DMS mode: %s | bg before: %s | base46 transparency: %s",
-        mode, vim.o.background, tostring(base46.opts.transparency)),
-        vim.log.levels.INFO, { title = "DMS debug" })
+      vim.print("--- DMS debug ---")
+      vim.print("DMS mode: " .. mode)
+      vim.print("bg before: " .. vim.o.background)
+      vim.print("transparency: " .. tostring(base46.opts.transparency))
       local ok, _ = pcall(vim.cmd.colorscheme, "dms")
       if ok then
         local hl = vim.api.nvim_get_hl(0, { name = "Normal" })
-        vim.notify(string.format("Loaded dms | bg after: %s | Normal bg: %s",
-          vim.o.background, tostring(hl.bg)),
-          vim.log.levels.INFO, { title = "DMS debug" })
+        vim.print("loaded dms ok: bg=" .. vim.o.background .. " Normal.bg=" .. tostring(hl.bg))
       else
-        vim.notify("DMS theme not found, run dms setup", vim.log.levels.WARN)
+        vim.print("ERROR: DMS theme not found, run dms setup")
       end
+      vim.print("---")
     end
 
     -- Defer to let lazy.nvim finish loading plugins
