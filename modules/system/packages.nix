@@ -3,6 +3,11 @@
 {
   nixpkgs.config.allowUnfree = true;
 
+  # 排除 GNOME 文件管理器，使用 KDE/Dolphin
+  environment.gnome.excludePackages = with pkgs; [
+    nautilus
+  ];
+
   environment.systemPackages = with pkgs; [
     git
     vim
