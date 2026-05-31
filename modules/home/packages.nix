@@ -33,6 +33,9 @@
     # dev tools
     gcc
 
+    # KDE Connect
+    kdePackages.kdeconnect-kde
+
     # misc
     file
     which
