@@ -31,7 +31,6 @@
       locale = "zh_CN";
       upnp = "enabled";
       native_pen_touch = "enabled";
-      output_name = "HDMI-A-1";
     };
   };
 }
