@@ -166,7 +166,7 @@
       };
       window = {
         decorations = "None";
-        opacity = 0.9;
+        opacity = 0.8;
         padding = { x = 8; y = 4; };
       };
     };
