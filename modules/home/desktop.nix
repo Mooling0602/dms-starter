@@ -84,8 +84,6 @@
   systemd.user.services.kdeconnectd = {
     Unit = {
       Description = "KDE Connect daemon";
-      PartOf = [ "graphical-session.target" ];
-      After = [ "graphical-session.target" ];
     };
     Service = {
       Type = "exec";
@@ -93,7 +91,7 @@
       Restart = "on-failure";
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = [ "default.target" ];
     };
   };
 
