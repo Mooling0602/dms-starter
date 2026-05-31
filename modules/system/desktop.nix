@@ -4,7 +4,7 @@
   services.displayManager.dms-greeter = {
     enable = true;
     compositor.name = "niri";
-    configHome = "/home/mooling";
+    configHome = "/home/${config.my.username}";
   };
 
   programs.niri.enable = true;

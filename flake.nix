@@ -21,24 +21,29 @@
     };
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, ... }: {
-    nixosConfigurations.mooling-laptop = nixpkgs.lib.nixosSystem {
-      modules = [
-        ./hosts/mooling-laptop
-        home-manager.nixosModules.home-manager
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "backup";
-          home-manager.users.mooling = { config, pkgs, ... }: {
-            imports = [
-              ./modules/home
-              inputs.dms.homeModules.dank-material-shell
-            ];
-          };
-          home-manager.extraSpecialArgs = inputs;
-        }
-      ];
+  outputs = inputs@{ nixpkgs, home-manager, ... }:
+    let
+      username = "mooling";  # ← 改这里即可替换用户名
+    in
+    {
+      nixosConfigurations.mooling-laptop = nixpkgs.lib.nixosSystem {
+        modules = [
+          ./hosts/mooling-laptop
+          home-manager.nixosModules.home-manager
+          {
+            my.username = username;
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.backupFileExtension = "backup";
+            home-manager.users.${username} = { config, pkgs, ... }: {
+              imports = [
+                ./modules/home
+                inputs.dms.homeModules.dank-material-shell
+              ];
+            };
+            home-manager.extraSpecialArgs = inputs // { inherit username; };
+          }
+        ];
+      };
     };
-  };
 }

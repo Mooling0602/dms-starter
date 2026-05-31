@@ -1,9 +1,9 @@
 { config, pkgs, ... }:
 
 {
-  users.users.mooling = {
+  users.users.${config.my.username} = {
     isNormalUser = true;
-    description = "mooling";
+    description = config.my.username;
     extraGroups = [ "networkmanager" "wheel" ];
     shell = pkgs.fish;
     packages = with pkgs; [
@@ -16,7 +16,7 @@
     enable = true;
     extraRules = [
       {
-        users = [ "mooling" ];
+        users = [ config.my.username ];
         commands = [
           {
             command = "ALL";

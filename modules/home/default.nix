@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, username, ... }:
 
 {
   imports = [
@@ -8,7 +8,7 @@
     ./git.nix
   ];
 
-  home.username = "mooling";
-  home.homeDirectory = "/home/mooling";
+  home.username = username;
+  home.homeDirectory = "/home/${username}";
   home.stateVersion = "25.11";
 }
