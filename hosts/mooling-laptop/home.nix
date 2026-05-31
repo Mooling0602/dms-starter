@@ -69,6 +69,7 @@
     kdePackages.breeze
     kdePackages.plasma-integration
     kdePackages.qqc2-desktop-style
+    kdePackages.kservice  # kbuildsycoca6
 
     # Basic
     python3
