@@ -29,10 +29,6 @@ in
     extraPlugins = ''
       return {
         {
-          "nvchad/base46",
-          enabled = false,
-        },
-        {
           "AvengeMedia/base46",
           branch = "v3.0",
           lazy = true,
