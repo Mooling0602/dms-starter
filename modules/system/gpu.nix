@@ -6,8 +6,7 @@
   services.xserver.videoDrivers = [ "nvidia" ];
 
   hardware.nvidia = {
-    # 使用闭源驱动（非开源内核模块）
-    open = false;
+    open = true;
     modesetting.enable = true;
     powerManagement.enable = true;
 

@@ -43,6 +43,16 @@
 sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 ```
 
+## 工作流程
+
+每次修改配置时按此顺序操作：
+
+1. **修改** — 编辑配置文件
+2. **提交** — `git commit` 到本地
+3. **重建验证** — `sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop`，确认无报错
+4. **推送** — `git push`
+5. **提交信息格式** — 使用 `Co-Authored-By: Claude Code CLI <noreply@anthropic.com>`
+
 ## 关键设计决策
 
 1. **Niri 配置用 mkOutOfStoreSymlink** — 源自 [DMS issue #1788](https://github.com/AvengeMedia/DankMaterialShell/issues/1788)。移除了 `niri-flake` 和 DMS 的 `niri.includes` 模块，改用 `xdg.configFile` + `config.lib.file.mkOutOfStoreSymlink` 指向 `~/nixos-config/niri/`。DMS 可自由写入，改动直接进 git。
