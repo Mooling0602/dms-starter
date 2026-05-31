@@ -6,7 +6,7 @@
     extraPackages = with pkgs; [
       nixd
       lua-language-server
-      nodePackages.bash-language-server
+      bash-language-server
       python3Packages.python-lsp-server
     ];
     backup = true;
