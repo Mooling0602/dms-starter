@@ -88,5 +88,6 @@
     opencode
     zed-editor
     reasonix
+    reasonix-go
   ];
 }

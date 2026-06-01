@@ -31,6 +31,10 @@
       url = "github:Mooling0602/nix-packages";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, apollo-flake, ... }:
@@ -54,7 +58,13 @@
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
               })
               (final: prev: {
-                reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
+                reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
+                reasonix-go = (inputs.nix-packages.packages.${final.system}.reasonix-go).overrideAttrs (old: {
+                  postInstall = (old.postInstall or "") + ''
+                    mv $out/bin/reasonix $out/bin/reasonix-go
+                  '';
+                  meta = (old.meta or {}) // { mainProgram = "reasonix-go"; };
+                });
               })
             ];
             home-manager.useGlobalPkgs = true;
