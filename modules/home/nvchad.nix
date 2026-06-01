@@ -93,13 +93,21 @@ let
       end,
     })
 
-    -- Fix tabline: runs AFTER colorscheme "dms" triggers (NvChad tabline sets its hl in response)
+    -- Fix tabline: runs on colorscheme load, OR on first BufEnter after tabline appears
+    local tabline_fixed = false
+    local function try_fix_tabline()
+      if tabline_fixed then return end
+      local base46 = require("base46")
+      if not base46.theme_tables["dms"] then return end
+      fix_tabline_colors()
+      tabline_fixed = true
+    end
     vim.api.nvim_create_autocmd("ColorScheme", {
       pattern = "dms",
-      once = true,
-      callback = function()
-        vim.defer_fn(fix_tabline_colors, 300)
-      end,
+      callback = function() vim.defer_fn(try_fix_tabline, 300) end,
+    })
+    vim.api.nvim_create_autocmd("BufEnter", {
+      callback = try_fix_tabline,
     })
   '';
 
