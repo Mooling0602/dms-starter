@@ -45,6 +45,11 @@
           })
           {
             my = { inherit username hostname; };
+            nixpkgs.overlays = [
+              (final: prev: {
+                xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+              })
+            ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
