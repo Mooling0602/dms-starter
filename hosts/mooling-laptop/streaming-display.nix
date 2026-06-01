@@ -15,38 +15,49 @@ lib.mkIf (hostname == "mooling-laptop") {
     wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
     default-mode = "2460x1080@60";
     toggleScript = pkgs.writeShellScript "apollo-display-toggle" ''
+      # 清理上次运行残留的 timer 令牌
+      rm -f /dev/shm/apollo-timer-* 2>/dev/null
+
       # 启动时关闭虚拟屏，只保留主屏
       ${wlr-randr} --output HDMI-A-1 --off
 
-      timer_pid=""
+      timer_token=""
       client_attempting="false"
       client_device=""
       client_mode="${default-mode}"
       client_scale="1"
 
+      # 文件令牌：timer 后台进程醒来时检查令牌文件是否仍存在
+      # 被 cancel 时删除文件，后台进程检查文件不存在即退出
       cancel_timer() {
-        kill "$timer_pid" 2>/dev/null
-        timer_pid=""
+        [ -n "$timer_token" ] && rm -f "$timer_token" 2>/dev/null
+        timer_token=""
       }
 
       start_idle_timer() {
         cancel_timer
+        timer_token="/dev/shm/apollo-timer-idle-$$-$RANDOM"
+        : > "$timer_token"
         (
           sleep 300
+          [ -f "$timer_token" ] || exit 0
+          rm -f "$timer_token"
           ${wlr-randr} --output eDP-1 --on --pos 0,0
           ${wlr-randr} --output HDMI-A-1 --off
         ) &
-        timer_pid=$!
       }
 
       start_disconnect_timer() {
         cancel_timer
+        timer_token="/dev/shm/apollo-timer-disc-$$-$RANDOM"
+        : > "$timer_token"
         (
           sleep 5
+          [ -f "$timer_token" ] || exit 0
+          rm -f "$timer_token"
           ${wlr-randr} --output HDMI-A-1 --off
           ${wlr-randr} --output eDP-1 --on --pos 0,0
         ) &
-        timer_pid=$!
       }
 
       # 根据设备名查找对应的屏幕参数
@@ -96,6 +107,7 @@ lib.mkIf (hostname == "mooling-laptop") {
       ExecStart = "${toggleScript}";
       Restart = "on-failure";
       RestartSec = 5;
+      KillMode = "process";
     };
     Install = {
       WantedBy = [ "graphical-session.target" ];
