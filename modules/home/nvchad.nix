@@ -36,6 +36,19 @@ let
       vim.api.nvim_set_hl(0, "NormalFloat", { bg = c.black })
     end
 
+    local function fix_tabline_colors()
+      local base46 = require("base46")
+      local theme = base46.theme_tables["dms"]
+      if not theme then return end
+      local c = theme.base_30
+
+      vim.api.nvim_set_hl(0, "TabLine",      { fg = c.light_grey, bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TabLineFill",  { bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TabLineSel",   { fg = c.white, bg = c.black })
+      vim.api.nvim_set_hl(0, "TblineBufOn",  { fg = c.white, bg = c.black })
+      vim.api.nvim_set_hl(0, "TblineBufOff", { fg = c.light_grey, bg = c.black2 })
+    end
+
     local function fix_nvimtree_colors()
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
@@ -64,8 +77,9 @@ let
 
       pcall(vim.cmd.colorscheme, "dms")
 
-      -- Fix popup borders/backgrounds immediately after theme loads
+      -- Fix popup borders/backgrounds and tabline after theme loads
       vim.defer_fn(fix_popup_colors, 100)
+      vim.defer_fn(fix_tabline_colors, 200)
     end
 
     -- Load DMS theme after startup delay
@@ -98,6 +112,12 @@ let
         NvimTreeEmptyFolderName = { fg = "#2e5a4c" },
         NvimTreeRootFolder = { fg = "#1a6b5a", bold = true },
         NvimTreeIndentMarker = { fg = "#c2ddc8" },
+        -- Tabline background follows theme
+        TabLine = { fg = "light_grey", bg = "black2" },
+        TabLineFill = { bg = "black2" },
+        TabLineSel = { fg = "white", bg = "black" },
+        TblineBufOn = { fg = "white", bg = "black" },
+        TblineBufOff = { fg = "light_grey", bg = "black2" },
       },
     }
     return M
