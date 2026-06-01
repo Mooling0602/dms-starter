@@ -75,6 +75,31 @@ let
       vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = c.one_bg3 })
     end
 
+    -- Write base46 integration highlights to cache file so lazy-loaded
+    -- plugins (tabufline, nvimtree, treesitter, etc.) pick up DMS colors.
+    local function regenerate_cache(name)
+      local base46 = require("base46")
+      local highlights = base46.get_integration(name)
+      if not highlights then return end
+      local cache = {}
+      for hlname, hlopts in pairs(highlights) do
+        local parts = {}
+        for k, v in pairs(hlopts) do
+          if type(v) == "string" then
+            table.insert(parts, string.format("%s=%q", k, v))
+          elseif type(v) == "boolean" then
+            table.insert(parts, string.format("%s=%s", k, tostring(v)))
+          else
+            table.insert(parts, string.format("%s=%s", k, tostring(v)))
+          end
+        end
+        table.insert(cache, string.format(
+          "vim.api.nvim_set_hl(0,%q,{%s})", hlname, table.concat(parts, ",")))
+      end
+      local f = io.open(vim.g.base46_cache .. name, "w")
+      if f then f:write(table.concat(cache, "\n")) f:close() end
+    end
+
     local function load_dms_theme()
       local base46 = require("base46")
 
@@ -85,24 +110,9 @@ let
 
       pcall(vim.cmd.colorscheme, "dms")
 
-      -- Regenerate tbline cache so tabufline's dofile("tbline") picks up correct colors
-      local highlights = base46.get_integration("tbline")
-      if highlights then
-        local cache = {}
-        for hlname, hlopts in pairs(highlights) do
-          local parts = {}
-          for k, v in pairs(hlopts) do
-            if type(v) == "string" then
-              table.insert(parts, string.format("%s=%q", k, v))
-            else
-              table.insert(parts, string.format("%s=%s", k, tostring(v)))
-            end
-          end
-          table.insert(cache, string.format(
-            "vim.api.nvim_set_hl(0,%q,{%s})", hlname, table.concat(parts, ",")))
-        end
-        local f = io.open(vim.g.base46_cache .. "tbline", "w")
-        if f then f:write(table.concat(cache, "\n")) f:close() end
+      -- Regenerate all integration caches so lazy-loaded plugins get correct DMS colors
+      for name, _ in pairs(base46.opts.integrations) do
+        regenerate_cache(name)
       end
 
       -- Fix popup borders/backgrounds immediately after theme loads
