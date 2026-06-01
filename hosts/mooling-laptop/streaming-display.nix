@@ -59,6 +59,9 @@ lib.mkIf (hostname == "mooling-laptop") {
       journalctl --user -u apollo.service -f -n 0 | while read -r line; do
         if echo "$line" | grep -q "Display mode for client"; then
           client_attempting="true"
+          # 先回退到默认值，避免未知设备复用上一个设备的参数
+          client_mode="${default-mode}"
+          client_scale="1"
           # 提取设备名: "Display mode for client [NAME #tag]" → "NAME"
           client_device=$(echo "$line" | sed 's/.*Display mode for client \[\([^]]*\)\].*/\1/' | sed 's/ *#.*//')
           result=$(lookup_mode "$client_device")
