@@ -93,12 +93,16 @@ let
       end,
     })
 
-    -- Fix tabline: runs AFTER colorscheme "dms" loads (NvChad ui.tabline sets its own hl in response to ColorScheme)
-    vim.api.nvim_create_autocmd("ColorScheme", {
-      pattern = "dms",
-      once = true,
+    -- Fix tabline: runs on first Tabline event AFTER DMS theme is available
+    -- (Tabline event fires just before rendering, so NvChad's own hl init is already done)
+    local tabline_augroup = vim.api.nvim_create_augroup("DmsTablineFix", { clear = true })
+    vim.api.nvim_create_autocmd("Tabline", {
+      group = tabline_augroup,
       callback = function()
-        vim.defer_fn(fix_tabline_colors, 100)
+        local base46 = require("base46")
+        if not base46.theme_tables["dms"] then return end
+        fix_tabline_colors()
+        vim.api.nvim_del_augroup_by_id(tabline_augroup)
       end,
     })
   '';
