@@ -2,3 +2,4 @@ result/
 result-*
 .direnv/
 hosts/*/hardware-configuration.nix
+.env

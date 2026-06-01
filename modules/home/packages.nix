@@ -86,5 +86,6 @@
     bilibili
     claude-code
     opencode
+    zed-editor
   ];
 }
