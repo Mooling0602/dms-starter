@@ -101,13 +101,23 @@ let
       end,
     })
 
-    -- Fix tabline: on showtabline change (tabufline lazy-load), re-apply fix directly.
-    -- Tabufline's dofile("tbline") overwrites hl groups; 300ms defer lets it finish.
+    -- Fix tabline: when tabufline lazy-load activates, re-apply base46's tbline
+    -- integration (which properly applies hl_override + transparency) to overwrite
+    -- the stale cached colors loaded by dofile("tbline").
     vim.api.nvim_create_autocmd("OptionSet", {
       pattern = "showtabline",
       callback = function()
         if vim.o.showtabline == 2 then
-          vim.defer_fn(fix_tabline_colors, 300)
+          vim.defer_fn(function()
+            local base46 = require("base46")
+            if not base46.theme_tables["dms"] then return end
+            local highlights = base46.get_integration("tbline")
+            if highlights then
+              for hlname, hlopts in pairs(highlights) do
+                vim.api.nvim_set_hl(0, hlname, hlopts)
+              end
+            end
+          end, 300)
         end
       end,
     })
