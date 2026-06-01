@@ -59,6 +59,7 @@ lib.mkIf (hostname == "mooling-laptop") {
       journalctl --user -u apollo.service -f -n 0 | while read -r line; do
         if echo "$line" | grep -q "Display mode for client"; then
           client_attempting="true"
+          cancel_timer
           # 先回退到默认值，避免未知设备复用上一个设备的参数
           client_mode="${default-mode}"
           client_scale="1"
