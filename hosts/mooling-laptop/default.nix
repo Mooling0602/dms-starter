@@ -4,6 +4,7 @@
   imports = [
     ./hardware-configuration.nix
     ./gpu.nix
+    ./streaming.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
     ../../modules/system/desktop.nix
@@ -23,7 +24,7 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  networking.hostName = "mooling-laptop";
+  networking.hostName = config.my.hostname;
 
   system.stateVersion = "25.11";
 }

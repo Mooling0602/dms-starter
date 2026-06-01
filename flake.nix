@@ -32,29 +32,31 @@
   outputs = inputs@{ nixpkgs, home-manager, apollo-flake, ... }:
     let
       username = "mooling";  # ← 改这里即可替换用户名
+      hostname = "mooling-laptop";
     in
     {
-      nixosConfigurations.mooling-laptop = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
         modules = [
-          ./hosts/mooling-laptop
+          ./hosts/${hostname}
           home-manager.nixosModules.home-manager
           apollo-flake.nixosModules.x86_64-linux.default
           ({ pkgs, ... }: {
             services.apollo.package = apollo-flake.packages.x86_64-linux.default;
           })
           {
-            my.username = username;
+            my = { inherit username hostname; };
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
             home-manager.users.${username} = { config, pkgs, ... }: {
               imports = [
                 ./modules/home
+                ./hosts/${hostname}/home-streaming.nix
                 inputs.dms.homeModules.dank-material-shell
                 inputs.nix4nvchad.homeManagerModule
               ];
             };
-            home-manager.extraSpecialArgs = inputs // { inherit username; };
+            home-manager.extraSpecialArgs = inputs // { inherit username hostname; };
           }
         ];
       };

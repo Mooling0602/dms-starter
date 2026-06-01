@@ -88,54 +88,6 @@
     "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
   };
 
-  systemd.user.services.virtual-display-mode = let
-    wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
-  in {
-    Unit = {
-      Description = "Add custom modes to virtual display HDMI-A-1";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'";
-      RemainAfterExit = true;
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
-
-  systemd.user.services.sunshine-display-toggle = let
-    wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
-    toggleScript = pkgs.writeShellScript "sunshine-display-toggle" ''
-      journalctl --user -u apollo.service -f -n 0 | while read -r line; do
-        if echo "$line" | grep -q "CLIENT CONNECTED"; then
-          sleep 2
-          ${wlr-randr} --output eDP-1 --off
-          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz' --pos 0,0
-        elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
-          ${wlr-randr} --output eDP-1 --on --pos 0,0
-          ${wlr-randr} --output HDMI-A-1 --custom-mode '2460x1080@60Hz'
-        fi
-      done
-    '';
-  in {
-    Unit = {
-      Description = "Turn off laptop screen when Sunshine client connects";
-      After = [ "graphical-session.target" ];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${toggleScript}";
-      Restart = "on-failure";
-      RestartSec = 5;
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
-
   systemd.user.services.kdeconnectd = {
     Unit = {
       Description = "KDE Connect daemon";
