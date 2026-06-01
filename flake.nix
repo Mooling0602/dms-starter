@@ -51,7 +51,7 @@
             home-manager.users.${username} = { config, pkgs, ... }: {
               imports = [
                 ./modules/home
-                ./hosts/${hostname}/home-streaming.nix
+                ./hosts/${hostname}/streaming-display.nix
                 inputs.dms.homeModules.dank-material-shell
                 inputs.nix4nvchad.homeManagerModule
               ];
