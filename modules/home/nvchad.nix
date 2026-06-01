@@ -36,18 +36,28 @@ let
       vim.api.nvim_set_hl(0, "NormalFloat", { bg = c.black })
     end
 
+    -- Debug logging to file (readable by Claude)
+    local logfile = vim.fn.stdpath("cache") .. "/tabline-debug.log"
+    local function dlog(msg)
+      local f = io.open(logfile, "a")
+      if f then
+        f:write(string.format("[%s] %s\n", os.date("%H:%M:%S"), msg))
+        f:close()
+      end
+    end
+    -- Clear log on startup
+    local f = io.open(logfile, "w")
+    if f then f:write("=== tabline debug log ===\n") f:close() end
+
     local function fix_tabline_colors()
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
       if not theme then
-        vim.notify("[tabline debug] fix_tabline_colors: theme_tables['dms'] is nil", vim.log.levels.WARN)
+        dlog("fix_tabline_colors: theme_tables['dms'] is nil")
         return
       end
       local c = theme.base_30
-      vim.notify(
-        string.format("[tabline debug] fixing: black=%s black2=%s white=%s", c.black, c.black2, c.white),
-        vim.log.levels.INFO
-      )
+      dlog(string.format("fix_tabline_colors: black=%s black2=%s white=%s", c.black, c.black2, c.white))
 
       -- NvChad tabufline uses "Tb" prefix: TbFill, TbBufOn, TbBufOff, etc.
       vim.api.nvim_set_hl(0, "TbFill",              { bg = c.black2 })
@@ -65,11 +75,9 @@ let
 
       -- Verify what was actually set
       local tf = vim.api.nvim_get_hl(0, { name = "TbFill" })
-      vim.notify(
-        string.format("[tabline debug] after fix: TbFill.bg=%s TbBufOn.bg=%s",
-          tostring(tf.bg), tostring(vim.api.nvim_get_hl(0, { name = "TbBufOn" }).bg)),
-        vim.log.levels.INFO
-      )
+      local tbo = vim.api.nvim_get_hl(0, { name = "TbBufOn" })
+      dlog(string.format("fix_tabline_colors DONE: TbFill.bg=%s TbBufOn.bg=%s",
+        tostring(tf.bg), tostring(tbo.bg)))
     end
 
     local function fix_nvimtree_colors()
@@ -90,27 +98,31 @@ let
       vim.api.nvim_set_hl(0, "NvimTreeIndentMarker", { fg = c.one_bg3 })
     end
 
-    -- Debug command: inspect current tabline highlight values
+    -- Debug command: dump current tabline state to log file
     local function tabline_debug()
       local groups = { "Tabline", "TbFill", "TbBufOn", "TbBufOff", "Normal" }
-      vim.print("--- Tabline Debug ---")
+      dlog("--- TablineDebug command ---")
       for _, g in ipairs(groups) do
         local hl = vim.api.nvim_get_hl(0, { name = g })
-        vim.print(string.format("%s: fg=%s bg=%s", g, tostring(hl.fg), tostring(hl.bg)))
+        dlog(string.format("%s: fg=%s bg=%s", g, tostring(hl.fg), tostring(hl.bg)))
       end
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
       if theme then
         local c = theme.base_30
-        vim.print(string.format("dms base_30: black=%s black2=%s", c.black, c.black2))
+        dlog(string.format("dms base_30: black=%s black2=%s", c.black, c.black2))
+      else
+        dlog("dms theme_tables not found")
       end
-      vim.print("showtabline=" .. vim.o.showtabline)
-      vim.print("---")
+      dlog("showtabline=" .. vim.o.showtabline)
+      dlog("--- end TablineDebug ---")
+      vim.notify("TablineDebug written to " .. logfile, vim.log.levels.INFO)
     end
     vim.api.nvim_create_user_command("TablineDebug", tabline_debug, {})
 
     local function load_dms_theme()
       local base46 = require("base46")
+      dlog("load_dms_theme: starting")
 
       local nvcfg_ok, nvcfg = pcall(require, "nvconfig")
       if nvcfg_ok and nvcfg.base46 then
@@ -118,7 +130,7 @@ let
       end
 
       pcall(vim.cmd.colorscheme, "dms")
-      vim.notify("[tabline debug] load_dms_theme: colorscheme dms applied", vim.log.levels.INFO)
+      dlog("load_dms_theme: colorscheme dms applied, current_theme=" .. tostring(base46.current_theme))
 
       -- Fix popup borders/backgrounds immediately after theme loads
       vim.defer_fn(fix_popup_colors, 100)
@@ -142,20 +154,21 @@ let
     vim.api.nvim_create_autocmd("OptionSet", {
       pattern = "showtabline",
       callback = function()
-        vim.notify("[tabline debug] OptionSet showtabline fired, value=" .. vim.o.showtabline, vim.log.levels.INFO)
+        dlog(string.format("OptionSet showtabline fired, value=%d", vim.o.showtabline))
         if vim.o.showtabline == 2 then
           vim.defer_fn(function()
             local base46 = require("base46")
-            vim.notify("[tabline debug] 300ms defer: theme_tables dms=" .. tostring(base46.theme_tables["dms"] ~= nil), vim.log.levels.INFO)
-            if not base46.theme_tables["dms"] then return end
+            local has_dms = base46.theme_tables["dms"] ~= nil
+            dlog("OptionSet 300ms defer: has_dms=" .. tostring(has_dms))
+            if not has_dms then return end
             local highlights = base46.get_integration("tbline")
-            vim.notify("[tabline debug] get_integration tbline=" .. tostring(highlights ~= nil), vim.log.levels.INFO)
+            dlog("OptionSet: get_integration tbline=" .. tostring(highlights ~= nil))
             if highlights then
               for hlname, hlopts in pairs(highlights) do
                 vim.api.nvim_set_hl(0, hlname, hlopts)
               end
               local tf = vim.api.nvim_get_hl(0, { name = "TbFill" })
-              vim.notify("[tabline debug] after integration: TbFill.bg=" .. tostring(tf.bg), vim.log.levels.INFO)
+              dlog("OptionSet after integration: TbFill.bg=" .. tostring(tf.bg))
             end
           end, 300)
         end
