@@ -91,7 +91,7 @@ lib.mkIf (hostname == "mooling-laptop") {
           cancel_timer
           sleep 2
           ${wlr-randr} --output HDMI-A-1 --custom-mode "$client_mode" --scale "$client_scale" --pos 0,0
-          pkill xwayland-satellite
+          pkill -f xwayland-satellite
         elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
           client_attempting="false"
           start_disconnect_timer
