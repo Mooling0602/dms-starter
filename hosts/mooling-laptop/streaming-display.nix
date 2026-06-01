@@ -84,7 +84,7 @@ lib.mkIf (hostname == "mooling-laptop") {
         elif echo "$line" | grep -q "Couldn't find monitor"; then
           if [ "$client_attempting" = "true" ]; then
             ${wlr-randr} --output eDP-1 --off
-            ${wlr-randr} --output HDMI-A-1 --on --custom-mode "${default-mode}" --pos 0,0
+            ${wlr-randr} --output HDMI-A-1 --on --custom-mode "$client_mode" --scale "$client_scale" --pos 0,0
             start_idle_timer
           fi
         elif echo "$line" | grep -q "CLIENT CONNECTED"; then
