@@ -79,6 +79,11 @@ let
 
       -- Fix popup borders/backgrounds immediately after theme loads
       vim.defer_fn(fix_popup_colors, 100)
+
+      -- Fix tabline: use nested schedule to run AFTER NvChad's own deferred ColorScheme handlers
+      vim.schedule(function()
+        vim.schedule(fix_tabline_colors)
+      end)
     end
 
     -- Load DMS theme after startup delay
@@ -90,19 +95,6 @@ let
       once = true,
       callback = function()
         vim.defer_fn(fix_nvimtree_colors, 100)
-      end,
-    })
-
-    -- Fix tabline: runs on first BufEnter AFTER DMS theme is available
-    -- (BufEnter fires after all startup init is done, so NvChad's own hl handlers have completed)
-    local tabline_augroup = vim.api.nvim_create_augroup("DmsTablineFix", { clear = true })
-    vim.api.nvim_create_autocmd("BufEnter", {
-      group = tabline_augroup,
-      callback = function()
-        local base46 = require("base46")
-        if not base46.theme_tables["dms"] then return end
-        fix_tabline_colors()
-        vim.api.nvim_del_augroup_by_id(tabline_augroup)
       end,
     })
   '';
