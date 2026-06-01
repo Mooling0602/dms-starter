@@ -101,19 +101,18 @@ let
       end,
     })
 
-    -- Fix tabline: re-apply DMS colorscheme when tabufline becomes visible.
-    -- Tabufline's lazy-load dofile("tbline") overwrites hl groups. Re-running
-    -- colorscheme triggers the ColorScheme autocmd below which re-applies the fix.
+    -- Fix tabline: on showtabline change (tabufline lazy-load), re-apply fix directly.
+    -- Tabufline's dofile("tbline") overwrites hl groups; 300ms defer lets it finish.
     vim.api.nvim_create_autocmd("OptionSet", {
       pattern = "showtabline",
       callback = function()
         if vim.o.showtabline == 2 then
-          vim.schedule(function() vim.cmd.colorscheme "dms" end)
+          vim.defer_fn(fix_tabline_colors, 300)
         end
       end,
     })
 
-    -- Fix tabline: runs on ColorScheme change (triggered by above or manual).
+    -- Fix tabline: runs on ColorScheme change (manual :colorscheme dms).
     vim.api.nvim_create_autocmd("ColorScheme", {
       pattern = "dms",
       callback = function() vim.defer_fn(fix_tabline_colors, 100) end,
