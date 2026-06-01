@@ -6,7 +6,7 @@ let
   # 生成设备名 → 模式参数的 shell case 分支
   device-case = lib.concatStringsSep "\n" (
     lib.mapAttrsToList (name: cfg: ''
-      "${name}") mode="${toString cfg.width}x${toString cfg.height}@${toString cfg.refresh}" ;;
+      "${name}") echo "${toString cfg.width}x${toString cfg.height}@${toString cfg.refresh}" ;;
     '') devices
   );
 in
@@ -15,7 +15,11 @@ lib.mkIf (hostname == "mooling-laptop") {
     wlr-randr = "${pkgs.wlr-randr}/bin/wlr-randr";
     default-mode = "2460x1080@60";
     toggleScript = pkgs.writeShellScript "apollo-display-toggle" ''
+      # 启动时关闭虚拟屏，只保留主屏
+      ${wlr-randr} --output HDMI-A-1 --off
+
       timer_pid=""
+      client_attempting="false"
       client_device=""
       client_mode="${default-mode}"
 
@@ -26,7 +30,11 @@ lib.mkIf (hostname == "mooling-laptop") {
 
       start_idle_timer() {
         cancel_timer
-        (sleep 300 && ${wlr-randr} --output HDMI-A-1 --off) &
+        (
+          sleep 300
+          ${wlr-randr} --output eDP-1 --on --pos 0,0
+          ${wlr-randr} --output HDMI-A-1 --off
+        ) &
         timer_pid=$!
       }
 
@@ -48,20 +56,23 @@ lib.mkIf (hostname == "mooling-laptop") {
       }
 
       journalctl --user -u apollo.service -f -n 0 | while read -r line; do
-        if echo "$line" | grep -q "Couldn't find monitor"; then
-          ${wlr-randr} --output HDMI-A-1 --on --custom-mode "${default-mode}" --pos 1463,0
-          start_idle_timer
-        elif echo "$line" | grep -q "Display mode for client"; then
+        if echo "$line" | grep -q "Display mode for client"; then
+          client_attempting="true"
           # 提取设备名: "Display mode for client [NAME #tag]" → "NAME"
-          client_device=$(echo "$line" | sed 's/.*\[\([^]]*\)\].*/\1/' | sed 's/ *#.*//')
+          client_device=$(echo "$line" | sed 's/.*Display mode for client \[\([^]]*\)\].*/\1/' | sed 's/ *#.*//')
           client_mode=$(lookup_mode "$client_device")
+        elif echo "$line" | grep -q "Couldn't find monitor"; then
+          if [ "$client_attempting" = "true" ]; then
+            ${wlr-randr} --output eDP-1 --off
+            ${wlr-randr} --output HDMI-A-1 --on --custom-mode "${default-mode}" --pos 0,0
+            start_idle_timer
+          fi
         elif echo "$line" | grep -q "CLIENT CONNECTED"; then
           cancel_timer
           sleep 2
-          ${wlr-randr} --output eDP-1 --off
           ${wlr-randr} --output HDMI-A-1 --custom-mode "$client_mode" --pos 0,0
         elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
-          ${wlr-randr} --output eDP-1 --on --pos 0,0
+          client_attempting="false"
           start_disconnect_timer
         fi
       done

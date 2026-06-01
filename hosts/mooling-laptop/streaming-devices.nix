@@ -4,11 +4,11 @@
   "Redmi Note 11T Pro" = {
     width = 2460;
     height = 1080;
-    refresh = 144;
+    refresh = 60;
   };
   "Xiaomi Pad 5" = {
     width = 2560;
     height = 1600;
-    refresh = 120;
+    refresh = 30;
   };
 }

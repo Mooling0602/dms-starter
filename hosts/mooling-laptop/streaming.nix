@@ -11,7 +11,7 @@ lib.mkIf (config.my.hostname == "mooling-laptop") {
       locale = "zh_CN";
       upnp = "enabled";
       native_pen_touch = "enabled";
-      output_name = "1";
+      output_name = "0";
     };
   };
 }
