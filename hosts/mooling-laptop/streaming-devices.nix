@@ -5,10 +5,12 @@
     width = 2460;
     height = 1080;
     refresh = 60;
+    scale = 1.5;
   };
   "Xiaomi Pad 5" = {
     width = 2560;
     height = 1600;
     refresh = 30;
+    scale = 2;
   };
 }

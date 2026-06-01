@@ -3,10 +3,10 @@
 let
   devices = import ./streaming-devices.nix;
 
-  # 生成设备名 → 模式参数的 shell case 分支
+  # 生成设备名 → 模式参数的 shell case 分支 (输出 "mode scale")
   device-case = lib.concatStringsSep "\n" (
     lib.mapAttrsToList (name: cfg: ''
-      "${name}") echo "${toString cfg.width}x${toString cfg.height}@${toString cfg.refresh}" ;;
+      "${name}") echo "${toString cfg.width}x${toString cfg.height}@${toString cfg.refresh} ${toString (cfg.scale or 1)}" ;;
     '') devices
   );
 in
@@ -22,6 +22,7 @@ lib.mkIf (hostname == "mooling-laptop") {
       client_attempting="false"
       client_device=""
       client_mode="${default-mode}"
+      client_scale="1"
 
       cancel_timer() {
         kill "$timer_pid" 2>/dev/null
@@ -60,7 +61,11 @@ lib.mkIf (hostname == "mooling-laptop") {
           client_attempting="true"
           # 提取设备名: "Display mode for client [NAME #tag]" → "NAME"
           client_device=$(echo "$line" | sed 's/.*Display mode for client \[\([^]]*\)\].*/\1/' | sed 's/ *#.*//')
-          client_mode=$(lookup_mode "$client_device")
+          result=$(lookup_mode "$client_device")
+          if [ -n "$result" ]; then
+            client_mode=$(echo "$result" | awk '{print $1}')
+            client_scale=$(echo "$result" | awk '{print $2}')
+          fi
         elif echo "$line" | grep -q "Couldn't find monitor"; then
           if [ "$client_attempting" = "true" ]; then
             ${wlr-randr} --output eDP-1 --off
@@ -70,7 +75,7 @@ lib.mkIf (hostname == "mooling-laptop") {
         elif echo "$line" | grep -q "CLIENT CONNECTED"; then
           cancel_timer
           sleep 2
-          ${wlr-randr} --output HDMI-A-1 --custom-mode "$client_mode" --pos 0,0
+          ${wlr-randr} --output HDMI-A-1 --custom-mode "$client_mode" --scale "$client_scale" --pos 0,0
         elif echo "$line" | grep -q "CLIENT DISCONNECTED"; then
           client_attempting="false"
           start_disconnect_timer
