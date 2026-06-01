@@ -101,26 +101,19 @@ let
       end,
     })
 
-    -- Fix tabline: runs after colorscheme load OR tabline render, whichever comes last.
-    -- vim.schedule defers to end of event loop, so NvChad's own BufEnter/ColorScheme
-    -- handlers (which re-apply tabline hl) have already completed when our fix runs.
-    local tabline_fixed = false
-    local function try_fix_tabline()
-      if tabline_fixed then return end
+    -- Fix tabline: runs on ColorScheme change OR BufEnter (tabufline lazyload).
+    -- vim.schedule defers to end of event loop, after NvChad's own handlers + dofile.
+    local function apply_tabline_fix()
       local base46 = require("base46")
       if not base46.theme_tables["dms"] then return end
-      vim.schedule(function()
-        if tabline_fixed then return end      -- guard against double-schedule
-        fix_tabline_colors()
-        tabline_fixed = true
-      end)
+      vim.schedule(fix_tabline_colors)
     end
     vim.api.nvim_create_autocmd("ColorScheme", {
       pattern = "dms",
-      callback = function() vim.defer_fn(try_fix_tabline, 100) end,
+      callback = function() vim.defer_fn(apply_tabline_fix, 100) end,
     })
     vim.api.nvim_create_autocmd("BufEnter", {
-      callback = try_fix_tabline,
+      callback = apply_tabline_fix,
     })
   '';
 
