@@ -93,10 +93,10 @@ let
       end,
     })
 
-    -- Fix tabline: runs on first Tabline event AFTER DMS theme is available
-    -- (Tabline event fires just before rendering, so NvChad's own hl init is already done)
+    -- Fix tabline: runs on first BufEnter AFTER DMS theme is available
+    -- (BufEnter fires after all startup init is done, so NvChad's own hl handlers have completed)
     local tabline_augroup = vim.api.nvim_create_augroup("DmsTablineFix", { clear = true })
-    vim.api.nvim_create_autocmd("Tabline", {
+    vim.api.nvim_create_autocmd("BufEnter", {
       group = tabline_augroup,
       callback = function()
         local base46 = require("base46")
