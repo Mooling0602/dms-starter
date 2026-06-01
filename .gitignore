@@ -2,4 +2,5 @@ result/
 result-*
 .direnv/
 hosts/*/hardware-configuration.nix
+.claude/
 .env
