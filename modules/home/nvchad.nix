@@ -18,6 +18,14 @@ let
     end
     vim.api.nvim_create_user_command("DmsDebug", dms_debug, {})
 
+    -- Override TbToggle_theme: base46.toggle_theme doesn't exist in this fork.
+    -- Re-apply the DMS colorscheme instead (picks up current mode from DMS).
+    vim.cmd [[
+      function! TbToggle_theme(a,b,c,d)
+        lua vim.cmd.colorscheme "dms"
+      endfunction
+    ]]
+
     local function fix_popup_colors()
       local base46 = require("base46")
       local theme = base46.theme_tables["dms"]
