@@ -157,10 +157,13 @@ sys.stdout.buffer.write(bytes(edid))
   '';
 in
 {
-  hardware.graphics.enable = true;
-  hardware.graphics.extraPackages = with pkgs; [
-    intel-media-driver
-  ];
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+    ];
+  };
 
   boot.kernelParams = [
     "video=HDMI-A-1:2560x1600MR@120e"
