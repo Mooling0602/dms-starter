@@ -108,12 +108,10 @@ let
         base46.setup(nvcfg.base46)
       end
 
-      -- Override TbToggle_theme (must run after NvChad's own function! definition)
-      vim.cmd [[
-        function! TbToggle_theme(a,b,c,d)
-          lua vim.cmd.colorscheme "dms"
-        endfunction
-      ]]
+      -- Provide toggle_theme that NvChad's TbToggle_theme button expects
+      base46.toggle_theme = function()
+        vim.cmd.colorscheme "dms"
+      end
 
       pcall(vim.cmd.colorscheme, "dms")
 
