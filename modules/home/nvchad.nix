@@ -77,9 +77,8 @@ let
 
       pcall(vim.cmd.colorscheme, "dms")
 
-      -- Fix popup borders/backgrounds and tabline after theme loads
+      -- Fix popup borders/backgrounds immediately after theme loads
       vim.defer_fn(fix_popup_colors, 100)
-      vim.defer_fn(fix_tabline_colors, 200)
     end
 
     -- Load DMS theme after startup delay
@@ -91,6 +90,14 @@ let
       once = true,
       callback = function()
         vim.defer_fn(fix_nvimtree_colors, 100)
+      end,
+    })
+
+    -- Fix tabline: runs AFTER colorscheme "dms" loads (NvChad ui.tabline sets its own hl in response to ColorScheme)
+    vim.api.nvim_create_autocmd("ColorScheme", {
+      pattern = "dms",
+      callback = function()
+        vim.defer_fn(fix_tabline_colors, 100)
       end,
     })
   '';
