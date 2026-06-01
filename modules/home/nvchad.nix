@@ -158,6 +158,9 @@ let
         TbTabNewBtn = { fg = "light_grey", bg = "one_bg" },
         TbThemeToggleBtn = { fg = "light_grey", bg = "one_bg2" },
         TbCloseAllBufsBtn = { fg = "black", bg = "red" },
+        -- Markdown / treesitter: fix dark backgrounds leaking in light mode
+        ["@markup.quote"] = { bg = "black2" },
+        ["@markup.raw"] = { bg = "black2" },
       },
     }
     return M
