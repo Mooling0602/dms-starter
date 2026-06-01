@@ -42,11 +42,19 @@ let
       if not theme then return end
       local c = theme.base_30
 
-      vim.api.nvim_set_hl(0, "TabLine",      { fg = c.light_grey, bg = c.black2 })
-      vim.api.nvim_set_hl(0, "TabLineFill",  { bg = c.black2 })
-      vim.api.nvim_set_hl(0, "TabLineSel",   { fg = c.white, bg = c.black })
-      vim.api.nvim_set_hl(0, "TblineBufOn",  { fg = c.white, bg = c.black })
-      vim.api.nvim_set_hl(0, "TblineBufOff", { fg = c.light_grey, bg = c.black2 })
+      -- NvChad tabufline uses "Tb" prefix: TbFill, TbBufOn, TbBufOff, etc.
+      vim.api.nvim_set_hl(0, "TbFill",              { bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TbBufOn",             { fg = c.white, bg = c.black })
+      vim.api.nvim_set_hl(0, "TbBufOff",            { fg = c.light_grey, bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TbBufOnClose",        { fg = c.red, bg = c.black })
+      vim.api.nvim_set_hl(0, "TbBufOffClose",       { fg = c.grey_fg, bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TbBufOnModified",     { fg = c.green, bg = c.black })
+      vim.api.nvim_set_hl(0, "TbBufOffModified",    { fg = c.red, bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TbTabOn",             { fg = c.red, bg = c.black })
+      vim.api.nvim_set_hl(0, "TbTabOff",            { fg = c.light_grey, bg = c.black2 })
+      vim.api.nvim_set_hl(0, "TbTabNewBtn",         { fg = c.light_grey, bg = c.one_bg })
+      vim.api.nvim_set_hl(0, "TbThemeToggleBtn",    { fg = c.light_grey, bg = c.one_bg2 })
+      vim.api.nvim_set_hl(0, "TbCloseAllBufsBtn",   { fg = c.black, bg = c.red })
     end
 
     local function fix_nvimtree_colors()
@@ -134,11 +142,18 @@ let
         NvimTreeRootFolder = { fg = "#1a6b5a", bold = true },
         NvimTreeIndentMarker = { fg = "#c2ddc8" },
         -- Tabline background follows theme
-        TabLine = { fg = "light_grey", bg = "black2" },
-        TabLineFill = { bg = "black2" },
-        TabLineSel = { fg = "white", bg = "black" },
-        TblineBufOn = { fg = "white", bg = "black" },
-        TblineBufOff = { fg = "light_grey", bg = "black2" },
+        TbFill = { bg = "black2" },
+        TbBufOn = { fg = "white", bg = "black" },
+        TbBufOff = { fg = "light_grey", bg = "black2" },
+        TbBufOnClose = { fg = "red", bg = "black" },
+        TbBufOffClose = { fg = "grey_fg", bg = "black2" },
+        TbBufOnModified = { fg = "green", bg = "black" },
+        TbBufOffModified = { fg = "red", bg = "black2" },
+        TbTabOn = { fg = "red", bg = "black" },
+        TbTabOff = { fg = "light_grey", bg = "black2" },
+        TbTabNewBtn = { fg = "light_grey", bg = "one_bg" },
+        TbThemeToggleBtn = { fg = "light_grey", bg = "one_bg2" },
+        TbCloseAllBufsBtn = { fg = "black", bg = "red" },
       },
     }
     return M
