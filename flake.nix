@@ -27,6 +27,10 @@
       url = "github:nil-andreas/apollo-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-packages = {
+      url = "github:Mooling0602/nix-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs@{ nixpkgs, home-manager, apollo-flake, ... }:
@@ -48,6 +52,9 @@
             nixpkgs.overlays = [
               (final: prev: {
                 xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+              })
+              (final: prev: {
+                reasonix = inputs.nix-packages.packages.${final.system}.reasonix;
               })
             ];
             home-manager.useGlobalPkgs = true;

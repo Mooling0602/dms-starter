@@ -87,5 +87,6 @@
     claude-code
     opencode
     zed-editor
+    reasonix
   ];
 }

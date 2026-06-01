@@ -193,6 +193,26 @@
         "type": "github"
       }
     },
+    "nix-packages": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1780318320,
+        "narHash": "sha256-PDDhgcUQtMBwzQcz8pWwLiClkqs+P9swrdHNwj4dF+s=",
+        "owner": "Mooling0602",
+        "repo": "nix-packages",
+        "rev": "3d5be27ea561ea67adef32b0fa43426306801ee1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mooling0602",
+        "repo": "nix-packages",
+        "type": "github"
+      }
+    },
     "nix4nvchad": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -271,6 +291,7 @@
         "dms": "dms",
         "home-manager": "home-manager",
         "niri": "niri",
+        "nix-packages": "nix-packages",
         "nix4nvchad": "nix4nvchad",
         "nixpkgs": "nixpkgs"
       }
