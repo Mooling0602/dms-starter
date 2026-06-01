@@ -96,6 +96,7 @@ let
     -- Fix tabline: runs AFTER colorscheme "dms" loads (NvChad ui.tabline sets its own hl in response to ColorScheme)
     vim.api.nvim_create_autocmd("ColorScheme", {
       pattern = "dms",
+      once = true,
       callback = function()
         vim.defer_fn(fix_tabline_colors, 100)
       end,
