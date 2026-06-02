@@ -79,7 +79,6 @@
     kdePackages.kate
     qq
     wechat
-    wpsoffice-cn
     telegram-desktop
     element-desktop
     google-chrome
