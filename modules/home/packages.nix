@@ -35,6 +35,7 @@
 
     # KDE connect
     kdePackages.kdeconnect-kde
+    kdePackages.plasma-browser-integration
 
     # virtual display mode utility
     wlr-randr
