@@ -4,10 +4,11 @@
   users.users.${config.my.username} = {
     isNormalUser = true;
     description = config.my.username;
-    extraGroups = [ "networkmanager" "wheel" ];
-    shell = pkgs.fish;
-    packages = with pkgs; [
+    extraGroups = [
+      "networkmanager"
+      "wheel"
     ];
+    shell = pkgs.fish;
   };
 
   programs.fish.enable = true;

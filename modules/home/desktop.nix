@@ -1,4 +1,9 @@
-{ config, lib, pkgs, dms, ... }:
+{
+  config,
+  pkgs,
+  dms,
+  ...
+}:
 
 {
   programs.alacritty = {
@@ -10,7 +15,10 @@
       window = {
         decorations = "None";
         opacity = 0.6;
-        padding = { x = 8; y = 4; };
+        padding = {
+          x = 8;
+          y = 4;
+        };
       };
     };
   };
@@ -71,8 +79,10 @@
   home.file.".face".source = ../../assets/avatar.jpg;
   home.file.".face.icon".source = ../../assets/avatar.jpg;
 
-  home.file.".local/share/wallpapers/wallpaper-light.png".source = ../../assets/wallpaper-light-kokomi.png;
-  home.file.".local/share/wallpapers/wallpaper-dark.png".source = ../../assets/wallpaper-dark-cyrene.png;
+  home.file.".local/share/wallpapers/wallpaper-light.png".source =
+    ../../assets/wallpaper-light-kokomi.png;
+  home.file.".local/share/wallpapers/wallpaper-dark.png".source =
+    ../../assets/wallpaper-dark-cyrene.png;
 
   programs.dank-material-shell = {
     enable = true;
@@ -144,17 +154,22 @@
     };
   };
 
-  xdg.configFile = let niriDir = "${config.home.homeDirectory}/nixos-config/niri"; in {
-    "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
-    "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
-    "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
-    "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/colors.kdl";
-    "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/cursor.kdl";
-    "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/layout.kdl";
-    "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/outputs.kdl";
-    "niri/dms/windowrules.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/windowrules.kdl";
-    "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
-  };
+  xdg.configFile =
+    let
+      niriDir = "${config.home.homeDirectory}/nixos-config/niri";
+    in
+    {
+      "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
+      "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
+      "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
+      "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/colors.kdl";
+      "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/cursor.kdl";
+      "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/layout.kdl";
+      "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/outputs.kdl";
+      "niri/dms/windowrules.kdl".source =
+        config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/windowrules.kdl";
+      "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
+    };
 
   systemd.user.services.kdeconnectd = {
     Unit = {
@@ -179,7 +194,9 @@
       Type = "oneshot";
       ExecStart = "${pkgs.writeShellScript "dms-set-avatar" ''
         for i in $(seq 1 30); do
-          if ${dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
+          if ${
+            dms.packages.${pkgs.stdenv.hostPlatform.system}.default
+          }/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
             exit 0
           fi
           sleep 1

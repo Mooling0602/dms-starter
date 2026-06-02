@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   xresources.properties = {
@@ -23,7 +23,10 @@
     enable = true;
     config = {
       common = {
-        default = [ "kde" "gtk" ];
+        default = [
+          "kde"
+          "gtk"
+        ];
       };
     };
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];

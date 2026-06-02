@@ -37,9 +37,15 @@
     };
   };
 
-  outputs = inputs@{ nixpkgs, home-manager, apollo-flake, ... }:
+  outputs =
+    inputs@{
+      nixpkgs,
+      home-manager,
+      apollo-flake,
+      ...
+    }:
     let
-      username = "mooling";  # ← 改这里即可替换用户名
+      username = "mooling"; # ← 改这里即可替换用户名
       hostname = "mooling-laptop";
     in
     {
@@ -48,9 +54,12 @@
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
           apollo-flake.nixosModules.x86_64-linux.default
-          ({ pkgs, ... }: {
-            services.apollo.package = apollo-flake.packages.x86_64-linux.default;
-          })
+          (
+            { ... }:
+            {
+              services.apollo.package = apollo-flake.packages.x86_64-linux.default;
+            }
+          )
           {
             my = { inherit username hostname; };
             nixpkgs.overlays = [
@@ -63,22 +72,28 @@
                   postInstall = (old.postInstall or "") + ''
                     mv $out/bin/reasonix $out/bin/reasonix-go
                   '';
-                  meta = (old.meta or {}) // { mainProgram = "reasonix-go"; };
+                  meta = (old.meta or { }) // {
+                    mainProgram = "reasonix-go";
+                  };
                 });
               })
             ];
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} = { config, pkgs, ... }: {
-              imports = [
-                ./modules/home
-                ./hosts/${hostname}/streaming-display.nix
-                inputs.dms.homeModules.dank-material-shell
-                inputs.nix4nvchad.homeManagerModule
-              ];
+            home-manager.users.${username} =
+              { ... }:
+              {
+                imports = [
+                  ./modules/home
+                  ./hosts/${hostname}/streaming-display.nix
+                  inputs.dms.homeModules.dank-material-shell
+                  inputs.nix4nvchad.homeManagerModule
+                ];
+              };
+            home-manager.extraSpecialArgs = inputs // {
+              inherit username hostname;
             };
-            home-manager.extraSpecialArgs = inputs // { inherit username hostname; };
           }
         ];
       };
