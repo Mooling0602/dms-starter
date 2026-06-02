@@ -33,7 +33,7 @@
     # dev tools
     gcc
 
-    # KDE Connect
+    # KDE connect
     kdePackages.kdeconnect-kde
 
     # virtual display mode utility
@@ -77,6 +77,7 @@
     kdePackages.dolphin
     kdePackages.dolphin-plugins
     kdePackages.kate
+    kdePackages.discover
     qq
     wechat
     telegram-desktop
