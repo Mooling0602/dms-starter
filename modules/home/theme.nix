@@ -16,8 +16,6 @@
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     QT_WAYLAND_DECORATION = "ssd";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-    QT_ENABLE_HIGHDPI_SCALING = "1";
-    QT_IM_MODULE = "fcitx";
     SSH_ASKPASS = "${pkgs.seahorse}/libexec/seahorse/ssh-askpass";
   };
 

@@ -120,6 +120,21 @@
         qq = {
           extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
         };
+        wps-office-prometheus = {
+          envVars = "QT_SCREEN_SCALE_FACTORS=1 QT_FONT_DPI=192 QT_IM_MODULE=fcitx";
+        };
+        wps-office-wps = {
+          envVars = "QT_SCREEN_SCALE_FACTORS=1 QT_FONT_DPI=192 QT_IM_MODULE=fcitx";
+        };
+        wps-office-et = {
+          envVars = "QT_SCREEN_SCALE_FACTORS=1 QT_FONT_DPI=192 QT_IM_MODULE=fcitx";
+        };
+        wps-office-wpp = {
+          envVars = "QT_SCREEN_SCALE_FACTORS=1 QT_FONT_DPI=192 QT_IM_MODULE=fcitx";
+        };
+        wps-office-pdf = {
+          envVars = "QT_SCREEN_SCALE_FACTORS=1 QT_FONT_DPI=192 QT_IM_MODULE=fcitx";
+        };
       };
 
       # MISC

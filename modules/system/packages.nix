@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
   programs.steam.enable = true;
@@ -14,6 +14,8 @@
     vim
     curl
     wget
+    nil
+    nixd
     clash-verge-rev
 
     # KDE file chooser portal
