@@ -35,6 +35,10 @@
       url = "github:numtide/llm-agents.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dw-proton = {
+      url = "github:imaviso/dwproton-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -42,6 +46,7 @@
       nixpkgs,
       home-manager,
       apollo-flake,
+      dw-proton,
       ...
     }:
     let
@@ -60,6 +65,11 @@
               services.apollo.package = apollo-flake.packages.x86_64-linux.default;
             }
           )
+          {
+            programs.steam.extraCompatPackages = [
+              dw-proton.packages.x86_64-linux.dw-proton
+            ];
+          }
           {
             my = { inherit username hostname; };
             nixpkgs.overlays = [
