@@ -67,6 +67,7 @@
     lsof
 
     # system tools
+    pulseaudio
     sysstat
     lm_sensors
     ethtool

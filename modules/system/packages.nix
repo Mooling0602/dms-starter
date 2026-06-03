@@ -1,7 +1,10 @@
 { pkgs, ... }:
 
 {
-  programs.steam.enable = true;
+  programs.steam = {
+    enable = true;
+    protontricks.enable = true;
+  };
   nixpkgs.config.allowUnfree = true;
 
   # 排除 GNOME 文件管理器，使用 KDE/Dolphin
