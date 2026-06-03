@@ -4,6 +4,7 @@
   services.flatpak.enable = true;
   services.power-profiles-daemon.enable = true;
   services.thermald.enable = true;
+  services.accounts-daemon.enable = true;
 
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
