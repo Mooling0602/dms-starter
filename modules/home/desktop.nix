@@ -130,6 +130,9 @@
         qq = {
           extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
         };
+        wechat = {
+          envVars = "QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
+        };
         # wps-office-prometheus = {
         #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
         # };
