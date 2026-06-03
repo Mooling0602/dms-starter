@@ -28,6 +28,7 @@
     aria2
     socat
     nmap
+    miniupnpc
     ipcalc
 
     # dev tools
