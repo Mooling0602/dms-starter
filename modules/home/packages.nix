@@ -81,6 +81,7 @@
     kdePackages.dolphin-plugins
     kdePackages.kate
     kdePackages.discover
+    kdePackages.systemsettings
     qq
     wechat
     telegram-desktop
