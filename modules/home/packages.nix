@@ -93,5 +93,6 @@
     zed-editor
     reasonix
     reasonix-go
+    qoder
   ];
 }

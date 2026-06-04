@@ -86,6 +86,7 @@
                     mainProgram = "reasonix-go";
                   };
                 });
+                qoder = inputs.nix-packages.packages.${final.system}.qoder;
               })
             ];
             home-manager.useGlobalPkgs = true;
