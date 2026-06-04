@@ -3,6 +3,7 @@
 {
   services.flatpak.enable = true;
   services.power-profiles-daemon.enable = true;
+  services.upower.enable = true;
   services.thermald.enable = true;
   services.accounts-daemon.enable = true;
 
