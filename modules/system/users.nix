@@ -7,6 +7,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "input"
     ];
     shell = pkgs.fish;
   };

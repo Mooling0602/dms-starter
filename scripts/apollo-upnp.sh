@@ -44,7 +44,7 @@ cmd_add() {
   for entry in "${PORTS[@]}"; do
     read -r port proto <<<"$entry"
     echo -n "  $port/$proto ... "
-    upnpc -e "Apollo-$port" -a "$LOCAL_IP" "$port" "$port" "$proto" 2>/dev/null | grep -q "successfully\|already" \
+    upnpc -e "Apollo-$port" -a "$LOCAL_IP" "$port" "$port" "$proto" 2>/dev/null | grep -qE "successfully|already|redirected" \
       && echo "ok" || echo "failed"
   done
   echo "==> 完成"
