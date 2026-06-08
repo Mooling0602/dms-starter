@@ -78,14 +78,7 @@
               })
               (final: prev: {
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
-                reasonix-go = (inputs.nix-packages.packages.${final.system}.reasonix-go).overrideAttrs (old: {
-                  postInstall = (old.postInstall or "") + ''
-                    mv $out/bin/reasonix $out/bin/reasonix-go
-                  '';
-                  meta = (old.meta or { }) // {
-                    mainProgram = "reasonix-go";
-                  };
-                });
+                reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.system}.qoder;
               })
             ];
