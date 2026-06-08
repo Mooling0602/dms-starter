@@ -169,7 +169,7 @@ in
   };
 
   boot.kernelParams = [
-    # "video=HDMI-A-1:2560x1600MR@120e"
+    "video=HDMI-A-1:2560x1600MR@120e"
     "drm.edid_firmware=HDMI-A-1:edid/virtual-display.bin"
   ];
 
