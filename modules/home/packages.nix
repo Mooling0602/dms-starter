@@ -90,6 +90,7 @@
     bilibili
     claude-code
     opencode
+    opencode-desktop
     zed-editor
     reasonix
     reasonix-go
