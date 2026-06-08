@@ -8,6 +8,8 @@
       "networkmanager"
       "wheel"
       "input"
+      "video"
+      "render"
     ];
     shell = pkgs.fish;
   };
