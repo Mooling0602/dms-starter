@@ -93,7 +93,7 @@
     opencode-desktop
     zed-editor
     reasonix
-    reasonix-go
+    reasonix-desktop
     qoder
     prismlauncher
   ];
