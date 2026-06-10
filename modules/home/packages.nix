@@ -96,5 +96,6 @@
     reasonix-desktop
     qoder
     prismlauncher
+    rclone
   ];
 }
