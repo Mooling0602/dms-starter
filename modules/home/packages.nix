@@ -19,6 +19,8 @@
     jq
     yq-go
     fzf
+    ty
+    ruff
 
     # networking tools
     mtr
