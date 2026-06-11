@@ -84,6 +84,7 @@
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
                 reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.system}.qoder;
+                zen-browser = inputs.zen-browser.packages.${final.system}.default;
               })
             ];
             home-manager.useGlobalPkgs = true;
