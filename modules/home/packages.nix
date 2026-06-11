@@ -99,5 +99,6 @@
     qoder
     prismlauncher
     rclone
+    zen-browser
   ];
 }
