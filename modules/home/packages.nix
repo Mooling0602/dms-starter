@@ -34,6 +34,7 @@
     ipcalc
 
     # dev tools
+    jdk25
     gcc
 
     # KDE connect
