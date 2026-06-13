@@ -27,6 +27,10 @@
     accountsservice
 
     wineWow64Packages.waylandFull
+
+    # Wine 音频支持：pulseaudio 客户端库（配合 pipewire-pulse）
+    # winealsa.drv 在 pipewire 下枚举设备可能卡死，用 pulse 后端
+    pulseaudio
   ];
 
   # 修复 Dolphin 右键「打开方式」看不到应用的问题
@@ -34,6 +38,7 @@
     "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 
   environment.variables = {
+    WINEDLLOVERRIDES = "winealsa.drv=d";
     EDITOR = "nvim";
     QT_PLUGIN_PATH = [
       "${pkgs.qt6Packages.qt6ct}/${pkgs.qt6.qtbase.qtPluginPrefix}"
