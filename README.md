@@ -4,22 +4,32 @@
 
 ## 结构
 
-> 该部分信息存在滞后性，当前版本：2026-05-31 14:41
+> 该部分信息存在滞后性，当前版本：2026-06-13 13:31
 
 ```
-├── flake.nix                     # Flake 入口（username let 绑定在此）
+├── AGENTS.md                     # Agent 工作说明和项目约定
+├── assets/                       # 壁纸、头像等静态资源
+├── cache                         # 本地缓存文件
+├── deploy.sh                     # 新机器交互式部署脚本
 ├── flake.lock
+├── flake.nix                     # Flake 入口（username/hostname let 绑定在此）
 ├── hosts/<hostname>/             # 机器专属
 │   ├── default.nix               # imports + boot + hostname + stateVersion
 │   ├── gpu.nix                   # GPU 驱动配置
-│   └── hardware-configuration.nix # 自动生成
+│   ├── hardware-configuration.nix # 自动生成硬件配置
+│   ├── streaming-devices.nix     # 串流虚拟设备
+│   ├── streaming-display.nix     # 串流显示相关 Home Manager 配置
+│   └── streaming.nix             # 串流系统服务配置
 ├── modules/
 │   ├── home/                     # Home Manager 模块（跨机器复用）
-│   │   ├── default.nix           # 入口
-│   │   ├── packages.nix          # 用户包
-│   │   ├── theme.nix             # Qt、字体、xdg.portal
+│   │   ├── backup.nix            # 运行时配置缺失时自动恢复快照
+│   │   ├── default.nix           # 入口和模块 imports
 │   │   ├── desktop.nix           # DMS、终端、壁纸/头像
-│   │   └── git.nix               # Git 用户配置
+│   │   ├── git.nix               # Git 用户配置
+│   │   ├── nvchad.nix            # nix4nvchad 包装和依赖
+│   │   ├── packages.nix          # 用户包
+│   │   ├── ssh.nix               # SSH 客户端配置
+│   │   └── theme.nix             # Qt、字体、xdg.portal
 │   └── system/                   # 系统模块（跨机器复用）
 │       ├── config.nix            # my.username 选项
 │       ├── desktop.nix           # dms-greeter + niri + Firefox
@@ -29,10 +39,23 @@
 │       ├── nix.nix               # nix 调优 + 自动 GC
 │       ├── packages.nix          # 系统级包
 │       ├── services.nix          # 蓝牙、打印、PipeWire、SSH
-│       └── users.nix             # 用户 + sudo
+│       ├── users.nix             # 用户 + sudo
+│       └── virtualisation.nix    # 虚拟化配置
+├── README.md
+├── reasonix.toml                 # Reasonix 配置
 ├── scripts/                      # 辅助脚本
+│   ├── apollo-upnp.sh            # Apollo UPnP 辅助脚本
+│   └── backup.sh                 # 分布式备份/恢复脚本总入口
 └── user_profiles/<username>/      # 用户运行时配置快照
     └── desktop-config/           # DMS/Niri 可变配置备份
+        ├── apply.sh              # 从快照恢复运行时配置
+        ├── dms/                  # DMS 可变配置快照
+        │   ├── plugins/          # DMS 插件元数据快照
+        │   └── settings.json     # DMS 主设置快照
+        ├── niri/                 # Niri 可变配置快照
+        │   ├── config.kdl        # Niri 主配置快照
+        │   └── dms/              # DMS 生成的 Niri KDL 快照
+        └── snapshot.sh           # 捕获当前运行时配置到仓库
 ```
 
 ## 自定义用户名
@@ -77,6 +100,24 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
+
+## 运行时配置备份
+
+```fish
+# 捕获当前 DMS/Niri 可变配置到仓库快照
+./scripts/backup.sh snapshot mooling
+
+# 从仓库快照恢复；如果已有相关配置，会二次确认（N/y）
+./scripts/backup.sh apply mooling
+
+# 跳过二次确认，强制恢复
+./scripts/backup.sh apply --force mooling
+```
+
+- `snapshot.sh` 直接覆盖仓库快照中有变化的文件，不做二次确认。
+- `apply.sh` 默认在已有 DMS/Niri 配置时要求二次确认；`-f` 或 `--force` 可跳过确认。
+- `modules/home/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。
+- 当前 DMS 快照只保留 `settings.json` 和插件 `.meta`，不提交 `plugin_settings.json`、浏览器 CSS、插件仓库缓存等易变或可能含设备标识的文件。
 
 ## 参考
 
