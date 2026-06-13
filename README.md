@@ -18,7 +18,7 @@
 │   │   ├── default.nix           # 入口
 │   │   ├── packages.nix          # 用户包
 │   │   ├── theme.nix             # Qt、字体、xdg.portal
-│   │   ├── desktop.nix           # DMS、niri、alacritty、壁纸/头像
+│   │   ├── desktop.nix           # DMS、终端、壁纸/头像
 │   │   └── git.nix               # Git 用户配置
 │   └── system/                   # 系统模块（跨机器复用）
 │       ├── config.nix            # my.username 选项
@@ -30,7 +30,7 @@
 │       ├── packages.nix          # 系统级包
 │       ├── services.nix          # 蓝牙、打印、PipeWire、SSH
 │       └── users.nix             # 用户 + sudo
-└── niri/                         # Niri KDL 配置（DMS 可写）
+└── niri/                         # Niri KDL 配置备份/模板（运行配置由 DMS/Niri 管理）
     ├── config.kdl
     └── dms/
 ```
@@ -71,6 +71,12 @@ cd ~/nixos-config
 # 修改配置 → git commit → 重建 → git push
 sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 ```
+
+## 配置边界
+
+- DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
+- 仓库中的 `niri/` 仅作为备份/模板，需要版本化时手动从 `~/.config/niri/` 同步回来。
+- NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
 
 ## 参考
 

@@ -21,7 +21,7 @@
 │   │   ├── default.nix           # 入口：username、homeDirectory、imports
 │   │   ├── packages.nix          # 用户包（CLI 工具、GUI 应用）
 │   │   ├── theme.nix             # Qt、fontconfig、xdg.portal、xresources、主题相关包
-│   │   ├── desktop.nix           # DMS、niri symlinks、alacritty、壁纸/头像、dms-set-avatar
+│   │   ├── desktop.nix           # DMS、终端、壁纸/头像、dms-set-avatar
 │   │   └── git.nix               # git 用户配置
 │   └── system/                   # 通用系统模块（可跨机器复用）
 │       ├── config.nix            # my.username 选项定义
@@ -33,9 +33,9 @@
 │       ├── packages.nix          # 系统包 + unfree + nautilus 排除 + Dolphin 右键菜单修复
 │       ├── services.nix          # 蓝牙 + 打印 + PipeWire + SSH
 │       └── users.nix             # 用户 mooling + fish + sudo NOPASSWD
-├── niri/                          # Niri KDL 配置（mkOutOfStoreSymlink 管理，DMS 可写）
-│   ├── config.kdl                # 手动维护：input、环境变量、layer-rules、DMS includes
-│   └── dms/                      # DMS 生成的文件（dms setup 产出）
+├── niri/                          # Niri KDL 配置备份/模板（不由 Home Manager 挂载）
+│   ├── config.kdl                # 手动维护备份：input、环境变量、layer-rules、DMS includes
+│   └── dms/                      # DMS 生成文件备份（dms setup 产出）
 │       ├── alttab.kdl
 │       ├── binds.kdl
 │       ├── colors.kdl
@@ -94,7 +94,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 
 ## 关键设计决策
 
-1. **Niri 配置用 mkOutOfStoreSymlink** — 源自 [DMS issue #1788](https://github.com/AvengeMedia/DankMaterialShell/issues/1788)。移除了 `niri-flake` 和 DMS 的 `niri.includes` 模块，改用 `xdg.configFile` + `config.lib.file.mkOutOfStoreSymlink` 指向 `~/nixos-config/niri/`。DMS 可自由写入，改动直接进 git。
+1. **DMS/Niri 运行配置不声明式管理** — 不声明 `programs.dank-material-shell.session`，也不通过 `xdg.configFile` 或 `mkOutOfStoreSymlink` 挂载 `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl`。DMS 拥有自身运行配置和 `~/.config/niri/`，避免图形设置只读或重启后被 Nix 覆盖。
 
 2. **DMS 用 systemd 管理** — `systemd.enable = true`，不用 `niri.enableSpawn`。DMS 崩溃会自动重启。
 
@@ -102,22 +102,25 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 
 4. **字体分两级** — 系统级 `fonts.packages`（greeter 可见）+ 用户级 `home.packages`（fontconfig 使用）。
 
-5. **DMS session 持久化** — `programs.dank-material-shell.session` 声明了壁纸路径、`perModeWallpaper`。壁纸文件通过 `home.file` 拷贝到 `~/.local/share/wallpapers/`。
+5. **壁纸/头像资源仍由 Nix 提供** — 壁纸文件通过 `home.file` 拷贝到 `~/.local/share/wallpapers/`，头像通过 `home.file` 和 `dms-set-avatar` 服务设置；DMS 的具体 session 设置由 DMS 自己写入。
 
-6. **用户名参数化** — `flake.nix` 的 `let username` 注入到 `my.username`（系统模块）和 `extraSpecialArgs`（Home Manager 模块）。`users.nix`、`desktop.nix`、`home/default.nix` 均通过 `${username}` 或 `${config.my.username}` 引用，消除所有硬编码。
+6. **NvChad Lua 配置独立仓库** — `nix4nvchad` 继续负责包装 Neovim 和运行时依赖，`nvchad-starter` 跟随 `github:Mooling0602/NvCfg`。主仓库只保留 `programs.nvchad.enable`、`extraPackages` 和 `backup`。
+
+7. **用户名参数化** — `flake.nix` 的 `let username` 注入到 `my.username`（系统模块）和 `extraSpecialArgs`（Home Manager 模块）。`users.nix`、`desktop.nix`、`home/default.nix` 均通过 `${username}` 或 `${config.my.username}` 引用，消除所有硬编码。
 
 ## Niri 配置文件管理
 
-- `config.kdl` 手动维护，包含 input、环境变量、layer-rules、DMS includes
-- `dms/*.kdl` 由 `dms setup` 生成
+- `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl` 是普通可写文件，由 DMS/Niri 在运行时管理
+- 仓库中的 `niri/` 仅作为备份/模板，不由 Home Manager 自动同步
 - 需要重新生成时：`echo -e "1\n1-3\n1\ny" | DMS_PRIVESC=sudo dms setup`
-- 生成后用 `git diff` 审查，确认后提交
+- 需要版本化时，手动把 `~/.config/niri/` 中确认过的变更同步回 `~/nixos-config/niri/`，再用 `git diff` 审查并提交
 
 ## 已修复的关键问题
 
 | 问题 | 方案 |
 |------|------|
-| config.kdl 反复冲突 | mkOutOfStoreSymlink |
+| config.kdl 反复冲突 | DMS/Niri 文件不再由 Home Manager 管理 |
+| DMS 图形设置只读或重启丢失 | 移除 `programs.dank-material-shell.session` |
 | Qt 应用 DMS 启动时 env 错误 | systemd.user.sessionVariables 写入 environment.d |
 | Qt 标题栏风格 | 去掉 QT_WAYLAND_DISABLE_WINDOWDECORATION，让 Qt 用 Breeze CSD |
 | Dolphin 右键"打开方式"无应用 | `applications.menu` symlink |

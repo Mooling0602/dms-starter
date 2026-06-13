@@ -1,5 +1,4 @@
 {
-  config,
   pkgs,
   dms,
   ...
@@ -89,93 +88,7 @@
     enableDynamicTheming = true;
     enableSystemMonitoring = true;
     systemd.enable = true;
-
-    session = {
-      # WALLPAPER
-      wallpaperPath = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
-      wallpaperPathLight = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-light.png";
-      wallpaperPathDark = "${config.home.homeDirectory}/.local/share/wallpapers/wallpaper-dark.png";
-      perModeWallpaper = true;
-      perMonitorWallpaper = false;
-      wallpaperTransition = "fade";
-      wallpaperCyclingEnabled = false;
-
-      # LOCATION
-      latitude = 25.839;
-      longitude = 114.913;
-
-      # NIGHT MODE
-      nightModeEnabled = false;
-      nightModeTemperature = 4500;
-      nightModeAutoEnabled = true;
-      nightModeAutoMode = "location";
-      nightModeStartHour = 18;
-      nightModeEndHour = 6;
-      nightModeUseIPLocation = false;
-
-      # AUTO THEME
-      themeModeAutoEnabled = true;
-      themeModeAutoMode = "location";
-      themeModeStartHour = 18;
-      themeModeEndHour = 6;
-      themeModeShareGammaSettings = true;
-
-      # WEATHER
-      weatherLocation = "Ganzhou";
-      weatherCoordinates = "25.839,114.913";
-      weatherHourlyDetailed = true;
-
-      # APP OVERRIDES
-      appOverrides = {
-        qq = {
-          extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
-        };
-        wechat = {
-          envVars = "QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        };
-        qoder = {
-          extraFlags = "--ozone-platform=wayland --enable-wayland-ime";
-        };
-        # wps-office-prometheus = {
-        #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        # };
-        # wps-office-wps = {
-        #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        # };
-        # wps-office-et = {
-        #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        # };
-        # wps-office-wpp = {
-        #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        # };
-        # wps-office-pdf = {
-        #   envVars = "QT_SCALE_FACTOR=1.75 QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx SDL_IM_MODULE=fcitx";
-        # };
-      };
-
-      # MISC
-      showThirdPartyPlugins = false;
-      searchAppActions = true;
-      configVersion = 3;
-    };
   };
-
-  xdg.configFile =
-    let
-      niriDir = "${config.home.homeDirectory}/nixos-config/niri";
-    in
-    {
-      "niri/config.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/config.kdl";
-      "niri/dms/alttab.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/alttab.kdl";
-      "niri/dms/binds.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/binds.kdl";
-      "niri/dms/colors.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/colors.kdl";
-      "niri/dms/cursor.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/cursor.kdl";
-      "niri/dms/layout.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/layout.kdl";
-      "niri/dms/outputs.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/outputs.kdl";
-      "niri/dms/windowrules.kdl".source =
-        config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/windowrules.kdl";
-      "niri/dms/wpblur.kdl".source = config.lib.file.mkOutOfStoreSymlink "${niriDir}/dms/wpblur.kdl";
-    };
 
   systemd.user.services.kdeconnectd = {
     Unit = {

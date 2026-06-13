@@ -342,7 +342,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nvchad-starter": "nvchad-starter"
+        "nvchad-starter": [
+          "nvcfg"
+        ]
       },
       "locked": {
         "lastModified": 1781144176,
@@ -390,20 +392,19 @@
         "type": "github"
       }
     },
-    "nvchad-starter": {
+    "nvcfg": {
       "flake": false,
       "locked": {
-        "lastModified": 1753939018,
-        "narHash": "sha256-xdLr6tlU9uA+wu0pqha2br0fdVm+1MjgjbB5awz9ICU=",
-        "owner": "NvChad",
-        "repo": "starter",
-        "rev": "e3572e1f5e1c297212c3deeb17b7863139ce663e",
+        "lastModified": 1781318560,
+        "narHash": "sha256-C05JVjxzLbOKk3SO22tS58lvKECFZHHDxwzT4+Npx3I=",
+        "owner": "Mooling0602",
+        "repo": "NvCfg",
+        "rev": "32a3b17fa6fc0e1b996508439f50896e8698c05b",
         "type": "github"
       },
       "original": {
-        "owner": "NvChad",
-        "ref": "main",
-        "repo": "starter",
+        "owner": "Mooling0602",
+        "repo": "NvCfg",
         "type": "github"
       }
     },
@@ -419,6 +420,7 @@
         "nix-packages": "nix-packages",
         "nix4nvchad": "nix4nvchad",
         "nixpkgs": "nixpkgs",
+        "nvcfg": "nvcfg",
         "zen-browser": "zen-browser"
       }
     },

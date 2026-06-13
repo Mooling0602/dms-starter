@@ -1,4 +1,4 @@
-// Niri config — managed manually in flake, symlinked via mkOutOfStoreSymlink
+// Niri config backup/template; runtime config lives in ~/.config/niri.
 // DMS files are included first so they can be overridden by settings below
 
 input {

@@ -19,9 +19,14 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nvcfg = {
+      url = "github:Mooling0602/NvCfg";
+      flake = false;
+    };
     nix4nvchad = {
       url = "github:nix-community/nix4nvchad";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nvchad-starter.follows = "nvcfg";
     };
     apollo-flake = {
       url = "github:nil-andreas/apollo-flake";
