@@ -38,7 +38,6 @@
     "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 
   environment.variables = {
-    WINEDLLOVERRIDES = "winealsa.drv=d";
     EDITOR = "nvim";
     QT_PLUGIN_PATH = [
       "${pkgs.qt6Packages.qt6ct}/${pkgs.qt6.qtbase.qtPluginPrefix}"
