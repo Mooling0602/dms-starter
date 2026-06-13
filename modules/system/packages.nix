@@ -26,7 +26,7 @@
 
     accountsservice
 
-    wineWowPackages.waylandFull
+    wineWow64Packages.waylandFull
   ];
 
   # 修复 Dolphin 右键「打开方式」看不到应用的问题
