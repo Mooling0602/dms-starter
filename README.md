@@ -30,9 +30,9 @@
 │       ├── packages.nix          # 系统级包
 │       ├── services.nix          # 蓝牙、打印、PipeWire、SSH
 │       └── users.nix             # 用户 + sudo
-└── niri/                         # Niri KDL 配置备份/模板（运行配置由 DMS/Niri 管理）
-    ├── config.kdl
-    └── dms/
+├── scripts/                      # 辅助脚本
+└── user_profiles/<username>/      # 用户运行时配置快照
+    └── desktop-config/           # DMS/Niri 可变配置备份
 ```
 
 ## 自定义用户名
@@ -75,7 +75,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 ## 配置边界
 
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
-- 仓库中的 `niri/` 仅作为备份/模板，需要版本化时手动从 `~/.config/niri/` 同步回来。
+- DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
 
 ## 参考

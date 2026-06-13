@@ -33,17 +33,10 @@
 │       ├── packages.nix          # 系统包 + unfree + nautilus 排除 + Dolphin 右键菜单修复
 │       ├── services.nix          # 蓝牙 + 打印 + PipeWire + SSH
 │       └── users.nix             # 用户 mooling + fish + sudo NOPASSWD
-├── niri/                          # Niri KDL 配置备份/模板（不由 Home Manager 挂载）
-│   ├── config.kdl                # 手动维护备份：input、环境变量、layer-rules、DMS includes
-│   └── dms/                      # DMS 生成文件备份（dms setup 产出）
-│       ├── alttab.kdl
-│       ├── binds.kdl
-│       ├── colors.kdl
-│       ├── cursor.kdl
-│       ├── layout.kdl
-│       ├── outputs.kdl
-│       ├── windowrules.kdl
-│       └── wpblur.kdl
+├── scripts/                       # 辅助脚本
+├── user_profiles/                 # 用户运行时配置快照
+│   └── mooling/
+│       └── desktop-config/        # DMS/Niri 可变配置备份
 └── README.md
 ```
 
@@ -111,9 +104,9 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 ## Niri 配置文件管理
 
 - `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl` 是普通可写文件，由 DMS/Niri 在运行时管理
-- 仓库中的 `niri/` 仅作为备份/模板，不由 Home Manager 自动同步
+- DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查
 - 需要重新生成时：`echo -e "1\n1-3\n1\ny" | DMS_PRIVESC=sudo dms setup`
-- 需要版本化时，手动把 `~/.config/niri/` 中确认过的变更同步回 `~/nixos-config/niri/`，再用 `git diff` 审查并提交
+- 需要版本化时，从 `~/.config/niri/` 和 `~/.config/DankMaterialShell/` 更新快照，再用 `git diff` 审查并提交
 
 ## 已修复的关键问题
 
