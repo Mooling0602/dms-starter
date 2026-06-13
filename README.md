@@ -95,6 +95,49 @@ cd ~/nixos-config
 sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
 ```
 
+## 系统垃圾清理
+
+NixOS 每次重建都会产生新的世代（generation）和 boot 启动项，积累多了会占用大量空间。
+
+### 快速清理（日常）
+
+```bash
+# 删除 7 天前的旧系统世代（同时清理 boot 启动项和旧内核）
+sudo nix profile wipe-history --older-than 7d --profile /nix/var/nix/profiles/system
+
+# 系统级垃圾回收（删除未引用的 /nix/store 路径）
+sudo nix-collect-garbage --delete-old
+
+# 用户级垃圾回收（清理 home-manager 和用户 profile）
+nix-collect-garbage --delete-old
+
+# 优化 /nix/store（用硬链接去重，节省额外空间）
+sudo nix-store --optimise
+```
+
+### 预留的世代限制
+
+配置中已启用以下自动策略（见 `modules/system/nix.nix` 和 `hosts/*/default.nix`）：
+
+- **`nix.settings.auto-optimise-store = true`** — 每次构建时自动硬链接优化
+- **`nix.gc.automatic = true` + `--delete-older-than 7d`** — 每周自动垃圾回收
+- **`boot.loader.systemd-boot.configurationLimit = 10`** — 最多保留 10 个 boot 启动项
+
+### 手动清理旧世代（只保留最新 N 个）
+
+```bash
+sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 1d
+```
+
+### 查看当前状态
+
+```bash
+nix profile history --profile /nix/var/nix/profiles/system  # 系统世代历史
+sudo bootctl list                                             # 当前 boot 启动项
+df -h / /boot                                                 # 磁盘使用
+du -sh /nix/store                                             # nix store 大小
+```
+
 ## 配置边界
 
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
