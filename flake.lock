@@ -395,11 +395,11 @@
     "nvcfg": {
       "flake": false,
       "locked": {
-        "lastModified": 1781335161,
-        "narHash": "sha256-0Zh9zKUATqVUO3/vg23jYXIaWnvh5kJ1Sd/m84X9+dk=",
+        "lastModified": 1781335422,
+        "narHash": "sha256-TlyWM5c2KLO3DytCT7wMz5hQgrb3f/YiD6+rD2AgWfc=",
         "owner": "Mooling0602",
         "repo": "NvCfg",
-        "rev": "a7717f08fca3602f9aea31c0ef21eda50df79d5e",
+        "rev": "6e03f7d7a7e18de3d75b6f7cf15d4989c64b4548",
         "type": "github"
       },
       "original": {
