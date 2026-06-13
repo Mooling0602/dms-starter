@@ -33,6 +33,12 @@
     pulseaudio
 
     winetricks
+
+    # wine64 → wine 软链接（winetricks 在 WoW64 模式下需要 wine64）
+    (pkgs.runCommand "wine64-symlink" { } ''
+      mkdir -p $out/bin
+      ln -s ${wineWow64Packages.waylandFull}/bin/wine $out/bin/wine64
+    '')
   ];
 
   # 修复 Dolphin 右键「打开方式」看不到应用的问题
