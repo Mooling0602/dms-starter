@@ -54,11 +54,25 @@
     adw-gtk3
 
     # Qt theming
-    qt6Packages.qt6ct
+    # qt6ct with KColorScheme support (AUR qt6ct-kde shenanigans patch)
+    (qt6Packages.qt6ct.overrideAttrs (finalAttrs: previousAttrs: {
+      buildInputs = (previousAttrs.buildInputs or []) ++ [
+        kdePackages.kconfig
+        kdePackages.kcolorscheme
+        kdePackages.kiconthemes
+      ];
+      patches = (previousAttrs.patches or []) ++ [
+        (fetchpatch {
+          url = "https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde";
+          hash = "sha256-b/s033yBLyl2zTaqhIGgh0zk+1IQS/EIPalYuJXt8uI=";
+        })
+      ];
+    }))
     libsForQt5.qt5ct
     kdePackages.breeze
     kdePackages.plasma-integration
     kdePackages.qqc2-desktop-style
     kdePackages.kservice
   ];
+
 }
