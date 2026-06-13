@@ -26,7 +26,7 @@
 
     accountsservice
 
-    wineWow64Packages.waylandFull
+    wineWow64Packages.full
 
     # Wine 音频支持：pulseaudio 客户端库（配合 pipewire-pulse）
     # winealsa.drv 在 pipewire 下枚举设备可能卡死，用 pulse 后端
@@ -37,7 +37,7 @@
     # wine64 → wine 软链接（winetricks 在 WoW64 模式下需要 wine64）
     (pkgs.runCommand "wine64-symlink" { } ''
       mkdir -p $out/bin
-      ln -s ${wineWow64Packages.waylandFull}/bin/wine $out/bin/wine64
+      ln -s ${wineWow64Packages.full}/bin/wine $out/bin/wine64
     '')
   ];
 
