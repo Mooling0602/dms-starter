@@ -44,6 +44,10 @@
       url = "github:imaviso/dwproton-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    danksearch = {
+      url = "github:AvengeMedia/danksearch";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zen-browser = {
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -102,8 +106,10 @@
                   ./modules/home
                   ./hosts/${hostname}/streaming-display.nix
                   inputs.dms.homeModules.dank-material-shell
+                  inputs.danksearch.homeModules.dsearch
                   inputs.nix4nvchad.homeManagerModule
                 ];
+                programs.dsearch.enable = true;
               };
             home-manager.extraSpecialArgs = inputs // {
               inherit username hostname;
