@@ -13,6 +13,8 @@
   boot.kernelModules = [ "kvm-intel" "ntsync" ];
   boot.extraModulePackages = [ ];
 
+  hardware.xpadneo.enable = true;
+
   fileSystems."/" =
     { device = "/dev/disk/by-uuid/0864e997-a7b8-4e03-b0c7-813806645116";
       fsType = "ext4";
