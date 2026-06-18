@@ -36,6 +36,7 @@
     # dev tools
     jdk25
     gcc
+    nodejs
 
     # KDE connect
     kdePackages.kdeconnect-kde
