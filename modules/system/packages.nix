@@ -19,6 +19,11 @@
     wget
     nil
     nixd
+
+    gnumake
+    gcc
+    python3
+
     clash-verge-rev
 
     # KDE file chooser portal
