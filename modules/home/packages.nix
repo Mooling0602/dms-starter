@@ -103,5 +103,6 @@
     prismlauncher
     rclone
     zen-browser
+    flclash
   ];
 }
