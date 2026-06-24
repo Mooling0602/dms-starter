@@ -100,6 +100,7 @@
     reasonix
     reasonix-desktop
     qoder
+    clawd-on-desk
     prismlauncher
     rclone
     zen-browser

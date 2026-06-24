@@ -93,6 +93,7 @@
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
                 reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.system}.qoder;
+                clawd-on-desk = inputs.nix-packages.packages.${final.system}.clawd-on-desk;
                 zen-browser = inputs.zen-browser.packages.${final.system}.default;
               })
             ];
