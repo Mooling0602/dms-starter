@@ -87,6 +87,7 @@
     kdePackages.discover
     kdePackages.systemsettings
     kdePackages.ark
+    kdePackages.ksshaskpass
     qq
     wechat
     telegram-desktop
