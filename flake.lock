@@ -442,7 +442,29 @@
         "nix4nvchad": "nix4nvchad",
         "nixpkgs": "nixpkgs",
         "nvcfg": "nvcfg",
+        "xwayland-satellite": "xwayland-satellite",
         "zen-browser": "zen-browser"
+      }
+    },
+    "rust-overlay": {
+      "inputs": {
+        "nixpkgs": [
+          "xwayland-satellite",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1769222645,
+        "narHash": "sha256-gu6oZ86zLudBZMq8LL1qdtYt/S69GV5keQVXdvBrVSU=",
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "rev": "22da29e7f3d8cff75009cbbcf992c7cb66920cfd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "oxalica",
+        "repo": "rust-overlay",
+        "type": "github"
       }
     },
     "systems": {
@@ -509,6 +531,27 @@
         "owner": "numtide",
         "repo": "treefmt-nix",
         "type": "github"
+      }
+    },
+    "xwayland-satellite": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "rust-overlay": "rust-overlay"
+      },
+      "locked": {
+        "lastModified": 1782718231,
+        "narHash": "sha256-emf54E5VacVwWWsT+mPooW5FgHc038c09PZutXRg6+0=",
+        "ref": "refs/heads/main",
+        "rev": "6309aa16e216189d5339857274e53030b7957a4d",
+        "revCount": 246,
+        "type": "git",
+        "url": "https://github.com/Mooling0602/xwayland-satellite"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/Mooling0602/xwayland-satellite"
       }
     },
     "xwayland-satellite-stable": {

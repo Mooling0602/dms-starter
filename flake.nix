@@ -52,6 +52,10 @@
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    xwayland-satellite = {
+      url = "git+https://github.com/Mooling0602/xwayland-satellite";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -87,7 +91,7 @@
             my = { inherit username hostname; };
             nixpkgs.overlays = [
               (final: prev: {
-                xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+                xwayland-satellite = inputs.xwayland-satellite.packages.${final.system}.xwayland-satellite;
               })
               (final: prev: {
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
