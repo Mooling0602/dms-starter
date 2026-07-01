@@ -95,6 +95,7 @@
     google-chrome
     bilibili
     claude-code
+    codex
     opencode
     opencode-desktop
     zed-editor
