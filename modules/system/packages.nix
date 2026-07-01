@@ -5,7 +5,13 @@
     enable = true;
     protontricks.enable = true;
   };
-  nixpkgs.config.allowUnfree = true;
+
+  nixpkgs.config = {
+    allowUnfree = true;
+    permittedInsecurePackages = [
+      "pnpm-9.15.9"
+    ];
+  };
 
   # 排除 GNOME 文件管理器，使用 KDE/Dolphin
   environment.gnome.excludePackages = with pkgs; [
