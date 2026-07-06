@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ ... }:
 
 {
   services.flatpak.enable = true;
@@ -14,12 +14,12 @@
 
   services.openssh.enable = true;
 
-  services.envfs = {
-    enable = true;
-    extraFallbackPathCommands = ''
-      ln -s ${pkgs.coreutils}/bin/true $out/true
-    '';
-  };
+  # services.envfs = {
+  #   enable = true;
+  #   extraFallbackPathCommands = ''
+  #     ln -s ${pkgs.coreutils}/bin/true $out/true
+  #   '';
+  # };
 
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
