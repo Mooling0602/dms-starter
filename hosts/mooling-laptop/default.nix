@@ -25,6 +25,8 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  boot.resumeDevice = "/dev/disk/by-uuid/c531a6ba-9945-42f0-821b-9a0553fe100d";
+
   networking.hostName = config.my.hostname;
 
   system.stateVersion = "25.11";
