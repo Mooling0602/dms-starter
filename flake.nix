@@ -94,6 +94,7 @@
                 xwayland-satellite = inputs.xwayland-satellite.packages.${final.system}.xwayland-satellite;
               })
               (final: prev: {
+                codex = inputs.nix-packages.packages.${final.system}.codex-bin;
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
                 reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.system}.qoder;
