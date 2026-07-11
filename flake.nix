@@ -110,7 +110,7 @@
                   ]}:''${LD_LIBRARY_PATH:-}"
 
                   mkdir -p "$STEAM_COMPAT_DATA_PATH"
-                  exec ${dw-proton.packages.x86_64-linux.dw-proton.steamcompattool}/proton run "$@"
+                  exec ${dw-proton.packages.x86_64-linux.dw-proton.steamcompattool}/proton runinprefix "$@"
                 '')
               ];
 
