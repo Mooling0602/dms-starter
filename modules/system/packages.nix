@@ -6,6 +6,8 @@
     protontricks.enable = true;
   };
 
+  programs.gamemode.enable = true;
+
   nixpkgs.config = {
     allowUnfree = true;
     permittedInsecurePackages = [
@@ -31,6 +33,9 @@
     python3
 
     clash-verge-rev
+
+    gamemode
+    mangohud
 
     # KDE file chooser portal
     kdePackages.xdg-desktop-portal-kde
