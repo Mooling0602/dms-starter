@@ -94,6 +94,11 @@
                     exit 64
                   fi
 
+                  if [ "''${DW_PROTON_IN_STEAM_RUN:-}" != 1 ]; then
+                    export DW_PROTON_IN_STEAM_RUN=1
+                    exec ${pkgs.steam-run}/bin/steam-run "$0" "$@"
+                  fi
+
                   export STEAM_COMPAT_CLIENT_INSTALL_PATH="''${STEAM_COMPAT_CLIENT_INSTALL_PATH:-$HOME/.steam/steam}"
                   export STEAM_COMPAT_DATA_PATH="''${STEAM_COMPAT_DATA_PATH:-''${WINEPREFIX:-$PWD}}"
                   export WINEPREFIX="$STEAM_COMPAT_DATA_PATH/pfx"
