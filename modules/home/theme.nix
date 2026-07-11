@@ -64,7 +64,7 @@
       patches = (previousAttrs.patches or []) ++ [
         (fetchpatch {
           url = "https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde";
-          hash = "sha256-b/s033yBLyl2zTaqhIGgh0zk+1IQS/EIPalYuJXt8uI=";
+          hash = "sha256-CAFsup46roQUqOzJ9Xl1x2oC2YD7QtrX/vD2k1CsCR8=";
         })
       ];
     }))
