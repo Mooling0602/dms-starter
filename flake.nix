@@ -97,7 +97,12 @@
                   export STEAM_COMPAT_CLIENT_INSTALL_PATH="''${STEAM_COMPAT_CLIENT_INSTALL_PATH:-$HOME/.steam/steam}"
                   export STEAM_COMPAT_DATA_PATH="''${STEAM_COMPAT_DATA_PATH:-''${WINEPREFIX:-$PWD}}"
                   export WINEPREFIX="$STEAM_COMPAT_DATA_PATH/pfx"
-                  export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [ pkgs.vulkan-loader ]}:''${LD_LIBRARY_PATH:-}"
+                  export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
+                    pkgs.vulkan-loader
+                    pkgs.freetype
+                    pkgs.pkgsi686Linux.vulkan-loader
+                    pkgs.pkgsi686Linux.freetype
+                  ]}:''${LD_LIBRARY_PATH:-}"
 
                   mkdir -p "$STEAM_COMPAT_DATA_PATH"
                   exec ${dw-proton.packages.x86_64-linux.dw-proton.steamcompattool}/proton run "$@"
