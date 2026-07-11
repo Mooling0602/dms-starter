@@ -82,11 +82,32 @@
               services.apollo.package = apollo-flake.packages.x86_64-linux.default;
             }
           )
-          {
-            programs.steam.extraCompatPackages = [
-              dw-proton.packages.x86_64-linux.dw-proton
-            ];
-          }
+          (
+            { pkgs, ... }:
+            {
+              environment.systemPackages = [
+                (pkgs.writeShellScriptBin "dw-proton" ''
+                  set -eu
+
+                  if [ "$#" -lt 1 ]; then
+                    echo "Usage: dw-proton <program.exe> [arguments...]" >&2
+                    exit 64
+                  fi
+
+                  export STEAM_COMPAT_CLIENT_INSTALL_PATH="''${STEAM_COMPAT_CLIENT_INSTALL_PATH:-$HOME/.steam/steam}"
+                  export STEAM_COMPAT_DATA_PATH="''${STEAM_COMPAT_DATA_PATH:-''${WINEPREFIX:-$PWD}}"
+                  export WINEPREFIX="$STEAM_COMPAT_DATA_PATH/pfx"
+
+                  mkdir -p "$STEAM_COMPAT_DATA_PATH"
+                  exec ${dw-proton.packages.x86_64-linux.dw-proton.steamcompattool}/proton run "$@"
+                '')
+              ];
+
+              programs.steam.extraCompatPackages = [
+                dw-proton.packages.x86_64-linux.dw-proton
+              ];
+            }
+          )
           {
             my = { inherit username hostname; };
             nixpkgs.overlays = [
