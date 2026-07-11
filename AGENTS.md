@@ -85,6 +85,11 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 
 > 非Claude Code客户端请忽略，或使用适合自己的正确信息。
 
+## 维护清单
+
+- `MAINTENANCE.md` 记录临时构建绕过、外部功能补丁、任何替代上游包源的 fork（不限定所有者）及配置例外的原因、上游链接、移除条件和复查命令。
+- 更新 `flake.lock`、相关依赖或覆盖时，应先检查该清单；上游已修复时删除对应覆盖，并按文档完成验证。
+
 ## 关键设计决策
 
 1. **DMS/Niri 运行配置不声明式管理** — 不声明 `programs.dank-material-shell.session`，也不通过 `xdg.configFile` 或 `mkOutOfStoreSymlink` 挂载 `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl`。DMS 拥有自身运行配置和 `~/.config/niri/`，避免图形设置只读或重启后被 Nix 覆盖。
@@ -115,7 +120,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 | config.kdl 反复冲突 | DMS/Niri 文件不再由 Home Manager 管理 |
 | DMS 图形设置只读或重启丢失 | 移除 `programs.dank-material-shell.session` |
 | Qt 应用 DMS 启动时 env 错误 | systemd.user.sessionVariables 写入 environment.d |
-| Qt 标题栏风格 | 去掉 QT_WAYLAND_DISABLE_WINDOWDECORATION，让 Qt 用 Breeze CSD |
+| Qt 标题栏风格 | `QT_WAYLAND_DECORATION=ssd` 与 `QT_WAYLAND_DISABLE_WINDOWDECORATION=1`，让 niri 提供 SSD |
 | Dolphin 右键"打开方式"无应用 | `applications.menu` symlink |
 | Greeter 不跟随桌面主题 | `configHome = "/home/mooling"` |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
