@@ -83,37 +83,8 @@
             }
           )
           (
-            { pkgs, ... }:
+            { ... }:
             {
-              environment.systemPackages = [
-                (pkgs.writeShellScriptBin "dw-proton" ''
-                  set -eu
-
-                  if [ "$#" -lt 1 ]; then
-                    echo "Usage: dw-proton <program.exe> [arguments...]" >&2
-                    exit 64
-                  fi
-
-                  if [ "''${DW_PROTON_IN_STEAM_RUN:-}" != 1 ]; then
-                    export DW_PROTON_IN_STEAM_RUN=1
-                    exec ${pkgs.steam-run}/bin/steam-run "$0" "$@"
-                  fi
-
-                  export STEAM_COMPAT_CLIENT_INSTALL_PATH="''${STEAM_COMPAT_CLIENT_INSTALL_PATH:-$HOME/.steam/steam}"
-                  export STEAM_COMPAT_DATA_PATH="''${STEAM_COMPAT_DATA_PATH:-''${WINEPREFIX:-$PWD}}"
-                  export WINEPREFIX="$STEAM_COMPAT_DATA_PATH/pfx"
-                  export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
-                    pkgs.vulkan-loader
-                    pkgs.freetype
-                    pkgs.pkgsi686Linux.vulkan-loader
-                    pkgs.pkgsi686Linux.freetype
-                  ]}:''${LD_LIBRARY_PATH:-}"
-
-                  mkdir -p "$STEAM_COMPAT_DATA_PATH"
-                  exec ${dw-proton.packages.x86_64-linux.dw-proton.steamcompattool}/proton runinprefix "$@"
-                '')
-              ];
-
               programs.steam.extraCompatPackages = [
                 dw-proton.packages.x86_64-linux.dw-proton
               ];
