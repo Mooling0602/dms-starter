@@ -97,6 +97,15 @@
                 xwayland-satellite = inputs.xwayland-satellite.packages.${final.system}.xwayland-satellite;
               })
               (final: prev: {
+                pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+                  (python-final: python-prev: {
+                    click-threading = python-prev.click-threading.overridePythonAttrs (oldAttrs: {
+                      disabledTestPaths = (oldAttrs.disabledTestPaths or [ ]) ++ [ "docs/conf.py" ];
+                    });
+                  })
+                ];
+              })
+              (final: prev: {
                 codex = inputs.nix-packages.packages.${final.system}.codex-bin;
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
                 reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
