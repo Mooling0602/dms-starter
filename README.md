@@ -148,6 +148,8 @@ du -sh /nix/store                                             # nix store 大小
 
 已启用 [Howdy](https://github.com/boltgolt/howdy) 的全局 PAM 认证，适用于 DMS Greeter 登录、`sudo`、本机锁屏和 SSH 等使用 PAM 的服务。人脸认证成功可直接放行，识别失败时仍会要求输入密码。
 
+认证开始时会显示 Howdy 的检测提示；若画面太暗或识别超时，则输入密码继续。录入多个光照和角度的样本可提高识别率。
+
 ```fish
 # 首次录入；为不同光照和角度添加多张样本
 sudo howdy add mooling
