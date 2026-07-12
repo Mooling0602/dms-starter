@@ -14,6 +14,18 @@
 
   services.openssh.enable = true;
 
+  services.howdy = {
+    enable = true;
+    control = "sufficient";
+    settings = {
+      core = {
+        abort_if_ssh = false;
+        detection_notice = true;
+      };
+      video.device_path = "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._BisonCam_NB_Pro-video-index0";
+    };
+  };
+
   # services.envfs = {
   #   enable = true;
   #   extraFallbackPathCommands = ''

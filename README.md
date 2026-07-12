@@ -144,6 +144,23 @@ du -sh /nix/store                                             # nix store 大小
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
 
+## 人脸认证
+
+已启用 [Howdy](https://github.com/boltgolt/howdy) 的全局 PAM 认证，适用于 DMS Greeter 登录、`sudo`、本机锁屏和 SSH 等使用 PAM 的服务。人脸认证成功可直接放行，识别失败时仍会要求输入密码。
+
+```fish
+# 首次录入；为不同光照和角度添加多张样本
+sudo howdy add mooling
+
+# 查看、删除已录入样本
+sudo howdy list
+sudo howdy remove mooling
+```
+
+- 摄像头使用稳定路径 `/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._BisonCam_NB_Pro-video-index0`。
+- SSH 认证时，Howdy 扫描的是本机摄像头，不能读取 SSH 客户端的摄像头。
+- 这台设备是普通 RGB 摄像头；Howdy 不提供可靠活体检测，可能被照片欺骗，不应将其视为密码的安全替代品。
+
 ## 运行时配置备份
 
 ```fish

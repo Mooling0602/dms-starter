@@ -50,6 +50,51 @@
 
   成功后删除覆盖，再重复同一命令确认。
 
+### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
+
+- **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖。
+- **影响：** `face-recognition-models 0.3.0` 使用 Python 3.14 已移除的 `pkg_resources.resource_filename` 定位随包安装的模型文件，导致导入失败，并阻断 Howdy 的系统闭包构建。
+- **当前处理：** 在构建时将该调用替换为标准库 `importlib.resources.files`，并将模型资源路径转换为字符串；保留 `pythonImportsCheck` 以及依赖它的 `face-recognition` 上游测试。
+- **上游：** https://github.com/ageitgey/face_recognition_models/blob/master/face_recognition_models/__init__.py ，Nixpkgs 包定义： https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/development/python-modules/face-recognition/models.nix
+- **移除条件：** 上游或 Nixpkgs 已移除 `pkg_resources` 用法，且不使用本覆盖时 Howdy 系统闭包可成功构建。
+- **复查方法：** 临时删除该覆盖后运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
+  ```
+
+  构建成功后永久删除覆盖，再重复同一命令确认。
+
+### 最小特性 GDAL 的 Zarr 分片缓存测试
+
+- **位置：** `flake.nix` 的 `gdal` 覆盖；通过其 `override { useMinimalFeatures = true; }` 传播至顶层 `gdalMinimal` 及 VTK 自行创建的最小特性 GDAL。
+- **影响：** `gdal-minimal 3.13.1` 未启用 `netCDF` 驱动，但 `test_zarr_read_simple_sharding` 仍断言由该驱动写入的 `zarr.json.gmac` 缓存文件存在，导致 VTK 及其下游系统闭包构建失败。
+- **当前处理：** 仅当 `pname` 为 `gdal-minimal` 时跳过该不满足前置驱动条件的测试，其余 GDAL 测试保持执行；等价于 GDAL 上游 PR #14940 添加的 `@pytest.mark.require_driver("netCDF")` 标记。
+- **上游：** https://github.com/OSGeo/gdal/pull/14940 ，Nixpkgs 问题： https://github.com/NixOS/nixpkgs/issues/540609
+- **移除条件：** PR #14940 或等效修复已合入 Nixpkgs，且更新后的最小特性 GDAL 不使用本覆盖可成功构建。
+- **复查方法：** 更新 `nixpkgs` 输入后临时删除该覆盖并运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
+  ```
+
+   成功后永久删除覆盖，再重复同一命令确认。
+
+### `pdal` 与 GDAL 3.13 的元数据 API 兼容性
+
+- **位置：** `flake.nix` 的 `pdal` 覆盖；通过其 `override { }` 传播至 VTK 自行创建的 PDAL。
+- **影响：** `pdal 2.9.3` 将 GDAL 3.13 的只读 `CSLConstList` 元数据列表赋值给可写 `char **`，导致编译失败，并阻断 VTK、OpenCV 及 Howdy 系统闭包构建。
+- **当前处理：** 采用 PDAL 上游提交 `eb7220a` 的最小替换：使用 `CSLConstList` 保存元数据，并用 `CSLCount` 遍历列表。
+- **上游：** https://github.com/PDAL/PDAL/commit/eb7220a2447c5b3d208d7ef0a76c61a17a5b21da ，Nixpkgs 包定义： https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/pd/pdal/package.nix
+- **移除条件：** Nixpkgs 的 PDAL 已包含该提交或等效 GDAL 3.13 兼容修复，且移除覆盖后系统闭包可成功构建。
+- **复查方法：** 更新 `nixpkgs` 输入后临时删除该覆盖并运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
+  ```
+
+  构建成功后永久删除覆盖，再重复同一命令确认。
+
 ## 外部功能补丁
 
 ### `qt6ct-kde` 的 KColorScheme 支持

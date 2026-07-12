@@ -102,8 +102,65 @@
                     click-threading = python-prev.click-threading.overridePythonAttrs (oldAttrs: {
                       disabledTestPaths = (oldAttrs.disabledTestPaths or [ ]) ++ [ "docs/conf.py" ];
                     });
+                    face-recognition-models = python-prev.face-recognition-models.overridePythonAttrs (oldAttrs: {
+                      postPatch = (oldAttrs.postPatch or "") + ''
+                        substituteInPlace face_recognition_models/__init__.py \
+                          --replace-fail 'from pkg_resources import resource_filename' 'from importlib.resources import files' \
+                          --replace-fail 'return resource_filename(__name__, "models/shape_predictor_68_face_landmarks.dat")' 'return str(files(__name__).joinpath("models/shape_predictor_68_face_landmarks.dat"))' \
+                          --replace-fail 'return resource_filename(__name__, "models/shape_predictor_5_face_landmarks.dat")' 'return str(files(__name__).joinpath("models/shape_predictor_5_face_landmarks.dat"))' \
+                          --replace-fail 'return resource_filename(__name__, "models/dlib_face_recognition_resnet_model_v1.dat")' 'return str(files(__name__).joinpath("models/dlib_face_recognition_resnet_model_v1.dat"))' \
+                          --replace-fail 'return resource_filename(__name__, "models/mmod_human_face_detector.dat")' 'return str(files(__name__).joinpath("models/mmod_human_face_detector.dat"))'
+                      '';
+                    });
                   })
                 ];
+                gdal = prev.gdal.overrideAttrs (oldAttrs: {
+                  disabledTests = oldAttrs.disabledTests ++ final.lib.optional (
+                    oldAttrs.pname == "gdal-minimal"
+                  ) "test_zarr_read_simple_sharding";
+                });
+                pdal = prev.pdal.overrideAttrs (oldAttrs: {
+                  postPatch = (oldAttrs.postPatch or "") + ''
+                    substituteInPlace pdal/private/gdal/Raster.cpp \
+                      --replace-fail '    char **papszMetadata = NULL;' "" \
+                      --replace-fail '    // m_ds owns this' "" \
+                      --replace-fail '    papszMetadata = m_ds->GetMetadata(domain.c_str());' '    CSLConstList papszMetadata = m_ds->GetMetadata(domain.c_str());' \
+                      --replace-fail '    for( int i = 0;' '    for( int i = 0; i < CSLCount(papszMetadata); ++i )' \
+                      --replace-fail '         papszMetadata != NULL && papszMetadata[i] != NULL;' "" \
+                      --replace-fail '         i++ )' ""
+                  '';
+                });
+                vtk = prev.vtk.overrideAttrs (oldAttrs: {
+                  postPatch = (oldAttrs.postPatch or "") + ''
+                    substituteInPlace Geovis/GDAL/vtkGDALRasterConverter.cxx \
+                      --replace-fail '      char** categoryNames = band->GetCategoryNames();' '
+#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
+      const char* const* categoryNames = band->GetCategoryNames();
+#else
+      char** categoryNames = band->GetCategoryNames();
+#endif'
+
+                    substituteInPlace IO/GDAL/vtkGDALRasterReader.cxx \
+                      --replace-fail '    char** papszMetaData = GDALGetMetadata(this->GDALData, nullptr);' '
+#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
+    const char* const* papszMetaData = GDALGetMetadata(this->GDALData, nullptr);
+#else
+    char** papszMetaData = GDALGetMetadata(this->GDALData, nullptr);
+#endif' \
+                      --replace-fail '  char** categoryNames = rasterBand->GetCategoryNames();' '
+#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
+  const char* const* categoryNames = rasterBand->GetCategoryNames();
+#else
+  char** categoryNames = rasterBand->GetCategoryNames();
+#endif' \
+                      --replace-fail '  char** papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());' '
+#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
+  const char* const* papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());
+#else
+  char** papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());
+#endif'
+                  '';
+                });
               })
               (final: prev: {
                 codex = inputs.nix-packages.packages.${final.system}.codex-bin;
