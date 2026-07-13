@@ -29,5 +29,8 @@
 
   networking.hostName = config.my.hostname;
 
+  services.howdy.settings.video.device_path =
+    "/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._BisonCam_NB_Pro-video-index0";
+
   system.stateVersion = "25.11";
 }
