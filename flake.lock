@@ -102,11 +102,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783915049,
-        "narHash": "sha256-CiMr5nVqZ1RBq0Oc1dX8DyqwHQCzcxjecd+gAG+h8XE=",
+        "lastModified": 1783997242,
+        "narHash": "sha256-6YSww9P8Rkcw0E58LH3T2L1tAtiRzdMc8DzzqQRYxTU=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "f590a2965a686436db263c25e45a06625d3bdb4c",
+        "rev": "9ff751b82a89b35f2ee04d694de04c15db7bef8c",
         "type": "github"
       },
       "original": {
@@ -215,11 +215,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783823409,
-        "narHash": "sha256-OI4IkRjRXa1e7hYmCGJDPDq5H/kPwhsyoS80cNUF9fI=",
+        "lastModified": 1783963347,
+        "narHash": "sha256-r376E2XpakiXwModDHIxlvB6qLq4iFVEq730vxOO4JY=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "7566825d4652a1b885bd4ce65bd9e8def432fec9",
+        "rev": "a45a7c451455a51ae740ec3bce4024b312809c29",
         "type": "github"
       },
       "original": {
@@ -239,11 +239,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1783912404,
-        "narHash": "sha256-XdUwPMY4dmsYJrwdSqSHDV01mSJRqwXHSdTRCEDeecs=",
+        "lastModified": 1783997168,
+        "narHash": "sha256-K/4wL9iM0FEkvJWTW2pyrJfMhrrPrfz1+updmjqrzOc=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "dbd0928ca24380fe62f485785f5fa097f45f4b50",
+        "rev": "d6d8153b9b4cdcd48a7f8dfce8de4e80db6bb2b7",
         "type": "github"
       },
       "original": {
@@ -317,11 +317,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783877958,
-        "narHash": "sha256-wDeC/ZnW2b7qLjmEh1KQqyvI6OmW3Mie22q7bF0Imms=",
+        "lastModified": 1783997850,
+        "narHash": "sha256-heTDcHo1v+hfA3RPs2U8eI5dH+THspDKPQWjY8z6fME=",
         "owner": "Mooling0602",
         "repo": "nix-packages",
-        "rev": "09a9ed48416a22dbfab7255aa41a9ba2a8893135",
+        "rev": "16a7f125496a90bfa1d2131c5d6b291fa39c0be0",
         "type": "github"
       },
       "original": {
@@ -515,11 +515,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1783912447,
-        "narHash": "sha256-H53aVeuu1FJaltpbSVWesdcO2S/fAreh7Ajqbw8SEUI=",
+        "lastModified": 1783948628,
+        "narHash": "sha256-Rb9VAiibJ0uhqksl5qnAOdcza6bajqLBReZmas6vAcU=",
         "ref": "refs/heads/main",
-        "rev": "fb0ac8c7d4c536207a2d82b190b4a3bc3ad2740c",
-        "revCount": 252,
+        "rev": "e8eaccf7a262ade8560cd121b8df4906de4fa0de",
+        "revCount": 253,
         "type": "git",
         "url": "https://github.com/Mooling0602/xwayland-satellite"
       },
