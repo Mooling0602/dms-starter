@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   home.packages = with pkgs; [
@@ -34,6 +34,7 @@
     ipcalc
 
     # dev tools
+    (lib.lowPrio jdk8)
     jdk25
     gcc
     nodejs
@@ -108,4 +109,6 @@
     zen-browser
     flclash
   ];
+
+  home.file.".local/share/jdks/jdk8".source = pkgs.jdk8;
 }
