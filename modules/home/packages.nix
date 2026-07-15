@@ -34,6 +34,7 @@
     ipcalc
 
     # dev tools
+    android-tools
     (lib.lowPrio jdk8)
     jdk25
     gcc
