@@ -119,17 +119,6 @@
                     oldAttrs.pname == "gdal-minimal"
                   ) "test_zarr_read_simple_sharding";
                 });
-                pdal = prev.pdal.overrideAttrs (oldAttrs: {
-                  postPatch = (oldAttrs.postPatch or "") + ''
-                    substituteInPlace pdal/private/gdal/Raster.cpp \
-                      --replace-fail '    char **papszMetadata = NULL;' "" \
-                      --replace-fail '    // m_ds owns this' "" \
-                      --replace-fail '    papszMetadata = m_ds->GetMetadata(domain.c_str());' '    CSLConstList papszMetadata = m_ds->GetMetadata(domain.c_str());' \
-                      --replace-fail '    for( int i = 0;' '    for( int i = 0; i < CSLCount(papszMetadata); ++i )' \
-                      --replace-fail '         papszMetadata != NULL && papszMetadata[i] != NULL;' "" \
-                      --replace-fail '         i++ )' ""
-                  '';
-                });
                 vtk = prev.vtk.overrideAttrs (oldAttrs: {
                   postPatch = (oldAttrs.postPatch or "") + ''
                     substituteInPlace Geovis/GDAL/vtkGDALRasterConverter.cxx \
