@@ -82,22 +82,6 @@
 
    成功后永久删除覆盖，再重复同一命令确认。
 
-### `pdal` 与 GDAL 3.13 的元数据 API 兼容性
-
-- **位置：** `flake.nix` 的 `pdal` 覆盖；通过其 `override { }` 传播至 VTK 自行创建的 PDAL。
-- **影响：** `pdal 2.9.3` 将 GDAL 3.13 的只读 `CSLConstList` 元数据列表赋值给可写 `char **`，导致编译失败，并阻断 VTK、OpenCV 及 Howdy 系统闭包构建。
-- **当前处理：** 采用 PDAL 上游提交 `eb7220a` 的最小替换：使用 `CSLConstList` 保存元数据，并用 `CSLCount` 遍历列表。
-- **相关提交：** `3ad1630`（`feat: enable Howdy face authentication`）。
-- **上游：** https://github.com/PDAL/PDAL/commit/eb7220a2447c5b3d208d7ef0a76c61a17a5b21da ，Nixpkgs 包定义： https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/pd/pdal/package.nix
-- **移除条件：** Nixpkgs 的 PDAL 已包含该提交或等效 GDAL 3.13 兼容修复，且移除覆盖后系统闭包可成功构建。
-- **复查方法：** 更新 `nixpkgs` 输入后临时删除该覆盖并运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
-  ```
-
-  构建成功后永久删除覆盖，再重复同一命令确认。
-
 ### `vtk` 与 GDAL 3.13 的元数据 API 兼容性
 
 - **位置：** `flake.nix` 的 `vtk` 覆盖。
@@ -113,6 +97,15 @@
   ```
 
   构建成功后永久删除覆盖，再重复同一命令确认。
+
+## 已解除的临时构建绕过
+
+### `pdal` 与 GDAL 3.13 的元数据 API 兼容性
+
+- **原处理：** 在 `flake.nix` 中采用 PDAL 上游提交 `eb7220a` 的元数据 API 修复。
+- **解除原因：** Nixpkgs 的 `pdal 2.10.2` 已包含等效修复，继续应用覆盖会因目标代码不存在而在 `patchPhase` 失败。
+- **移除提交：** `7ff1f8e`（`fix: remove obsolete pdal patch`）。
+- **验证：** PDAL 的 143 项测试及完整系统闭包构建通过，`mooling-laptop` 配置切换成功。
 
 ## 外部功能补丁
 
