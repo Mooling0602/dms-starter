@@ -102,16 +102,6 @@
                     click-threading = python-prev.click-threading.overridePythonAttrs (oldAttrs: {
                       disabledTestPaths = (oldAttrs.disabledTestPaths or [ ]) ++ [ "docs/conf.py" ];
                     });
-                    face-recognition-models = python-prev.face-recognition-models.overridePythonAttrs (oldAttrs: {
-                      postPatch = (oldAttrs.postPatch or "") + ''
-                        substituteInPlace face_recognition_models/__init__.py \
-                          --replace-fail 'from pkg_resources import resource_filename' 'from importlib.resources import files' \
-                          --replace-fail 'return resource_filename(__name__, "models/shape_predictor_68_face_landmarks.dat")' 'return str(files(__name__).joinpath("models/shape_predictor_68_face_landmarks.dat"))' \
-                          --replace-fail 'return resource_filename(__name__, "models/shape_predictor_5_face_landmarks.dat")' 'return str(files(__name__).joinpath("models/shape_predictor_5_face_landmarks.dat"))' \
-                          --replace-fail 'return resource_filename(__name__, "models/dlib_face_recognition_resnet_model_v1.dat")' 'return str(files(__name__).joinpath("models/dlib_face_recognition_resnet_model_v1.dat"))' \
-                          --replace-fail 'return resource_filename(__name__, "models/mmod_human_face_detector.dat")' 'return str(files(__name__).joinpath("models/mmod_human_face_detector.dat"))'
-                      '';
-                    });
                   })
                 ];
                 gdal = prev.gdal.overrideAttrs (oldAttrs: {

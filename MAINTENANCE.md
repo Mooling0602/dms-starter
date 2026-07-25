@@ -50,22 +50,6 @@
 
   成功后删除覆盖，再重复同一命令确认。
 
-### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
-
-- **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖。
-- **影响：** `face-recognition-models 0.3.0` 使用 Python 3.14 已移除的 `pkg_resources.resource_filename` 定位随包安装的模型文件，导致导入失败，并阻断 Howdy 的系统闭包构建。
-- **当前处理：** 在构建时将该调用替换为标准库 `importlib.resources.files`，并将模型资源路径转换为字符串；保留 `pythonImportsCheck` 以及依赖它的 `face-recognition` 上游测试。
-- **相关提交：** `3ad1630`（`feat: enable Howdy face authentication`）。
-- **上游：** https://github.com/ageitgey/face_recognition_models/blob/master/face_recognition_models/__init__.py ，Nixpkgs 包定义： https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/development/python-modules/face-recognition/models.nix
-- **移除条件：** 上游或 Nixpkgs 已移除 `pkg_resources` 用法，且不使用本覆盖时 Howdy 系统闭包可成功构建。
-- **复查方法：** 临时删除该覆盖后运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
-  ```
-
-  构建成功后永久删除覆盖，再重复同一命令确认。
-
 ### 最小特性 GDAL 的 Zarr 分片缓存测试
 
 - **位置：** `flake.nix` 的 `gdal` 覆盖；通过其 `override { useMinimalFeatures = true; }` 传播至顶层 `gdalMinimal` 及 VTK 自行创建的最小特性 GDAL。
@@ -99,6 +83,13 @@
   构建成功后永久删除覆盖，再重复同一命令确认。
 
 ## 已解除的临时构建绕过
+
+### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
+
+- **原处理：** 在 `flake.nix` 的 `pythonPackagesExtensions` 覆盖中，将 `pkg_resources.resource_filename` 替换为 `importlib.resources.files`。
+- **解除原因：** 更新后的 Nixpkgs 包定义已原生应用相同修复；继续执行本地 `--replace-fail` 会因旧代码已不存在而在 `patchPhase` 失败。
+- **移除提交：** 待提交。
+- **验证：** 完整系统闭包构建成功，`sudo nixos-rebuild switch` 已通过。
 
 ### `pdal` 与 GDAL 3.13 的元数据 API 兼容性
 
