@@ -532,11 +532,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1783948628,
-        "narHash": "sha256-Rb9VAiibJ0uhqksl5qnAOdcza6bajqLBReZmas6vAcU=",
+        "lastModified": 1784966289,
+        "narHash": "sha256-SLSI1JMuuWLyHMHzQ3ttjIIezgMJzHBsDVMTFNWNnGQ=",
         "ref": "refs/heads/main",
-        "rev": "e8eaccf7a262ade8560cd121b8df4906de4fa0de",
-        "revCount": 253,
+        "rev": "d6e2780e8c4888e06cf58d5f09cf20ca0900ddd1",
+        "revCount": 263,
         "type": "git",
         "url": "https://github.com/Mooling0602/xwayland-satellite"
       },
