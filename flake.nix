@@ -161,7 +161,7 @@
                   ./hosts/${hostname}/streaming-display.nix
                   inputs.dms.homeModules.dank-material-shell
                   inputs.danksearch.homeModules.dsearch
-                  inputs.nix4nvchad.homeManagerModule
+                  inputs.nix4nvchad.homeManagerModules.default
                 ];
                 programs.dsearch.enable = true;
               };

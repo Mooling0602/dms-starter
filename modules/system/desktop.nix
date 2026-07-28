@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
   services.displayManager.dms-greeter = {
@@ -7,7 +7,10 @@
     configHome = "/home/${config.my.username}";
   };
 
-  programs.niri.enable = true;
+  programs.niri = {
+    enable = true;
+    package = pkgs.niri.override { libdisplay-info = pkgs.libdisplay-info_0_2; };
+  };
 
   programs.firefox.enable = true;
 }
