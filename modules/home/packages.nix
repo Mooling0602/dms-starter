@@ -98,6 +98,7 @@
     bilibili
     claude-code
     codex
+    pi
     opencode
     opencode-desktop
     zed-editor

@@ -143,6 +143,7 @@
               })
               (final: prev: {
                 codex = inputs.nix-packages.packages.${final.system}.codex-bin;
+                pi = inputs.llm-agents.packages.${final.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
                 reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.system}.qoder;
