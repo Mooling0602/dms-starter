@@ -1,2 +1,50 @@
 // DMS Window Rules - Managed by DankMaterialShell
 // Do not edit manually - changes may be overwritten
+
+// @id=wr_1781328897048473639 @name=zen
+window-rule {
+    match app-id="^zen$"
+    open-maximized true
+}
+
+// @id=wr_1781358289986659464 @name=QQ音乐歌词
+window-rule {
+    match app-id="^qqmusic.exe$" title="桌面歌词"
+    open-floating true
+}
+
+// @id=wr_1781425884008907933 @name=bilibili
+window-rule {
+    match app-id="^bilibili$"
+    open-maximized true
+}
+
+// @id=wr_1783357678962746861 @name=steam
+window-rule {
+    match app-id="^steam$"
+    open-maximized true
+}
+
+// @id=wr_1783763777044453732 @name=Steam for Windows 窗口优化
+window-rule {
+    match app-id="^steam_proton$" title="^Steam 设置$"
+    open-floating true
+}
+
+// @id=wr_1783999763706072659 @name=qoder
+window-rule {
+    match app-id="^qoder$"
+    open-maximized true
+}
+
+// @id=wr_1784095320824871071 @name=dev.zed.Zed
+window-rule {
+    match app-id="^dev.zed.Zed$"
+    open-maximized true
+}
+
+// @id=wr_1785228796853559922 @name=Steam for Windows 主界面优化
+window-rule {
+    match app-id="^steam_proton$" title="^Steam$"
+    open-maximized true
+}

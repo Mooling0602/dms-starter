@@ -21,6 +21,12 @@ input {
 
 screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
+spawn-at-startup "xrdb" "-merge" "/home/mooling/.Xresources"
+
+hotkey-overlay {
+    skip-at-startup
+}
+
 cursor {
     xcursor-theme "breeze_cursors"
     xcursor-size 24
