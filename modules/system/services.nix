@@ -25,8 +25,10 @@
     };
   };
 
-  # Face authentication cannot provide the password needed to unlock GNOME Keyring.
+  # greetd delegates authentication to the login PAM stack. Face authentication
+  # cannot provide the password needed to unlock GNOME Keyring.
   security.pam.services.greetd.howdy.enable = false;
+  security.pam.services.login.howdy.enable = false;
 
   # services.envfs = {
   #   enable = true;
