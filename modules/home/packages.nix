@@ -81,6 +81,7 @@
     usbutils
 
     xwayland-satellite
+    xrdb
 
     # common apps
     kdePackages.dolphin

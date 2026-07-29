@@ -2,7 +2,7 @@
 
 {
   xresources.properties = {
-    "Xcursor.size" = 24;
+    "Xcursor.size" = 48;
     "Xft.dpi" = 168;
   };
 
