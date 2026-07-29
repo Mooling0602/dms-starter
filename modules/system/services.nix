@@ -30,6 +30,9 @@
   security.pam.services.greetd.howdy.enable = false;
   security.pam.services.login.howdy.enable = false;
 
+  # DMS uses a dedicated PAM service for the lock screen.
+  security.pam.services.dankshell.howdy.enable = true;
+
   # services.envfs = {
   #   enable = true;
   #   extraFallbackPathCommands = ''
