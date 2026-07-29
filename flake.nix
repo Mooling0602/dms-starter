@@ -38,7 +38,6 @@
     };
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     dw-proton = {
       url = "github:imaviso/dwproton-flake";
