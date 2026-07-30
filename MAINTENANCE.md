@@ -34,22 +34,6 @@
 
 ## 临时构建绕过
 
-### Niri 与 `libdisplay-info 0.4` 的版本不兼容
-
-- **位置：** `modules/system/desktop.nix` 的 `programs.niri.package` 覆盖。
-- **影响：** `niri 26.04` 使用的 `libdisplay-info-sys 0.3.0` 要求 `libdisplay-info < 0.4.0`，但当前 Nixpkgs 将 Niri 的未限定依赖解析为 `libdisplay-info 0.4.0`，导致其构建脚本在 pkg-config 检查时失败，并阻断系统闭包构建。
-- **当前处理：** 仅将 Niri 的 `libdisplay-info` 参数覆盖为兼容的 `libdisplay-info_0_2`；其他包继续使用默认版本。
-- **相关提交：** `4d9906a`（`fix: restore builds after flake update`）。
-- **上游：** https://github.com/NixOS/nixpkgs/issues/545976 ，修复 PR： https://github.com/NixOS/nixpkgs/pull/546004
-- **移除条件：** PR #546004 已进入本项目跟踪的 `nixos-unstable`，且更新后的 Niri 已原生使用 `libdisplay-info_0_3` 或其他兼容版本。
-- **复查方法：** 更新 `nixpkgs` 输入后临时删除 `programs.niri.package` 覆盖并运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
-  ```
-
-  构建成功后永久删除覆盖，再重复同一命令确认。
-
 ### `click-threading` 的 Python 3.14 测试收集失败
 
 - **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖。
@@ -99,6 +83,14 @@
   构建成功后永久删除覆盖，再重复同一命令确认。
 
 ## 已解除的临时构建绕过
+
+### Niri 与 `libdisplay-info 0.4` 的版本不兼容
+
+- **原处理：** 在 `modules/system/desktop.nix` 中将 `programs.niri.package` 的 `libdisplay-info` 参数覆盖为 `libdisplay-info_0_2`。
+- **解除原因：** 更新后的 Niri 包定义已不再接收该参数，且会自行选择兼容的 `libdisplay-info` 依赖；继续覆盖会在配置评估阶段报出 `unexpected argument 'libdisplay-info'`。
+- **相关提交：** `4d9906a`（添加覆盖）；本次提交（移除覆盖）。
+- **上游：** https://github.com/NixOS/nixpkgs/issues/545976 ，修复 PR： https://github.com/NixOS/nixpkgs/pull/546004
+- **验证：** `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs` 已通过。
 
 ### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
 
