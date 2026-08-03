@@ -93,7 +93,7 @@
             my = { inherit username hostname; };
             nixpkgs.overlays = [
               (final: prev: {
-                xwayland-satellite = inputs.xwayland-satellite.packages.${final.system}.xwayland-satellite;
+                xwayland-satellite = inputs.xwayland-satellite.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite;
               })
               (final: prev: {
                 pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
@@ -141,13 +141,13 @@
                 });
               })
               (final: prev: {
-                codex = inputs.nix-packages.packages.${final.system}.codex-bin;
-                pi = inputs.llm-agents.packages.${final.system}.pi;
-                reasonix = inputs.llm-agents.packages.${final.system}.reasonix;
-                reasonix-desktop = inputs.nix-packages.packages.${final.system}.reasonix-desktop;
-                qoder = inputs.nix-packages.packages.${final.system}.qoder;
-                clawd-on-desk = inputs.nix-packages.packages.${final.system}.clawd-on-desk;
-                zen-browser = inputs.zen-browser.packages.${final.system}.default;
+                codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
+                pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
+                reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
+                reasonix-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.reasonix-desktop;
+                qoder = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder;
+                clawd-on-desk = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.clawd-on-desk;
+                zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
               })
             ];
             home-manager.useGlobalPkgs = true;

@@ -20,7 +20,7 @@
 - **复查方法：** 更新 `niri` 后，删除 fork 输入并恢复覆盖为：
 
   ```nix
-  xwayland-satellite = inputs.niri.packages.${final.system}.xwayland-satellite-unstable;
+  xwayland-satellite = inputs.niri.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite-unstable;
   ```
 
   然后运行：
