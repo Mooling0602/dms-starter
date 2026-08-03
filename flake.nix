@@ -103,42 +103,6 @@
                     });
                   })
                 ];
-                gdal = prev.gdal.overrideAttrs (oldAttrs: {
-                  disabledTests = oldAttrs.disabledTests ++ final.lib.optional (
-                    oldAttrs.pname == "gdal-minimal"
-                  ) "test_zarr_read_simple_sharding";
-                });
-                vtk = prev.vtk.overrideAttrs (oldAttrs: {
-                  postPatch = (oldAttrs.postPatch or "") + ''
-                    substituteInPlace Geovis/GDAL/vtkGDALRasterConverter.cxx \
-                      --replace-fail '      char** categoryNames = band->GetCategoryNames();' '
-#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
-      const char* const* categoryNames = band->GetCategoryNames();
-#else
-      char** categoryNames = band->GetCategoryNames();
-#endif'
-
-                    substituteInPlace IO/GDAL/vtkGDALRasterReader.cxx \
-                      --replace-fail '    char** papszMetaData = GDALGetMetadata(this->GDALData, nullptr);' '
-#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
-    const char* const* papszMetaData = GDALGetMetadata(this->GDALData, nullptr);
-#else
-    char** papszMetaData = GDALGetMetadata(this->GDALData, nullptr);
-#endif' \
-                      --replace-fail '  char** categoryNames = rasterBand->GetCategoryNames();' '
-#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
-  const char* const* categoryNames = rasterBand->GetCategoryNames();
-#else
-  char** categoryNames = rasterBand->GetCategoryNames();
-#endif' \
-                      --replace-fail '  char** papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());' '
-#if (GDAL_VERSION_MAJOR > 3) || (GDAL_VERSION_MAJOR == 3 && GDAL_VERSION_MINOR >= 13)
-  const char* const* papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());
-#else
-  char** papszMetadata = GDALGetMetadata(this->Impl->GDALData, domain.c_str());
-#endif'
-                  '';
-                });
               })
               (final: prev: {
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;

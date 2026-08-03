@@ -50,38 +50,6 @@
 
   成功后删除覆盖，再重复同一命令确认。
 
-### 最小特性 GDAL 的 Zarr 分片缓存测试
-
-- **位置：** `flake.nix` 的 `gdal` 覆盖；通过其 `override { useMinimalFeatures = true; }` 传播至顶层 `gdalMinimal` 及 VTK 自行创建的最小特性 GDAL。
-- **影响：** `gdal-minimal 3.13.1` 未启用 `netCDF` 驱动，但 `test_zarr_read_simple_sharding` 仍断言由该驱动写入的 `zarr.json.gmac` 缓存文件存在，导致 VTK 及其下游系统闭包构建失败。
-- **当前处理：** 仅当 `pname` 为 `gdal-minimal` 时跳过该不满足前置驱动条件的测试，其余 GDAL 测试保持执行；等价于 GDAL 上游 PR #14940 添加的 `@pytest.mark.require_driver("netCDF")` 标记。
-- **相关提交：** `3ad1630`（`feat: enable Howdy face authentication`）。
-- **上游：** https://github.com/OSGeo/gdal/pull/14940 ，Nixpkgs 问题： https://github.com/NixOS/nixpkgs/issues/540609
-- **移除条件：** PR #14940 或等效修复已合入 Nixpkgs，且更新后的最小特性 GDAL 不使用本覆盖可成功构建。
-- **复查方法：** 更新 `nixpkgs` 输入后临时删除该覆盖并运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
-  ```
-
-   成功后永久删除覆盖，再重复同一命令确认。
-
-### `vtk` 与 GDAL 3.13 的元数据 API 兼容性
-
-- **位置：** `flake.nix` 的 `vtk` 覆盖。
-- **影响：** `vtk 9.5.2` 将 GDAL 3.13 的只读 `CSLConstList` 元数据列表赋值给可写 `char **`，在 `vtkGDALRasterReader` 中编译失败，并阻断 OpenCV、Howdy 系统闭包构建。
-- **当前处理：** 采用 VTK 上游提交 `2395603` 的完整四处条件编译修复，针对 GDAL 3.13 及更高版本使用 `const char* const*`，保留旧版 GDAL 的原有类型。
-- **相关提交：** `3ad1630`（`feat: enable Howdy face authentication`）。
-- **上游：** https://github.com/Kitware/VTK/commit/2395603fdddc40c29efc64c632ae98225ca2a58e ，Nixpkgs 包定义： https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/development/libraries/vtk/generic.nix
-- **移除条件：** Nixpkgs 的 VTK 已包含该提交或等效 GDAL 3.13 兼容修复，且移除覆盖后系统闭包可成功构建。
-- **复查方法：** 更新 `nixpkgs` 输入后临时删除该覆盖并运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs
-  ```
-
-  构建成功后永久删除覆盖，再重复同一命令确认。
-
 ## 已解除的临时构建绕过
 
 ### Niri 与 `libdisplay-info 0.4` 的版本不兼容
@@ -105,6 +73,18 @@
 - **解除原因：** Nixpkgs 的 `pdal 2.10.2` 已包含等效修复，继续应用覆盖会因目标代码不存在而在 `patchPhase` 失败。
 - **移除提交：** `7ff1f8e`（`fix: remove obsolete pdal patch`）。
 - **验证：** PDAL 的 143 项测试及完整系统闭包构建通过，`mooling-laptop` 配置切换成功。
+
+### 最小特性 GDAL 的 Zarr 分片缓存测试
+
+- **原处理：** 在 `flake.nix` 中为 `gdal-minimal` 跳过不满足 `netCDF` 前置条件的 Zarr 测试。
+- **解除原因：** 当前 Nixpkgs 的标准 `gdal-minimal 3.13.2` 已有官方二进制缓存；移除覆盖后系统 dry-run 直接获取该缓存，不再触发本地 GDAL/VTK 编译。
+- **验证：** 移除覆盖后 dry-run 显示 `gdal-minimal`、VTK、OpenCV、PDAL 和 Howdy 均为缓存下载项。
+
+### `vtk` 与 GDAL 3.13 的元数据 API 兼容性
+
+- **原处理：** 在 `flake.nix` 中为 VTK 添加 GDAL 3.13 元数据类型的条件编译补丁。
+- **解除原因：** 当前 Nixpkgs 的标准 `vtk 9.5.2` 已有官方二进制缓存；移除覆盖后系统 dry-run 不再计划本地 VTK 编译。
+- **验证：** `cache.nixos.org` 对标准 VTK、GDAL、OpenCV、PDAL 和 Howdy 路径均返回 `200`，移除覆盖后的 dry-run 仅计划缓存获取。
 
 ## 外部功能补丁
 
