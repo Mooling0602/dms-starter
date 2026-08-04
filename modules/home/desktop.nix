@@ -90,6 +90,11 @@
     systemd.enable = true;
   };
 
+  programs.dank-calendar = {
+    enable = true;
+    systemd.enable = true;
+  };
+
   systemd.user.services.kdeconnectd = {
     Unit = {
       Description = "KDE Connect daemon";

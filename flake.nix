@@ -47,6 +47,10 @@
       url = "github:AvengeMedia/danksearch";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    dankcalendar = {
+      url = "github:AvengeMedia/dankcalendar";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     zen-browser = {
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -125,6 +129,7 @@
                   ./hosts/${hostname}/streaming-display.nix
                   inputs.dms.homeModules.dank-material-shell
                   inputs.danksearch.homeModules.dsearch
+                  inputs.dankcalendar.homeModules.dank-calendar
                   inputs.nix4nvchad.homeManagerModules.default
                 ];
                 programs.dsearch.enable = true;
