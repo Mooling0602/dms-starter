@@ -97,6 +97,25 @@
             my = { inherit username hostname; };
             nixpkgs.overlays = [
               (final: prev: {
+                qt6Packages = prev.qt6Packages // {
+                  # DMS generates KDE .colors files for qt6ct. Upstream qt6ct
+                  # cannot read them without the qt6ct-kde compatibility patch.
+                  qt6ct = prev.qt6Packages.qt6ct.overrideAttrs (previousAttrs: {
+                    buildInputs = (previousAttrs.buildInputs or [ ]) ++ [
+                      final.kdePackages.kconfig
+                      final.kdePackages.kcolorscheme
+                      final.kdePackages.kiconthemes
+                    ];
+                    patches = (previousAttrs.patches or [ ]) ++ [
+                      (final.fetchpatch {
+                        url = "https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde";
+                        hash = "sha256-CAFsup46roQUqOzJ9Xl1x2oC2YD7QtrX/vD2k1CsCR8=";
+                      })
+                    ];
+                  });
+                };
+              })
+              (final: prev: {
                 xwayland-satellite = inputs.xwayland-satellite.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite;
               })
               (final: prev: {

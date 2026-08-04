@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   xresources.properties = {
@@ -12,7 +12,7 @@
   };
 
   systemd.user.sessionVariables = {
-    QT_QPA_PLATFORMTHEME = "qt6ct";
+    QT_QPA_PLATFORMTHEME = lib.mkForce "qt5ct";
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     QT_WAYLAND_DECORATION = "ssd";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
@@ -74,21 +74,8 @@
     # GTK theme (DMS 动态主题依赖)
     adw-gtk3
 
-    # Qt theming
-    # qt6ct with KColorScheme support (AUR qt6ct-kde shenanigans patch)
-    (qt6Packages.qt6ct.overrideAttrs (finalAttrs: previousAttrs: {
-      buildInputs = (previousAttrs.buildInputs or []) ++ [
-        kdePackages.kconfig
-        kdePackages.kcolorscheme
-        kdePackages.kiconthemes
-      ];
-      patches = (previousAttrs.patches or []) ++ [
-        (fetchpatch {
-          url = "https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde";
-          hash = "sha256-CAFsup46roQUqOzJ9Xl1x2oC2YD7QtrX/vD2k1CsCR8=";
-        })
-      ];
-    }))
+    # Qt theming; qt6ct is patched globally in flake.nix.
+    qt6Packages.qt6ct
     libsForQt5.qt5ct
     kdePackages.breeze
     kdePackages.plasma-integration
