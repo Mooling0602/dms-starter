@@ -8,6 +8,12 @@ let
   fcitxDmsThemeSync = pkgs.writeShellScript "fcitx5-dms-theme-sync" ''
     set -eu
 
+    rgb_to_hex() {
+      local red green blue
+      IFS=, read -r red green blue <<< "$1"
+      printf '#%02x%02x%02x' "$red" "$green" "$blue"
+    }
+
     case "$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme)" in
       "'prefer-dark'") theme_mode="dark" ;;
       *) theme_mode="light" ;;
@@ -36,6 +42,33 @@ let
     ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-plasma-theme-generator \
       --theme "$plasma_theme" \
       --output "$HOME/.local/share/fcitx5/themes/dms-plasma"
+
+    dms_colors="$HOME/.local/share/color-schemes/DankMatugen.colors"
+    dms_theme="$HOME/.local/share/fcitx5/themes/dms-plasma"
+    selection_background_rgb="$(
+      ${pkgs.kdePackages.kconfig}/bin/kreadconfig6 \
+        --file "$dms_colors" \
+        --group 'Colors:Selection' \
+        --key BackgroundNormal
+    )"
+    selection_foreground_rgb="$(
+      ${pkgs.kdePackages.kconfig}/bin/kreadconfig6 \
+        --file "$dms_colors" \
+        --group 'Colors:Selection' \
+        --key ForegroundNormal
+    )"
+    selection_background="$(rgb_to_hex "$selection_background_rgb")"
+    selection_foreground="$(rgb_to_hex "$selection_foreground_rgb")"
+
+    ${pkgs.gnused}/bin/sed -i \
+      -e "s/^HighlightCandidateColor=.*/HighlightCandidateColor=$selection_foreground/" \
+      -e "s/^HighlightColor=.*/HighlightColor=$selection_foreground/" \
+      -e "s/^HighlightBackgroundColor=.*/HighlightBackgroundColor=$selection_background/" \
+      "$dms_theme/theme.conf"
+    ${pkgs.imagemagick}/bin/mogrify \
+      -fill "$selection_background" \
+      -colorize 100 \
+      "$dms_theme/highlight.png"
 
     if ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote --check; then
       ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote -r
