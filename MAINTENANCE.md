@@ -105,6 +105,19 @@
 
 ## 配置例外与兼容层
 
+### Niri 下 `xdg-desktop-portal` 的深浅色状态同步
+
+- **位置：** `modules/home/theme.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。
+- **影响：** DMS 会通过 dconf 写入 `org.gnome.desktop.interface color-scheme`，但 `xdg-desktop-portal 1.22` 可同时加载 GTK、GNOME 和 KDE 的 `Settings` 后端，导致门户向 QQ、Telegram、Zen 等应用报告与 DMS 相反的深浅色状态。
+- **当前处理：** 在通用和 Niri 门户配置中将 `org.freedesktop.impl.portal.Settings` 固定为 GTK；同时从用户优先级的 GNOME/KDE portal 定义中去除该接口，仅保留 GTK 作为 Settings 提供方。原定义直接由当前 Nix 包读取，避免手工复制后随上游接口列表漂移。
+- **上游：** xdg-desktop-portal [#2033](https://github.com/flatpak/xdg-desktop-portal/issues/2033)，修复 PR [#2048](https://github.com/flatpak/xdg-desktop-portal/pull/2048)；相关 DMS/Niri 报告 [#2140](https://github.com/AvengeMedia/DankMaterialShell/issues/2140)。
+- **移除条件：** 使用的 `xdg-desktop-portal` 已包含 #2048 的等效修复，且移除两个用户 portal 定义后，DMS 深色时门户仍返回 `uint32 1`、浅色时返回 `uint32 2`，并且应用能动态收到切换通知。
+- **复查方法：** 临时移除两个 `xdg.dataFile` 条目后，重建并重启 `xdg-desktop-portal`；用下列命令分别在 DMS 的深色和浅色模式下检查：
+
+  ```fish
+  gdbus call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Settings.Read org.freedesktop.appearance color-scheme
+  ```
+
 ### `pnpm-9.15.9` 的不安全包许可
 
 - **位置：** `modules/system/packages.nix` 的 `permittedInsecurePackages`。

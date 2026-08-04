@@ -27,9 +27,30 @@
           "kde"
           "gtk"
         ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+      };
+      niri = {
+        default = [
+          "kde"
+          "gtk"
+        ];
+        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
       };
     };
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
+  };
+
+  # xdg-desktop-portal 1.22 may load every Settings provider referenced by
+  # portal preferences. Keep GTK as the only provider until upstream fixes it.
+  xdg.dataFile = {
+    "xdg-desktop-portal/portals/gnome.portal".text = builtins.replaceStrings
+      [ "org.freedesktop.impl.portal.Settings;" ]
+      [ "" ]
+      (builtins.readFile "${pkgs.xdg-desktop-portal-gnome}/share/xdg-desktop-portal/portals/gnome.portal");
+    "xdg-desktop-portal/portals/kde.portal".text = builtins.replaceStrings
+      [ "org.freedesktop.impl.portal.Settings;" ]
+      [ "" ]
+      (builtins.readFile "${pkgs.kdePackages.xdg-desktop-portal-kde}/share/xdg-desktop-portal/portals/kde.portal");
   };
 
   fonts.fontconfig = {
