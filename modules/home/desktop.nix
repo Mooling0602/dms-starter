@@ -4,6 +4,44 @@
   ...
 }:
 
+let
+  fcitxDmsThemeSync = pkgs.writeShellScript "fcitx5-dms-theme-sync" ''
+    set -eu
+
+    case "$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme)" in
+      "'prefer-dark'") theme_mode="dark" ;;
+      *) theme_mode="light" ;;
+    esac
+
+    # breeze-{light,dark} only overrides colors. Give the generator a complete
+    # private image set so it does not need a running Plasma Shell for fallback
+    # SVG resources.
+    plasma_theme="dms-fcitx-$theme_mode"
+    for plasma_theme_dir in \
+      "$HOME/.local/share/plasma/desktoptheme/$plasma_theme" \
+      "$HOME/.local/share/fcitx5-plasma-theme-generator/svgtheme/$plasma_theme"; do
+      ${pkgs.coreutils}/bin/mkdir -p "$plasma_theme_dir"
+      ${pkgs.coreutils}/bin/chmod -R u+w "$plasma_theme_dir"
+      ${pkgs.coreutils}/bin/cp -R --no-preserve=mode,ownership \
+        ${pkgs.kdePackages.libplasma}/share/plasma/desktoptheme/default/. \
+        "$plasma_theme_dir/"
+      ${pkgs.coreutils}/bin/cp \
+        ${pkgs.kdePackages.libplasma}/share/plasma/desktoptheme/breeze-"$theme_mode"/colors \
+        "$plasma_theme_dir/colors"
+      ${pkgs.gnused}/bin/sed -i \
+        "s/\"Id\": \"default\"/\"Id\": \"$plasma_theme\"/" \
+        "$plasma_theme_dir/metadata.json"
+    done
+
+    ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-plasma-theme-generator \
+      --theme "$plasma_theme" \
+      --output "$HOME/.local/share/fcitx5/themes/dms-plasma"
+
+    if ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote --check; then
+      ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote -r
+    fi
+  '';
+in
 {
   programs.alacritty = {
     enable = true;
@@ -130,6 +168,35 @@
     };
     Install = {
       WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  # Fcitx's Plasma generator follows Plasma Shell, not the XDG portal DMS
+  # updates. Generate a private theme from the current DMS light/dark mode.
+  systemd.user.services.fcitx5-dms-theme-sync = {
+    Unit = {
+      Description = "Synchronize Fcitx5 Plasma candidate theme with DMS";
+      After = [ "dms.service" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = fcitxDmsThemeSync;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  systemd.user.paths.fcitx5-dms-theme-sync = {
+    Unit = {
+      Description = "Watch DMS color scheme for Fcitx5";
+    };
+    Path = {
+      PathChanged = "%h/.local/share/color-schemes/DankMatugen.colors";
+      Unit = "fcitx5-dms-theme-sync.service";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
     };
   };
 }

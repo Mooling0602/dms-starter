@@ -118,6 +118,14 @@
   gdbus call --session --dest org.freedesktop.portal.Desktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.portal.Settings.Read org.freedesktop.appearance color-scheme
   ```
 
+### Fcitx5 Plasma 候选窗的 DMS 深浅色同步
+
+- **位置：** `modules/home/desktop.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
+- **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色；在 Niri 会话中它会回退到白色 `breeze-light`。服务监听 DMS 写入的 `DankMatugen.colors`，以 KDE Frameworks `libplasma` 的 Breeze SVG 和 `breeze-light` 或 `breeze-dark` 色表组装两个私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，生成独立的 `dms-plasma` 候选主题并重载 Fcitx5。
+- **范围：** 只使用已由 `fcitx5-configtool` 引入的 `libplasma`、`kconfig` 与 `kcolorscheme` 库；不会安装或启动 Plasma Shell、KWin 或其他 KDE 桌面服务。
+- **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
+- **复查方法：** 暂停 path unit 后切换 DMS 深浅色，确认候选窗不再变化；恢复后运行 `systemctl --user start fcitx5-dms-theme-sync.service`，检查 `~/.local/share/fcitx5/themes/dms-plasma/panel.png` 的背景随模式切换。
+
 ### `pnpm-9.15.9` 的不安全包许可
 
 - **位置：** `modules/system/packages.nix` 的 `permittedInsecurePackages`。
