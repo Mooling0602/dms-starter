@@ -84,7 +84,14 @@ let
       "$dms_theme/highlight.png"
 
     if ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote --check; then
-      ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote -r
+      # Classic UI caches NormalColor across a config reload. This is the same
+      # restart path exposed by Fcitx's system tray, so its addon environment
+      # and configured input methods are retained.
+      ${pkgs.systemd}/bin/busctl --user call \
+        org.fcitx.Fcitx5 \
+        /controller \
+        org.fcitx.Fcitx.Controller1 \
+        Restart
     fi
   '';
 in
