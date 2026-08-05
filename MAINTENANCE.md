@@ -121,7 +121,7 @@
 ### Fcitx5 Plasma 候选窗的 DMS 深浅色同步
 
 - **位置：** `modules/home/desktop.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
-- **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色或强调色；在 Niri 会话中它会回退到白色 `breeze-light` 和固定蓝色高亮。服务监听 DMS 写入的 `DankMatugen.colors`，以 KDE Frameworks `libplasma` 的 Breeze SVG 和 `breeze-light` 或 `breeze-dark` 色表组装两个私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，并从当次 DMS 色表读取选择前景/背景色来重着色候选项，随后重载 Fcitx5。
+- **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色或强调色；在 Niri 会话中它会回退到白色 `breeze-light` 和固定蓝色高亮。服务监听 DMS 写入的 `DankMatugen.colors`，根据同一文件的窗口背景亮度选择 `breeze-light` 或 `breeze-dark` 色表来组装私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，并从该次色表读取选择前景/背景色来重着色候选项，随后重载 Fcitx5。这样不会因 DMS 先写色表、后更新 dconf 而将浅色调色板配上深色背景。
 - **范围：** 只使用已由 `fcitx5-configtool` 引入的 `libplasma`、`kconfig` 与 `kcolorscheme` 库，以及只用于重着色候选项 PNG 的 ImageMagick；不会安装或启动 Plasma Shell、KWin 或其他 KDE 桌面服务。
 - **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
 - **复查方法：** 暂停 path unit 后切换 DMS 深浅色，确认候选窗不再变化；恢复后运行 `systemctl --user start fcitx5-dms-theme-sync.service`，检查 `~/.local/share/fcitx5/themes/dms-plasma/panel.png` 的背景随模式切换。

@@ -14,10 +14,24 @@ let
       printf '#%02x%02x%02x' "$red" "$green" "$blue"
     }
 
-    case "$(${pkgs.dconf}/bin/dconf read /org/gnome/desktop/interface/color-scheme)" in
-      "'prefer-dark'") theme_mode="dark" ;;
-      *) theme_mode="light" ;;
-    esac
+    rgb_luminance() {
+      local red green blue
+      IFS=, read -r red green blue <<< "$1"
+      printf '%d' "$(( (2126 * red + 7152 * green + 722 * blue) / 10000 ))"
+    }
+
+    dms_colors="$HOME/.local/share/color-schemes/DankMatugen.colors"
+    window_background_rgb="$(
+      ${pkgs.kdePackages.kconfig}/bin/kreadconfig6 \
+        --file "$dms_colors" \
+        --group 'Colors:Window' \
+        --key BackgroundNormal
+    )"
+    if [ "$(rgb_luminance "$window_background_rgb")" -lt 128 ]; then
+      theme_mode="dark"
+    else
+      theme_mode="light"
+    fi
 
     # breeze-{light,dark} only overrides colors. Give the generator a complete
     # private image set so it does not need a running Plasma Shell for fallback
@@ -43,7 +57,6 @@ let
       --theme "$plasma_theme" \
       --output "$HOME/.local/share/fcitx5/themes/dms-plasma"
 
-    dms_colors="$HOME/.local/share/color-schemes/DankMatugen.colors"
     dms_theme="$HOME/.local/share/fcitx5/themes/dms-plasma"
     selection_background_rgb="$(
       ${pkgs.kdePackages.kconfig}/bin/kreadconfig6 \
@@ -205,7 +218,7 @@ in
   };
 
   # Fcitx's Plasma generator follows Plasma Shell, not the XDG portal DMS
-  # updates. Generate a private theme from the current DMS light/dark mode.
+  # updates. Derive a private light/dark theme from the DMS color scheme itself.
   systemd.user.services.fcitx5-dms-theme-sync = {
     Unit = {
       Description = "Synchronize Fcitx5 Plasma candidate theme with DMS";
