@@ -105,6 +105,15 @@
 
 ## 配置例外与兼容层
 
+### DMS 的可写 `adw-gtk3` 副本
+
+- **位置：** `modules/home/theme.nix` 的 `home.activation.installDmsAdwGtk3`。
+- **影响：** DMS 1.6 的 `scripts/gtk.sh` 只在 `~/.local/share/themes/`、`~/.themes/` 和 `/usr/share/themes/` 查找 `adw-gtk3`，并在 GTK3 的样式表中原地注入 Matugen 色表。Home Manager 安装的 `adw-gtk3` 位于只读 Nix store，因而 DMS 只能退回全局 CSS 覆盖；其 GTK3 补丁步骤以退出码 2 结束，随后不会调用将 `gtk-theme` 切换为 `adw-gtk3`/`adw-gtk3-dark` 的刷新逻辑，传统 GTK 应用会停留在浅色主题。
+- **当前处理：** Home Manager 激活时仅在主题不存在时，将 Nix 包的两个变体复制到 `~/.local/share/themes/` 并授予用户写权限。之后目录完全由 DMS 管理；不使用 `home.file`，避免创建 DMS 无法修改的 store symlink。
+- **上游：** [DMS GTK helper](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/scripts/gtk.sh)，[DMS GTK 切换逻辑](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/Common/Theme.qml)。
+- **移除条件：** DMS 能通过 `XDG_DATA_DIRS` 使用 Nix store 中的主题，或停止原地修改 `adw-gtk3` 样式表。
+- **复查方法：** 重建后切换一次 DMS 深浅色模式，确认 `dconf read /org/gnome/desktop/interface/gtk-theme` 分别返回 `'adw-gtk3-dark'` 和 `'adw-gtk3'`，并检查两个 `~/.local/share/themes/adw-gtk3*` 目录中的 CSS 末尾含有 `BEGIN DMS OVERRIDE`。
+
 ### Niri 下 `xdg-desktop-portal` 的深浅色状态同步
 
 - **位置：** `modules/home/theme.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。

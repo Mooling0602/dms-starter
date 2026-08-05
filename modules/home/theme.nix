@@ -83,4 +83,24 @@
     kdePackages.kservice
   ];
 
+  # DMS updates adw-gtk3's stylesheets in place when applying its Matugen
+  # palette. A package installed through Home Manager is immutable in the Nix
+  # store, while DMS only discovers mutable copies below ~/.local/share/themes.
+  # Do not use home.file here: it would create another read-only store symlink.
+  home.activation.installDmsAdwGtk3 = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    dms_gtk_theme_source="${pkgs.adw-gtk3}/share/themes"
+    dms_gtk_theme_target="$HOME/.local/share/themes"
+
+    $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p "$dms_gtk_theme_target"
+    for dms_gtk_theme in adw-gtk3 adw-gtk3-dark; do
+      dms_gtk_theme_path="$dms_gtk_theme_target/$dms_gtk_theme"
+      if [ ! -e "$dms_gtk_theme_path" ]; then
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/cp -a \
+          "$dms_gtk_theme_source/$dms_gtk_theme" \
+          "$dms_gtk_theme_target/"
+        $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod -R u+w "$dms_gtk_theme_path"
+      fi
+    done
+  '';
+
 }
