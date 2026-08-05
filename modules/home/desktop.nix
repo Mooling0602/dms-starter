@@ -84,7 +84,16 @@ let
       "$dms_theme/highlight.png"
 
     if ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote --check; then
-      ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote -r
+      # Classic UI caches NormalColor across a config reload. Replacing the
+      # daemon reloads the UI addon after the theme files are fully written.
+      # A transient unit keeps the foreground replacement out of this oneshot
+      # service cgroup, which systemd otherwise cleans up on completion.
+      ${pkgs.systemd}/bin/systemd-run \
+        --user \
+        --quiet \
+        --collect \
+        --service-type=exec \
+        ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5 -r -D
     fi
   '';
 in
