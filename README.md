@@ -92,8 +92,10 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 ```fish
 cd ~/nixos-config
 # 修改配置 → git commit → 重建 → git push
-sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop
+nixos-rebuild-nom switch --flake ~/nixos-config#mooling-laptop
 ```
+
+`nixos-rebuild-nom` 会通过 `nix-output-monitor`（`nom`）展示构建进度，并保留原始重建命令的退出状态。
 
 ## 系统垃圾清理
 

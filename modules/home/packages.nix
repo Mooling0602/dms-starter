@@ -55,6 +55,13 @@
     zstd
 
     nix-output-monitor
+    (writeShellApplication {
+      name = "nixos-rebuild-nom";
+      runtimeInputs = [ nix-output-monitor ];
+      text = ''
+        sudo nixos-rebuild "$@" |& nom
+      '';
+    })
 
     # productivity
     hugo
