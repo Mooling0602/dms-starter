@@ -101,6 +101,7 @@
     qq
     wechat
     telegram-desktop
+    discord
     element-desktop
     google-chrome
     bilibili
