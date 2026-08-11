@@ -39,6 +39,7 @@
     jdk25
     gcc
     nodejs
+    bun
 
     # KDE connect
     kdePackages.kdeconnect-kde
