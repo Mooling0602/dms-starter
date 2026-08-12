@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, lib, ... }:
 
 lib.mkIf (config.my.hostname == "mooling-laptop") {
   services.apollo = {
