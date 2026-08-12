@@ -59,9 +59,6 @@
       url = "git+https://github.com/Mooling0602/xwayland-satellite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    tuxedo-nixos = {
-      url = "git+https://github.com/sund3RRR/tuxedo-nixos.git?ref=master&rev=12a0aea42b41dec49ce89609a157c010a8448c3e";
-    };
   };
 
   outputs =
@@ -81,7 +78,6 @@
         modules = [
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
-          inputs.tuxedo-nixos.nixosModules.default
           apollo-flake.nixosModules.x86_64-linux.default
           (
             { ... }:

@@ -116,18 +116,10 @@
 ### Firebat T5K 的 DMS 键盘 RGB 同步
 
 - **位置：** `hosts/mooling-laptop/default.nix` 的 `dms-keyboard-backlight-sync` systemd service 与 path unit。
-- **影响：** DMS 会在 `~/.local/share/color-schemes/DankMatugen.colors` 写入动态调色板。该服务监听该文件，读取 `Colors:Selection/BackgroundNormal` 并写入 `rgb:kbd_backlight/multi_intensity`；只更新 RGB，不改变键盘背光亮度。TCC 会将外部 sysfs 写入保存为自己的当前颜色，因而两者不会回写冲突。
+- **影响：** DMS 会在 `~/.local/share/color-schemes/DankMatugen.colors` 写入动态调色板。该服务监听该文件，读取 `Colors:Selection/BackgroundNormal` 并写入 `rgb:kbd_backlight/multi_intensity`；只更新 RGB，不改变键盘背光亮度，也不依赖 TUXEDO Control Center。
 - **上游：** DMS：https://github.com/AvengeMedia/DankMaterialShell ，TUXEDO 键盘接口：https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
-- **移除条件：** DMS 原生支持通过稳定接口控制键盘 RGB，或 TCC 提供可订阅 DMS 调色板的集成。
+- **移除条件：** DMS 原生支持通过稳定接口控制键盘 RGB。
 - **复查方法：** 重建后切换 DMS 配色，运行 `cat /sys/class/leds/rgb:kbd_backlight/multi_intensity`，确认数值等于 `kreadconfig6 --file ~/.local/share/color-schemes/DankMatugen.colors --group 'Colors:Selection' --key BackgroundNormal` 的逗号替换为空格后的结果；同时确认 `cat /sys/class/leds/rgb:kbd_backlight/brightness` 未变化。
-
-### TUXEDO Control Center 外部 flake
-
-- **位置：** `flake.nix` 的 `tuxedo-nixos` 输入及 `inputs.tuxedo-nixos.nixosModules.default`。
-- **影响：** Nixpkgs 不提供 TCC 图形包，使用 `sund3RRR/tuxedo-nixos` 提供的 TCC 2.1.23 与 `hardware.tuxedo-control-center` 模块；该 flake 自带旧版 Electron/Node 构建环境，并未跟随主 flake 的 nixpkgs。
-- **上游：** https://github.com/sund3RRR/tuxedo-nixos ，TCC：https://github.com/tuxedocomputers/tuxedo-control-center
-- **移除条件：** Nixpkgs 或其他已维护输入提供可用的 TCC 包，或外部 flake 的旧 Electron 依赖无法在当前系统构建；移除前确认图形控制中心的键盘背光页面仍可替代。
-- **复查方法：** 重建后运行 `systemctl status tccd.service`，启动 `tuxedo-control-center`，在 Tools 中确认 Keyboard Backlight 能读写 `rgb:kbd_backlight`；备用命令为 `brightnessctl -d rgb:kbd_backlight set 0%`。
 
 ### DMS 的可写 `adw-gtk3` 副本
 

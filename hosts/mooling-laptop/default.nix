@@ -62,15 +62,12 @@ in
 
   # Firebat T5K uses the Clevo keyboard protocol supported by tuxedo-drivers.
   hardware.tuxedo-drivers.enable = true;
-  hardware.tuxedo-control-center.enable = true;
   boot.kernelModules = [ "tuxedo_keyboard" "clevo_acpi" ];
 
   # Keep the RGB keyboard color in step with DMS's dynamically generated accent
-  # color. TCC observes sysfs writes and retains the resulting color itself.
+  # color. The service writes the kernel LED interface directly.
   systemd.services.dms-keyboard-backlight-sync = {
     description = "Synchronize keyboard backlight with DMS accent color";
-    after = [ "tccd.service" ];
-    wants = [ "tccd.service" ];
     serviceConfig = {
       Type = "oneshot";
       ExecStart = dmsKeyboardBacklightSync;
