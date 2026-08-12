@@ -105,6 +105,22 @@
 
 ## 配置例外与兼容层
 
+### Firebat T5K 的 tuxedo-drivers 兼容白名单
+
+- **位置：** `flake.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
+- **影响：** Firebat T5K 与 Clevo 键盘协议兼容，但上游 `tuxedo-drivers` 的 DMI 安全门默认只接受 TUXEDO 机型；覆盖仅加入 `Firebat Computer` + `T5K Series` 的精确匹配。默认亮度行为保持由驱动/硬件决定，不声明式强制关闭。
+- **上游：** https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
+- **移除条件：** 上游兼容性表原生接受该 DMI 组合；移除前验证 `tuxedo_keyboard`、`clevo_acpi` 和 `/sys/class/leds/rgb:kbd_backlight` 在干净启动后可用。
+- **复查方法：** 检查上游兼容性表是否已有该 DMI 条目，然后运行 `cat /sys/class/leds/rgb:kbd_backlight/{brightness,max_brightness}`。
+
+### TUXEDO Control Center 外部 flake
+
+- **位置：** `flake.nix` 的 `tuxedo-nixos` 输入及 `inputs.tuxedo-nixos.nixosModules.default`。
+- **影响：** Nixpkgs 不提供 TCC 图形包，使用 `sund3RRR/tuxedo-nixos` 提供的 TCC 2.1.23 与 `hardware.tuxedo-control-center` 模块；该 flake 自带旧版 Electron/Node 构建环境，并未跟随主 flake 的 nixpkgs。
+- **上游：** https://github.com/sund3RRR/tuxedo-nixos ，TCC：https://github.com/tuxedocomputers/tuxedo-control-center
+- **移除条件：** Nixpkgs 或其他已维护输入提供可用的 TCC 包，或外部 flake 的旧 Electron 依赖无法在当前系统构建；移除前确认图形控制中心的键盘背光页面仍可替代。
+- **复查方法：** 重建后运行 `systemctl status tccd.service`，启动 `tuxedo-control-center`，在 Tools 中确认 Keyboard Backlight 能读写 `rgb:kbd_backlight`；备用命令为 `brightnessctl -d rgb:kbd_backlight set 0%`。
+
 ### DMS 的可写 `adw-gtk3` 副本
 
 - **位置：** `modules/home/theme.nix` 的 `home.activation.installDmsAdwGtk3`。

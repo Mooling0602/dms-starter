@@ -25,6 +25,7 @@
     vim
     curl
     wget
+    brightnessctl
     nil
     nixd
 

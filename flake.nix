@@ -59,6 +59,9 @@
       url = "git+https://github.com/Mooling0602/xwayland-satellite";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    tuxedo-nixos = {
+      url = "git+https://github.com/sund3RRR/tuxedo-nixos.git?ref=master&rev=12a0aea42b41dec49ce89609a157c010a8448c3e";
+    };
   };
 
   outputs =
@@ -78,6 +81,7 @@
         modules = [
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
+          inputs.tuxedo-nixos.nixosModules.default
           apollo-flake.nixosModules.x86_64-linux.default
           (
             { ... }:
@@ -135,6 +139,34 @@
                 qoder = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder;
                 clawd-on-desk = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.clawd-on-desk;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
+              })
+              (final: prev: {
+                # Firebat T5K uses the Clevo keyboard protocol, but upstream's
+                # DMI compatibility gate does not know this rebranded model.
+                linuxPackages_latest = prev.linuxPackages_latest.extend (
+                  kernel-final: kernel-prev:
+                  let
+                    patched = kernel-prev.tuxedo-drivers.overrideAttrs (oldAttrs: {
+                      patches = (oldAttrs.patches or [ ]) ++ [
+                        (builtins.toFile "firebat-t5k-tuxedo-compat.patch" ''
+                          --- a/src/tuxedo_compatibility_check/tuxedo_compatibility_check.c
+                          +++ b/src/tuxedo_compatibility_check/tuxedo_compatibility_check.c
+                          @@ -208,0 +209,6 @@
+                          +	{
+                          +		.matches = {
+                          +			DMI_MATCH(DMI_SYS_VENDOR, "Firebat Computer"),
+                          +			DMI_MATCH(DMI_PRODUCT_NAME, "T5K Series"),
+                          +		},
+                          +	},
+                        '')
+                      ];
+                    });
+                  in
+                  {
+                    tuxedo-drivers = patched;
+                    tuxedo-keyboard = patched;
+                  }
+                );
               })
             ];
             home-manager.useGlobalPkgs = true;

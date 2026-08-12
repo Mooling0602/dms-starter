@@ -25,6 +25,11 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Firebat T5K uses the Clevo keyboard protocol supported by tuxedo-drivers.
+  hardware.tuxedo-drivers.enable = true;
+  hardware.tuxedo-control-center.enable = true;
+  boot.kernelModules = [ "tuxedo_keyboard" "clevo_acpi" ];
+
   boot.resumeDevice = "/dev/disk/by-uuid/c531a6ba-9945-42f0-821b-9a0553fe100d";
 
   networking.hostName = config.my.hostname;
