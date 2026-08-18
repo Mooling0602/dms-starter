@@ -40,6 +40,7 @@
     gcc
     nodejs
     bun
+    pnpm
 
     # KDE connect
     kdePackages.kdeconnect-kde
