@@ -109,6 +109,7 @@
     claude-code
     codex
     pi
+    dsh
     opencode
     opencode-desktop
     zed-editor

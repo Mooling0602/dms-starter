@@ -131,6 +131,7 @@
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
                 pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
+                dsh = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.dsh;
                 reasonix-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder;
                 clawd-on-desk = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.clawd-on-desk;

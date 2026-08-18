@@ -81,9 +81,7 @@ sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
 
 4. **推送** — `git push`
 
-5. **提交信息格式** — 使用 `Co-Authored-By: Claude Code CLI <noreply@anthropic.com>`
-
-> 非Claude Code客户端请忽略，或使用适合自己的正确信息。
+5. **提交信息格式** — 不添加任何 `Co-Authored-By` 之类的尾注，直接以用户身份提交。
 
 ## 维护清单
 
