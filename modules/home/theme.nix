@@ -11,6 +11,25 @@
     platformTheme.name = "qt6ct";
   };
 
+  # GTK's Wayland backend reads the cursor name from GTK settings rather than
+  # XCURSOR_THEME. Keep this explicit so native Wayland GTK applications use
+  # the same cursor as niri.
+  gtk = {
+    enable = true;
+    cursorTheme = {
+      package = pkgs.kdePackages.breeze;
+      name = "breeze_cursors";
+      size = 24;
+    };
+    gtk3 = {
+      extraConfig = {
+        gtk-icon-theme-name = "Tela-light";
+        gtk-cursor-theme-name = "breeze_cursors";
+        gtk-cursor-theme-size = 24;
+      };
+    };
+  };
+
   systemd.user.sessionVariables = {
     QT_QPA_PLATFORMTHEME = lib.mkForce "qt5ct";
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
