@@ -107,6 +107,7 @@
     element-desktop
     google-chrome
     bilibili
+    axolotl-launcher-bin
     claude-code
     codex
     pi
