@@ -19,6 +19,10 @@
     WINEDLLOVERRIDES = "winealsa.drv=d";
   };
 
+  xdg.mimeApps.defaultApplications = {
+    "inode/directory" = [ "org.kde.dolphin.desktop" ];
+  };
+
   xdg.configFile."fish/conf.d/wine.fish".text = ''
     set -gx WINEDLLOVERRIDES "winealsa.drv=d"
   '';
