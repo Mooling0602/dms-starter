@@ -6,3 +6,5 @@ hosts/*/hardware-configuration.nix
 .codegraph/
 reasonix.toml
 .env
+.codex/
+.dsh-vision-toolkit/
