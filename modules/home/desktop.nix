@@ -186,6 +186,10 @@ in
     systemd.enable = true;
   };
 
+  # The DMS unit itself starts after graphical-session.target. Keep dependent
+  # work out of that target, then let DMS pull it in once its IPC is available.
+  systemd.user.services.dms.Unit.Wants = [ "dms-set-avatar.service" ];
+
   systemd.user.services.kdeconnectd = {
     Unit = {
       Description = "KDE Connect daemon";
@@ -203,7 +207,7 @@ in
   systemd.user.services.dms-set-avatar = {
     Unit = {
       Description = "Set DMS profile avatar after DMS starts";
-      After = [ "graphical-session.target" ];
+      After = [ "dms.service" ];
     };
     Service = {
       Type = "oneshot";
@@ -219,9 +223,6 @@ in
         exit 1
       ''}";
     };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
   };
 
   # Fcitx's Plasma generator follows Plasma Shell, not the XDG portal DMS
@@ -234,9 +235,6 @@ in
     Service = {
       Type = "oneshot";
       ExecStart = fcitxDmsThemeSync;
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
     };
   };
 
