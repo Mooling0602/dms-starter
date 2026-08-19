@@ -121,7 +121,6 @@
     prismlauncher
     rclone
     zen-browser
-    flclash
   ];
 
   home.file.".local/share/jdks/jdk8".source = pkgs.jdk8;
