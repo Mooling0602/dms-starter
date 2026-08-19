@@ -7,6 +7,7 @@
   };
 
   programs.gamemode.enable = true;
+  programs.dconf.enable = true;
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -37,6 +38,10 @@
 
     gamemode
     mangohud
+
+    # Provide org.gnome.desktop.interface for GTK's GSettings lookup.
+    gsettings-desktop-schemas
+    glib
 
     # KDE file chooser portal
     kdePackages.xdg-desktop-portal-kde
@@ -71,4 +76,9 @@
       "${pkgs.kdePackages.breeze}/${pkgs.qt6.qtbase.qtPluginPrefix}"
     ];
   };
+
+  # This schema owns org.gnome.desktop.interface. Pointing at glib's schema
+  # directory alone would not expose GTK's cursor-theme setting.
+  environment.sessionVariables.GSETTINGS_SCHEMA_DIR =
+    "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas";
 }
