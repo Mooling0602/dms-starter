@@ -50,6 +50,7 @@
           "kde"
           "gtk"
         ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
       };
       niri = {
@@ -57,6 +58,7 @@
           "kde"
           "gtk"
         ];
+        "org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
       };
     };
