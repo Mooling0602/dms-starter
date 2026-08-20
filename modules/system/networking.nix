@@ -16,6 +16,8 @@
       "public-data-api.mihoyo.com"
       # Honkai Star Rail analytics (CN)
       "globaldp-prod-os01.starrails.com"
+      # Zenless Zone Zero
+      "globaldp-prod-cn01.juequling.com"
     ];
   };
 
