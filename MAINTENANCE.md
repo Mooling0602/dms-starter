@@ -34,6 +34,23 @@
 
 ## 临时构建绕过
 
+### `dlib` 的 `build-cores.patch` 失配（Python 3.14 / dlib 20.0.1）
+
+- **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。
+- **影响：** nixpkgs 输入更新后 dlib 升级到 20.0.1，`python3.14-dlib` 构建失败，连带依赖它的 `face-recognition`、`howdy`、`pam.d` 及整个 `nixos-system-*` 闭包全部失败。两处独立的 20.0.1 上游回归：
+  1. `setup.py` 把 `num_available_cpu_cores()` 从 `class CMakeBuild` 内部移到模块顶层，nixpkgs 自带 `build-cores.patch`（按旧行号 `-170,23` 书写）在 `patchPhase` 报 `Hunk #1 FAILED`。
+  2. `CMakeBuild` 不再把 `--set` 注册为 distutils 的 `user_options`，而 `get_extra_cmake_options()` 只在 `build_extension` 运行时（distutils 已解析完命令行之后）才手工清理 `sys.argv`；因此 nixpkgs 默认 `preConfigure` 通过 `--set` 传递 CMake flags 时会报 `error: option --set not recognized`。
+- **当前处理：** 用 `./patches/dlib-build-cores.patch`（针对 dlib 20.0.1 新源码，函数体替换为 `return os.getenv("NIX_BUILD_CORES", 1)`，语义与上游一致）替换 `dlib` 的 `patches`；并覆盖 `preConfigure`，把 nixpkgs `cmakeFlags` 中本就以 `DLIB_` 开头的项（如 `-DDLIB_USE_CUDA:BOOL=FALSE`，先剥离 `:TYPE` 类型后缀，因环境变量名不能含 `:`）导出为同名环境变量（dlib 20.0.1 从 `DLIB_*` 环境变量读取选项并原样作为 CMake 变量名），不再生成 `--set`；`BUILD_SHARED_LIBS`、`USE_SSE/AVX` 等非 `DLIB_` 前缀项由 dlib 默认决定。
+- **上游：** NixOS/nixpkgs issue https://github.com/NixOS/nixpkgs/issues/424045 ；dlib 源码 https://github.com/davisking/dlib
+- **移除条件：** Nixpkgs 自带的 `build-cores.patch` 在 dlib 20.0.1（或更新）的 `setup.py` 上可干净应用，或上游已对补丁做出对应适配。
+- **复查方法：** 更新 nixpkgs 后，临时移除该覆盖并运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
+  ```
+
+  构建成功后删除覆盖（连同 `patches/dlib-build-cores.patch`），再重复同一命令确认。
+
 ### `click-threading` 的 Python 3.14 测试收集失败
 
 - **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖。

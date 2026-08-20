@@ -124,6 +124,34 @@
                     click-threading = python-prev.click-threading.overridePythonAttrs (oldAttrs: {
                       disabledTestPaths = (oldAttrs.disabledTestPaths or [ ]) ++ [ "docs/conf.py" ];
                     });
+                    # dlib 20.0.1 有两处回归，均在此覆盖，上游适配后移除（见 MAINTENANCE.md）：
+                    #  1) num_available_cpu_cores() 移到模块顶层，nixpkgs 自带 build-cores.patch
+                    #     按旧位置书写导致 Hunk 失配 —— 用匹配新源码的补丁替换。
+                    #  2) CMakeBuild 不再注册 --set 为 distutils option，nixpkgs 默认 preConfigure
+                    #     用 "--set" 传 CMake flags 会报 "option --set not recognized"；
+                    #     dlib 20.0.1 改为读取 DLIB_* 环境变量，故据其重写 preConfigure。
+                    dlib = python-prev.dlib.overrideAttrs (oldAttrs: {
+                      patches = [
+                        ./patches/dlib-build-cores.patch
+                      ];
+                      preConfigure = ''
+                        for flag in $cmakeFlags; do
+                          if [[ "$flag" == -D* ]]; then
+                            keyval=''${flag#-D}
+                            key=''${keyval%%=*}
+                            val=''${keyval#*=}
+                            key=''${key%:*}   # 去掉 CMake 类型后缀（-DVAR:TYPE=VALUE -> VAR）
+                            # dlib 20.0.1 仅从以 DLIB_ 开头的环境变量读取 CMake 选项，
+                            # 且把变量名原样作为 CMake 变量（不剥前缀）。只导出本就
+                            # 以 DLIB_ 开头的 flag（如 DLIB_USE_CUDA）；BUILD_SHARED_LIBS、
+                            # USE_SSE/AVX 等其余项由 dlib 默认决定。
+                            if [[ "$key" == DLIB_* ]]; then
+                              export "$key=$val"
+                            fi
+                          fi
+                        done
+                      '';
+                    });
                   })
                 ];
               })
