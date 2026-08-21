@@ -110,6 +110,7 @@
     haruna
     obs-studio
     axolotl-launcher-bin
+    pebble-mail
     claude-code
     codex
     pi

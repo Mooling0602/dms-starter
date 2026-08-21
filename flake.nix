@@ -165,6 +165,7 @@
                 qoder = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder;
                 clawd-on-desk = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.clawd-on-desk;
                 axolotl-launcher-bin = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.axolotl-launcher-bin;
+                pebble-mail = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.pebble-mail;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
               })
               (final: prev: {
