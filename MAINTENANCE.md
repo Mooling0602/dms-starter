@@ -120,6 +120,24 @@
 
   若功能已上游化，删除此 `overrideAttrs`，构建系统后在图形会话中切换 DMS 主题验证。
 
+### `obs-studio` 的 NVENC/QSV 硬件编码修复
+
+- **位置：** `flake.nix` 的 `nixpkgs.overlays`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
+- **影响：** OBS 31+ 用独立子进程 `bin/obs-nvenc-test` 探测 NVENC 能力，但 Nixpkgs 只对 `lib/*.so` 执行 `addDriverRunpath`，测试进程的 RUNPATH 不含 `/run/opengl-driver/lib`，无法 dlopen `libnvidia-encode.so.1`，日志报 `Test process failed: nvenc_lib`，UI 中 NVENC 编码器全部消失。同时 `obs-qsv11` 依赖的 oneVPL 分发器找不到 GPU 运行时（`libmfx-gen`），选 QuickSync 编码器时报 `Failed to initialize MFX (MFX_ERR_NOT_FOUND)`。
+- **当前处理：**
+  1. 对 `bin/.obs-nvenc-test-wrapped` 追加 `addDriverRunpath`，使 NVENC 探测进程能找到 NVIDIA 驱动编码库；
+  2. 为 `bin/obs` 包装器设置 `ONEVPL_SEARCH_PATH=${vpl-gpu-rt}/lib`（Alder Lake iGPU 的 oneVPL 运行时，Gen12+），恢复 QuickSync。
+- **上游：** NixOS/nixpkgs issue https://github.com/NixOS/nixpkgs/issues/382666 （NVENC 部分，OBS 31 起复现，仍未修复）。
+- **移除条件：** Nixpkgs 的 `obs-studio` 对 `bin/obs-nvenc-test`（及任何新探测二进制）执行了 `addDriverRunpath` 或等效处理，且 oneVPL 运行时可被分发器自动发现（例如包内自带 `vpl-gpu-rt` 依赖）。
+- **复查方法：** 更新 nixpkgs 后运行：
+
+  ```fish
+  obs-nvenc-test | head -3    # 应输出 nvenc_supported=true
+  grep -o ONEVPL_SEARCH_PATH.* "$(command -v obs)"
+  ```
+
+  若前者成立且后者为空但 OBS 内 QuickSync 编码器可用，即可删除此覆盖并重建验证。
+
 ## 配置例外与兼容层
 
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
