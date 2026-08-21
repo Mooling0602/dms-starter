@@ -15,6 +15,13 @@
   # value below is authoritative because settings.ini loads too late.
   gtk = {
     enable = true;
+    # Chrome/Electron 的 UI 字体经 GTK/portal 读取 font-name；不设置时
+    # 默认 "Adwaita Sans"，fontconfig 泛匹配落到 Noto Sans CJK KR。
+    font = {
+      package = pkgs.sarasa-gothic;
+      name = "Sarasa UI SC";
+      size = 11;
+    };
     cursorTheme = {
       package = pkgs.kdePackages.breeze;
       name = "breeze_cursors";
@@ -31,6 +38,8 @@
     "org/gnome/desktop/interface" = {
       cursor-theme = "breeze_cursors";
       cursor-size = 24;
+      # Wayland 下 Chrome/GTK4 经 xdg-desktop-portal(Settings→gtk) 读此值
+      font-name = "Sarasa UI SC 11";
     };
   };
 
