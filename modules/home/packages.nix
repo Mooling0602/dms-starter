@@ -100,7 +100,9 @@
     kdePackages.systemsettings
     kdePackages.ark
     kdePackages.ksshaskpass
-    kdePackages.spectacle
+    grim
+    slurp
+    satty
     qq
     wechat
     telegram-desktop
