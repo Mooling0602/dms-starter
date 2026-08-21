@@ -48,3 +48,66 @@ window-rule {
     match app-id="^steam_proton$" title="^Steam$"
     open-maximized true
 }
+
+// @id=wr_1785835513304872473 @name=clash-verge
+window-rule {
+    match app-id="^clash-verge$"
+    open-maximized true
+}
+
+// @id=wr_1785836565260160345 @name=com.danklinux.dms
+window-rule {
+    match app-id="^com.danklinux.dms$"
+    open-floating false
+    open-maximized true
+}
+
+// @id=wr_1785836715336659617 @name=DMS 面板优化
+window-rule {
+    match app-id="^com.danklinux.dms$" title="^欢迎$"
+    match app-id="^com.danklinux.dms$" title="^*窗口规则$"
+    open-floating true
+}
+
+// @id=wr_1785837012049935667 @name=clawd-on-desk
+window-rule {
+    match app-id="^clawd-on-desk$" title="^Clawd 设置$"
+    open-floating true
+}
+
+// @id=wr_1785837961833893184 @name=cloudmusic.exe
+window-rule {
+    match app-id="^cloudmusic.exe$"
+    open-maximized true
+}
+
+// @id=wr_1785838106405346266 @name=网易云音乐桌面歌词
+window-rule {
+    match app-id="^cloudmusic.exe$" title="^桌面歌词$"
+    open-floating true
+}
+
+// @id=wr_1785838564826158997 @name=com.danklinux.dankcalendar
+window-rule {
+    match app-id="^com.danklinux.dankcalendar$" title="^日历 — Dank Calendar$"
+    open-floating true
+}
+
+// @id=wr_1785839997108302976 @name=quickshell
+window-rule {
+    match app-id="^com.danklinux.dms$" title="^quickshell$"
+    open-floating true
+}
+
+// @id=dms-floating-windows @name=DMS Floating Windows
+window-rule {
+    match app-id="^com.danklinux.dms$"
+    open-floating true
+}
+
+// @id=wr_1787043795691205941 @name=QQ 窗口优化
+window-rule {
+    match app-id="^QQ$" title="^视频播放器$"
+    match app-id="^QQ$" title="^图片查看器$"
+    open-floating true
+}
