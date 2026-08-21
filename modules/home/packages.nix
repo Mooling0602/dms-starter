@@ -107,6 +107,7 @@
     element-desktop
     google-chrome
     bilibili
+    haruna
     obs-studio
     axolotl-launcher-bin
     claude-code
