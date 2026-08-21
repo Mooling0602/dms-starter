@@ -115,6 +115,7 @@
     obs-studio
     axolotl-launcher-bin
     pebble-mail
+    openfic
     claude-code
     codex
     pi

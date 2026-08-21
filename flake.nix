@@ -166,6 +166,7 @@
                 clawd-on-desk = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.clawd-on-desk;
                 axolotl-launcher-bin = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.axolotl-launcher-bin;
                 pebble-mail = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.pebble-mail;
+                openfic = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.openfic;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
               })
               (final: prev: {
