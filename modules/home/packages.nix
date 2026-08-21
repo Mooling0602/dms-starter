@@ -103,6 +103,7 @@
     grim
     slurp
     satty
+    wl-clipboard
     qq
     wechat
     telegram-desktop
