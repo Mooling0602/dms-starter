@@ -61,6 +61,12 @@
         ];
         "org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        # ScreenCast/Screenshot/RemoteDesktop 必须走 gnome 后端：
+        # kde 后端依赖 KWin DBus 接口，niri 会话下不存在；
+        # niri 实现 org.gnome.Mutter.ScreenCast，与 gnome portal 配套（niri NixOS 模块已自动安装）。
+        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
+        "org.freedesktop.impl.portal.RemoteDesktop" = [ "gnome" ];
       };
       niri = {
         default = [
@@ -69,6 +75,9 @@
         ];
         "org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
+        "org.freedesktop.impl.portal.RemoteDesktop" = [ "gnome" ];
       };
     };
     extraPortals = [ pkgs.kdePackages.xdg-desktop-portal-kde ];
