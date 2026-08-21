@@ -85,6 +85,27 @@
       serif = [ "Sarasa UI SC" ];
       monospace = [ "Maple Mono NF CN" ];
     };
+
+    # system-ui 是现代网站最常用的首选 family，fontconfig 不认识它，
+    # 会泛匹配到 ~/.local/share/fonts/win-fonts 里的位图 "System" (cvgasys.fon)，
+    # 导致 Chrome 中 system-ui 页面字体失控。将其别名到 sans-serif 通用族，
+    # 交由 defaultFonts 的更纱黑体接管。priority 51 确保先于
+    # 52-hm-default-fonts.conf 加载。
+    configFile.system-ui-alias = {
+      enable = true;
+      priority = 51;
+      text = ''
+        <?xml version="1.0"?>
+        <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+        <fontconfig>
+          <description>Map system-ui to the sans-serif stack</description>
+          <alias binding="same">
+            <family>system-ui</family>
+            <prefer><family>sans-serif</family></prefer>
+          </alias>
+        </fontconfig>
+      '';
+    };
   };
 
   home.packages = with pkgs; [
