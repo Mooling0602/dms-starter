@@ -107,6 +107,7 @@
     element-desktop
     google-chrome
     bilibili
+    obs-studio
     axolotl-launcher-bin
     claude-code
     codex
