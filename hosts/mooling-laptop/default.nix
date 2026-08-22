@@ -50,6 +50,7 @@ in
     ../../modules/system/services.nix
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
+    ../../modules/system/obs.nix
   ];
 
   boot.loader = {

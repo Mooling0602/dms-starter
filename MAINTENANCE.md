@@ -123,6 +123,7 @@
 ### `obs-studio` 的 NVENC/QSV 硬件编码修复
 
 - **位置：** `flake.nix` 的 `nixpkgs.overlays`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
+- **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/home/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
 - **影响：** OBS 31+ 用独立子进程 `bin/obs-nvenc-test` 探测 NVENC 能力，但 Nixpkgs 只对 `lib/*.so` 执行 `addDriverRunpath`，测试进程的 RUNPATH 不含 `/run/opengl-driver/lib`，无法 dlopen `libnvidia-encode.so.1`，日志报 `Test process failed: nvenc_lib`，UI 中 NVENC 编码器全部消失。同时 `obs-qsv11` 依赖的 oneVPL 分发器找不到 GPU 运行时（`libmfx-gen`），选 QuickSync 编码器时报 `Failed to initialize MFX (MFX_ERR_NOT_FOUND)`。
 - **当前处理：**
   1. 对 `bin/.obs-nvenc-test-wrapped` 追加 `addDriverRunpath`，使 NVENC 探测进程能找到 NVIDIA 驱动编码库；

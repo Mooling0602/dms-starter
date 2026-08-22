@@ -9,6 +9,7 @@
     ./ssh.nix
     ./nvchad.nix
     ./backup.nix
+    ./obs.nix
   ];
 
   home.username = username;

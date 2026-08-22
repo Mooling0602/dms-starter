@@ -112,7 +112,6 @@
     google-chrome
     bilibili
     haruna
-    obs-studio
     axolotl-launcher-bin
     pebble-mail
     openfic
