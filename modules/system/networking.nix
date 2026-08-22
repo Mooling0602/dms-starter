@@ -14,6 +14,12 @@
       # Honkai Impact 3rd / Honkai Star Rail analytics (CN)
       "log-upload.mihoyo.com"
       "public-data-api.mihoyo.com"
+      # ZZZ telemetry (required by sleepy-launcher's telemetry check:
+      # it refuses to start while any of these is reachable)
+      "overseauspider.yuanshen.com"
+      "uspider.yuanshen.com"
+      "apm-log-upload-os.hoyoverse.com"
+      "zzz-log-upload-os.hoyoverse.com"
       # NOTE: globaldp-prod-os01.* are NOT analytics - they are the game data /
       # anti-cheat (HoYoProtect) channel. Blocking them breaks game launch with
       # a misleading "ZwLoadDriver failed HoYoProtect" / "initDriver Failed
