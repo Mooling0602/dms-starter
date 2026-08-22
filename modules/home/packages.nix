@@ -130,6 +130,9 @@
     prismlauncher
     rclone
     zen-browser
+
+    # an-anime-team ZZZ launcher (via aagl-gtk-on-nix overlay)
+    sleepy-launcher
   ];
 
   home.file.".local/share/jdks/jdk8".source = pkgs.jdk8;

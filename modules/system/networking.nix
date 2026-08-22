@@ -18,11 +18,6 @@
       # anti-cheat (HoYoProtect) channel. Blocking them breaks game launch with
       # a misleading "ZwLoadDriver failed HoYoProtect" / "initDriver Failed
       # [4,643,0]" crash (see yaagl/yet-another-anime-game-launcher#697).
-      # Only the CN ZZZ endpoint stays blocked here (unused by the global client)
-      # Honkai Star Rail analytics (CN)
-      "globaldp-prod-os01.starrails.com"
-      # Zenless Zone Zero (CN)
-      "globaldp-prod-cn01.juequling.com"
     ];
   };
 

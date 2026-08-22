@@ -43,6 +43,10 @@
       url = "github:imaviso/dwproton-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    aagl = {
+      url = "github:ezKEa/aagl-gtk-on-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     danksearch = {
       url = "github:AvengeMedia/danksearch";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -96,6 +100,7 @@
           {
             my = { inherit username hostname; };
             nixpkgs.overlays = [
+              inputs.aagl.overlays.default
               (final: prev: {
                 qt6Packages = prev.qt6Packages // {
                   # DMS generates KDE .colors files for qt6ct. Upstream qt6ct
