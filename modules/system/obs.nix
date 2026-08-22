@@ -19,4 +19,19 @@
 
   # v4l2loopback 设备访问需要 polkit 授权。
   security.polkit.enable = true;
+
+  # gpu-screen-recorder 的 KMS 捕获经 pkexec 提权（org.freedesktop.policykit.exec），
+  # 默认每次录屏都弹密码。放行 wheel 组本地会话成员对该程序的免密执行：
+  # program 匹配 nix store 路径片段 "-gpu-screen-recorder-"，规避版本号漂移。
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            subject.isInGroup("wheel") && subject.local) {
+            var program = action.lookup("program");
+            if (program && program.indexOf("-gpu-screen-recorder-") !== -1) {
+                return polkit.Result.YES;
+            }
+        }
+    });
+  '';
 }
