@@ -104,6 +104,7 @@
     slurp
     satty
     wl-clipboard
+    gpu-screen-recorder
     qq
     wechat
     telegram-desktop
