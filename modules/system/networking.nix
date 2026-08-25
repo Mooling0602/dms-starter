@@ -6,25 +6,25 @@
   networking.networkmanager.enable = true;
 
   networking.hosts = {
-    "0.0.0.0" = [
+    # "0.0.0.0" = [
       # Honkai Impact 3rd / Honkai Star Rail analytics (global)
-      "log-upload-os.hoyoverse.com"
-      "sg-public-data-api.hoyoverse.com"
-      "dump.gamesafe.qq.com"
+      #"log-upload-os.hoyoverse.com"
+      #"sg-public-data-api.hoyoverse.com"
+      #"dump.gamesafe.qq.com"
       # Honkai Impact 3rd / Honkai Star Rail analytics (CN)
-      "log-upload.mihoyo.com"
-      "public-data-api.mihoyo.com"
+      #"log-upload.mihoyo.com"
+      #"public-data-api.mihoyo.com"
       # ZZZ telemetry (required by sleepy-launcher's telemetry check:
       # it refuses to start while any of these is reachable)
-      "overseauspider.yuanshen.com"
-      "uspider.yuanshen.com"
-      "apm-log-upload-os.hoyoverse.com"
-      "zzz-log-upload-os.hoyoverse.com"
+      #"overseauspider.yuanshen.com"
+      #"uspider.yuanshen.com"
+      #"apm-log-upload-os.hoyoverse.com"
+      #"zzz-log-upload-os.hoyoverse.com"
       # NOTE: globaldp-prod-os01.* are NOT analytics - they are the game data /
       # anti-cheat (HoYoProtect) channel. Blocking them breaks game launch with
       # a misleading "ZwLoadDriver failed HoYoProtect" / "initDriver Failed
       # [4,643,0]" crash (see yaagl/yet-another-anime-game-launcher#697).
-    ];
+    # ];
   };
 
   programs.clash-verge = {
