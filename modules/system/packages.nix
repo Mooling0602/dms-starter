@@ -56,6 +56,9 @@
 
     winetricks
 
+    # 通过 Steam Runtime + Proton 运行 Windows 游戏（提供 umu-run，依赖 programs.steam）
+    umu-launcher
+
     # wine64 → wine 软链接（winetricks 在 WoW64 模式下需要 wine64）
     (pkgs.runCommand "wine64-symlink" { } ''
       mkdir -p $out/bin
