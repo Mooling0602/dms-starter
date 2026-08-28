@@ -76,6 +76,15 @@
     let
       username = "mooling"; # ← 改这里即可替换用户名
       hostname = "mooling-laptop";
+      dmsPackage = inputs.dms.packages.x86_64-linux.default.overrideAttrs (oldAttrs: {
+        # The 2026-08-28 DMS source contains documentation symlinks whose
+        # targets are not included in the Nix package output. Remove only
+        # those dangling links so the standard noBrokenSymlinks check passes.
+        postInstall = (oldAttrs.postInstall or "") + ''
+          rm -f $out/share/quickshell/dms/AGENTS.md \
+            $out/share/quickshell/dms/CLAUDE.md
+        '';
+      });
     in
     {
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
@@ -236,7 +245,7 @@
                 programs.dsearch.enable = true;
               };
             home-manager.extraSpecialArgs = inputs // {
-              inherit username hostname;
+              inherit username hostname dmsPackage;
             };
           }
         ];

@@ -34,6 +34,15 @@
 
 ## 临时构建绕过
 
+### DMS 1.6-beta 打包中的悬空文档链接
+
+- **位置：** `flake.nix` 的 `dmsPackage` 覆盖。
+- **影响：** 2026-08-28 的 DankMaterialShell 源码将 `quickshell/dms/AGENTS.md` 和 `CLAUDE.md` 安装为指向未打包 `share/quickshell/AGENTS.md` 的符号链接；Nix 的 `noBrokenSymlinks` 检查因此拒绝构建整个系统闭包。
+- **当前处理：** 在上游 `postInstall` 完成复制后，仅删除这两个悬空链接；DMS、头像服务和 NvChad 共用该修复后的包。
+- **上游：** [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)。
+- **移除条件：** 上游包不再产生悬空链接，或 Nixpkgs/DMS 包定义以其他方式正确处理这些文档文件。
+- **复查方法：** 更新 DMS 后移除覆盖并运行 `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link`；若构建通过且输出不再含悬空链接，即可删除覆盖。
+
 ### `dlib` 的 `build-cores.patch` 失配（Python 3.14 / dlib 20.0.1）
 
 - **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。

@@ -1,4 +1,4 @@
-{ pkgs, dms, ... }:
+{ pkgs, dmsPackage, ... }:
 
 {
   programs.nvchad = {
@@ -9,7 +9,7 @@
       bash-language-server
       python3Packages.python-lsp-server
       stylua
-      dms.packages.${pkgs.stdenv.hostPlatform.system}.default
+      dmsPackage
     ];
     backup = true;
   };

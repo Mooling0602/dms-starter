@@ -1,6 +1,6 @@
 {
   pkgs,
-  dms,
+  dmsPackage,
   ...
 }:
 
@@ -217,6 +217,7 @@ in
 
   programs.dank-material-shell = {
     enable = true;
+    package = dmsPackage;
     enableDynamicTheming = true;
     enableSystemMonitoring = true;
     systemd.enable = true;
@@ -255,7 +256,7 @@ in
       ExecStart = "${pkgs.writeShellScript "dms-set-avatar" ''
         for i in $(seq 1 30); do
           if ${
-            dms.packages.${pkgs.stdenv.hostPlatform.system}.default
+            dmsPackage
           }/bin/dms ipc profile setImage $HOME/nixos-config/assets/avatar.jpg 2>&1 | grep -q SUCCESS; then
             exit 0
           fi
