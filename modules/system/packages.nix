@@ -48,6 +48,8 @@
 
     accountsservice
 
+    mission-center
+
     wineWow64Packages.full
 
     # Wine 音频支持：pulseaudio 客户端库（配合 pipewire-pulse）
