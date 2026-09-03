@@ -130,6 +130,7 @@
     prismlauncher
     rclone
     zen-browser
+    localsend
 
     # an-anime-team ZZZ launcher (via aagl-gtk-on-nix overlay)
     sleepy-launcher
