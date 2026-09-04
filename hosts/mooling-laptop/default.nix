@@ -59,6 +59,12 @@ in
     systemd-boot.configurationLimit = 10;
   };
 
+  # Route nix derivation build temp dirs to /data (root / has limited space;
+  # the sandbox /build is backed by build-dir on the host, which replaces
+  # setting TMPDIR in the nix-daemon systemd unit). It must not sit under a
+  # world-writable path, so /data is 755 and build dir is /data/nixbuild.
+  nix.settings.build-dir = "/data/nixbuild";
+
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Firebat T5K uses the Clevo keyboard protocol supported by tuxedo-drivers.
