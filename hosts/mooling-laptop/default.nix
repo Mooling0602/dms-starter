@@ -59,6 +59,16 @@ in
     systemd-boot.configurationLimit = 10;
   };
 
+  # Emulate aarch64 via qemu-user + binfmt so Nix can build with
+  # buildPlatform = aarch64 (native hash) and pull prebuilt aarch64
+  # binaries from cache.nixos.org instead of locally cross-compiling.
+  boot.binfmt = {
+    emulatedSystems = [ "aarch64-linux" ];
+    # Keep binfmt available for executing foreign binaries, while directing
+    # aarch64 derivations to the native remote builder.
+    addEmulatedSystemsToNixSandbox = false;
+  };
+
   # Route nix derivation build temp dirs to /data (root / has limited space;
   # the sandbox /build is backed by build-dir on the host, which replaces
   # setting TMPDIR in the nix-daemon systemd unit). It must not sit under a
