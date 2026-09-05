@@ -7,6 +7,10 @@
   services.thermald.enable = true;
   services.accounts-daemon.enable = true;
 
+  # Dolphin/Solid uses UDisks2 to discover, mount, and safely eject removable
+  # storage devices such as USB drives.
+  services.udisks2.enable = true;
+
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
 
