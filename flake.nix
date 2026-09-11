@@ -63,6 +63,12 @@
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # ChatGPT Community（codex-desktop）：OpenAI 官方 Linux ChatGPT 桌面应用的
+    # 社区重打包（签名校验后的官方 .deb），经 homeManagerModules 集成。
+    codex-desktop = {
+      url = "github:ilysenko/codex-desktop-linux";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     xwayland-satellite = {
       url = "git+https://github.com/Mooling0602/xwayland-satellite";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -245,8 +251,10 @@
                   inputs.danksearch.homeModules.dsearch
                   inputs.dankcalendar.homeModules.dank-calendar
                   inputs.nix4nvchad.homeManagerModules.default
+                  inputs.codex-desktop.homeManagerModules.default
                 ];
                 programs.dsearch.enable = true;
+                programs.codexDesktopLinux.enable = true;
               };
             home-manager.extraSpecialArgs = inputs // {
               inherit username hostname dmsPackage;
