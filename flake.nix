@@ -254,7 +254,12 @@
                   inputs.codex-desktop.homeManagerModules.default
                 ];
                 programs.dsearch.enable = true;
-                programs.codexDesktopLinux.enable = true;
+                # api-key-model-visibility：在模型选择器中显示 API-key 提供商
+                # （见 ~/.codex/config.toml 的 model_providers，如 B.AI 的 GLM）返回的模型
+                programs.codexDesktopLinux = {
+                  enable = true;
+                  linuxFeatures = [ "api-key-model-visibility" ];
+                };
               };
             home-manager.extraSpecialArgs = inputs // {
               inherit username hostname dmsPackage;
