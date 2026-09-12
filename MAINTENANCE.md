@@ -218,13 +218,11 @@
 - **移除条件：** 当前 Wine 在 PipeWire 下运行 `winecfg` 不再卡死，且 WoW64 的 `winetricks` 可直接找到实际的 `wine64` 可执行文件。
 - **复查方法：** 在测试环境中移除上述覆盖，运行 `winecfg` 并执行实际使用的 WoW64 `winetricks` 流程；两者通过后再删除兼容层。
 
-### Apollo 串流模块被临时禁用
+### Apollo 串流模块被永久移除
 
-- **位置：** `hosts/mooling-laptop/default.nix` 中被注释的 `./streaming.nix` 导入。
-- **影响：** `services.apollo` 的串流、UPnP 和防火墙配置目前均未启用。
-- **相关提交：** `52cbddf`（`fix!: disable streaming(service.apollo) due to upstream error`）；当时未记录可追踪的上游问题。
-- **移除条件：** 已定位并确认原上游错误不再复现，或上游 Apollo/`apollo-flake` 已修复相关问题。
-- **复查方法：** 恢复导入后运行系统构建；确认通过后切换配置，并验证 `apollo` 服务状态、串流连接、UPnP 与虚拟显示器行为。
+所有串流相关的 flake 输入、模块代码均已被删除，用户不再使用。
+
+相关提交： `bd9bd97`（`fix!: remove apollo/sunshine streaming service completely`）
 
 ### Home Manager 冲突备份后缀
 
