@@ -196,20 +196,6 @@
 - **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
 - **复查方法：** 暂停 path unit 后切换 DMS 深浅色，确认候选窗不再变化；恢复后运行 `systemctl --user start fcitx5-dms-theme-sync.service`，检查 `~/.local/share/fcitx5/themes/dms-plasma/panel.png` 的背景随模式切换。
 
-### `pnpm-9.15.9` 的不安全包许可
-
-- **位置：** `modules/system/packages.nix` 的 `permittedInsecurePackages`。
-- **影响：** 全局允许 Nixpkgs 标记为不安全的 `pnpm-9.15.9`；当前系统闭包未包含该版本，故必须在依赖更新时确认许可是否仍被任何构建路径需要。
-- **相关提交：** `dc870fa`（`fix: allow insecure package pnpm-9.15.9`）。
-- **移除条件：** 依赖已升级到受支持的 pnpm，或移除许可后系统可正常构建。
-- **复查方法：** 临时删除该条目后运行：
-
-  ```fish
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
-  ```
-
-  若失败，记录仍依赖该版本的包；若成功，永久删除该许可。
-
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
 - **位置：** `modules/system/packages.nix` 的 `pulseaudio`、`wine64-symlink` 与 `WINEDLLOVERRIDES`，以及 `modules/home/default.nix` 和生成的 Fish 配置中的同一变量。

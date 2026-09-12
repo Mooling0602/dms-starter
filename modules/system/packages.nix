@@ -11,9 +11,6 @@
 
   nixpkgs.config = {
     allowUnfree = true;
-    permittedInsecurePackages = [
-      "pnpm-9.15.9"
-    ];
   };
 
   # 排除 GNOME 文件管理器，使用 KDE/Dolphin
