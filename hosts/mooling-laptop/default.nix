@@ -39,6 +39,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ./gpu.nix
+    ./nix-builder.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
     ../../modules/system/desktop.nix
