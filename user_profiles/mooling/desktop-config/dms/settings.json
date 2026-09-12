@@ -5,8 +5,10 @@
   "widgetColorMode": "colorful",
   "cornerRadius": 12,
   "mouseAccelProfile": "adaptive",
+  "touchpadAccelProfile": "adaptive",
   "calendarBackend": "dankcal",
   "showSeconds": true,
+  "reduceMotion": true,
   "animationVariant": 2,
   "m3ElevationOpacity": 0,
   "m3ElevationLightDirection": "autoBar",
@@ -80,6 +82,11 @@
       "id": "idleInhibitor",
       "enabled": true,
       "width": 50
+    },
+    {
+      "id": "plugin_screenRecorder",
+      "enabled": true,
+      "width": 50
     }
   ],
   "showWorkspaceApps": true,
@@ -88,10 +95,13 @@
   "workspaceUnfocusedMonitorSeparateAppearance": true,
   "workspaceUnfocusedMonitorColorMode": "primaryContainer",
   "mediaUseAlbumArtAccent": true,
+  "appleMusicAnimatedArtEnabled": true,
   "focusedWindowShowIcon": false,
   "appIdSubstitutions": [],
   "clockDateFormat": "yyyy.MM.dd ddd",
   "rememberLastQuery": true,
+  "dankLauncherV2BorderEnabled": true,
+  "dankLauncherV2UnloadOnClose": true,
   "dankLauncherV2IncludeFilesInAll": true,
   "dankLauncherV2IncludeFoldersInAll": true,
   "spotlightBarShowModeChips": true,
@@ -117,15 +127,14 @@
   },
   "fontFamily": "更纱黑体 UI SC",
   "monoFontFamily": "Maple Mono NF CN",
-  "textRenderType": 1,
   "textRenderQuality": 4,
   "soundLogin": true,
   "acLockTimeout": 300,
-  "acSuspendTimeout": 7200,
-  "acSuspendBehavior": 2,
   "acProfileName": "2",
-  "acPostLockMonitorTimeout": 1200,
+  "batteryProfileName": "0",
   "batteryCriticalNotificationType": 0,
+  "batteryAutoPowerSaver": true,
+  "lowerDisplayRefreshRateOnBattery": true,
   "lockBeforeSuspend": true,
   "muxType": "zellij",
   "matugenTemplateNeovim": true,
@@ -174,7 +183,8 @@
     "lock",
     "suspend",
     "restart",
-    "hibernate"
+    "hibernate",
+    "softreboot"
   ],
   "powerMenuDefaultAction": "lock",
   "displayProfileAutoSelect": true,
@@ -196,14 +206,10 @@
         },
         {
           "id": "focusedWindow",
-          "enabled": false,
+          "enabled": true,
           "focusedWindowSize": 0,
           "focusedWindowCompactMode": true,
           "focusedWindowShowIcon": false
-        },
-        {
-          "id": "deepseekBalance",
-          "enabled": true
         }
       ],
       "centerWidgets": [
@@ -254,6 +260,10 @@
           "showBrightnessPercent": false,
           "showBatteryIcon": false,
           "showIdleInhibitorIcon": false
+        },
+        {
+          "id": "usbManager",
+          "enabled": true
         }
       ],
       "spacing": 0,
@@ -262,7 +272,7 @@
       "transparency": 0.1,
       "widgetTransparency": 0.5,
       "squareCorners": true,
-      "noBackground": true,
+      "noBackground": false,
       "maximizeWidgetIcons": false,
       "maximizeWidgetText": false,
       "removeWidgetPadding": false,
@@ -270,7 +280,7 @@
       "gothCornersEnabled": false,
       "gothCornerRadiusOverride": false,
       "gothCornerRadiusValue": 12,
-      "borderEnabled": true,
+      "borderEnabled": false,
       "borderColor": "primary",
       "borderOpacity": 0,
       "borderThickness": 1,
@@ -299,7 +309,40 @@
       "shadowCustomColor": "#000000",
       "clickThrough": false,
       "barInsetPadding": 4,
-      "attachToScreenEdge": false
+      "attachToScreenEdge": false,
+      "island": true,
+      "islandNotificationExpand": true,
+      "islandHomeCompactTight": true,
+      "islandHomeLayout": [
+        {
+          "id": "media",
+          "enabled": true
+        },
+        {
+          "id": "clock",
+          "enabled": true
+        },
+        {
+          "id": "weather",
+          "enabled": true
+        },
+        {
+          "id": "status",
+          "enabled": false
+        },
+        {
+          "id": "volume",
+          "enabled": false
+        },
+        {
+          "id": "brightness",
+          "enabled": false
+        },
+        {
+          "id": "notifications",
+          "enabled": true
+        }
+      ]
     }
   ],
   "desktopClockCustomColor": {
@@ -408,8 +451,11 @@
     },
     "dms_qr_generator": {
       "trigger": "qrg"
+    },
+    "dms_power": {
+      "trigger": "pw"
     }
   },
   "frameColor": "primary",
-  "configVersion": 16
+  "configVersion": 18
 }

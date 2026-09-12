@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 
 {
   services.displayManager.dms-greeter = {
@@ -11,5 +11,5 @@
     enable = true;
   };
 
-  programs.firefox.enable = true;
+  programs.firefox.enable = true; # Basic browser default used by many Linux distros
 }

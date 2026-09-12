@@ -44,7 +44,6 @@
 
     # KDE connect
     kdePackages.kdeconnect-kde
-    kdePackages.plasma-browser-integration
 
     # virtual display mode utility
     wlr-randr
@@ -68,11 +67,8 @@
     # productivity
     hugo
     glow
-    lazygit
-    gh
     seahorse
 
-    btop
     iotop
     iftop
 
@@ -92,48 +88,11 @@
     xwayland-satellite
     xrdb
 
-    # common apps
-    kdePackages.dolphin
-    kdePackages.dolphin-plugins
-    kdePackages.kate
-    kdePackages.discover
-    kdePackages.systemsettings
-    kdePackages.ark
-    kdePackages.ksshaskpass
+    gpu-screen-recorder
+    wl-clipboard
     grim
     slurp
     satty
-    wl-clipboard
-    gpu-screen-recorder
-    qq
-    wechat
-    telegram-desktop
-    discord
-    element-desktop
-    google-chrome
-    bilibili
-    haruna
-    axolotl-launcher-bin
-    pebble-mail
-    openfic
-    claude-code
-    codex
-    pi
-    dsh
-    opencode
-    opencode-desktop
-    zed-editor
-    reasonix
-    reasonix-desktop
-    qoder
-    clawd-on-desk
-    prismlauncher
-    rclone
-    zen-browser
-    localsend
-
-    # an-anime-team ZZZ launcher (via aagl-gtk-on-nix overlay)
-    sleepy-launcher
   ];
 
   home.file.".local/share/jdks/jdk8".source = pkgs.jdk8;

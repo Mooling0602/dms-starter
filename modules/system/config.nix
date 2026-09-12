@@ -3,13 +3,13 @@
 {
   options.my.username = lib.mkOption {
     type = lib.types.str;
-    default = "mooling";
+    default = "user";
     description = "Primary username. Override in flake.nix to change.";
   };
 
   options.my.hostname = lib.mkOption {
     type = lib.types.str;
-    default = "mooling-laptop";
+    default = "nixos";
     description = "Hostname for machine-specific config guards.";
   };
 }

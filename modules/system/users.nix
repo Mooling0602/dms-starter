@@ -10,6 +10,7 @@
       "input"
       "video"
       "render"
+      "greeter"
     ];
     shell = pkgs.fish;
   };

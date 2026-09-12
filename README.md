@@ -2,48 +2,68 @@
 
 基于 [DankMaterialShell](https://danklinux.com/) 的 NixOS + niri 桌面配置。
 
-## 结构
+## 模块结构
 
-> 该部分信息存在滞后性，当前版本：2026-06-13 13:31
+> 该部分信息存在滞后性，当前版本：2026-09-12 16:00
 
 ```
 ├── AGENTS.md                     # Agent 工作说明和项目约定
-├── assets/                       # 壁纸、头像等静态资源
-├── cache                         # 本地缓存文件
+├── assets/                       # 静态资源
+│   ├── <username>/               # 个人资源（目录名与 flake.nix 的 username 同名）
+│   │   └── avatar.jpg            # 用户头像
+│   ├── wallpaper-dark-cyrene.png # 深色模式壁纸
+│   └── wallpaper-light-kokomi.png # 浅色模式壁纸
+├── cache/                        # 本地缓存文件（未纳入版本管理）
 ├── deploy.sh                     # 新机器交互式部署脚本
 ├── flake.lock
 ├── flake.nix                     # Flake 入口（username/hostname let 绑定在此）
-├── hosts/<hostname>/             # 机器专属
+├── hosts/<hostname>/             # 机器专属（目录名与 hostname 同名）
 │   ├── default.nix               # imports + boot + hostname + stateVersion
 │   ├── gpu.nix                   # GPU 驱动配置
+│   ├── nix-builder.nix           # 远程构建节点（可选）
+│   ├── clash-verge-fix.nix       # Mihomo TUN 的 UPnP/SSDP 路由绕过（可选）
 │   └── hardware-configuration.nix # 自动生成硬件配置
+├── MAINTENANCE.md                # 维护清单：上游覆盖、移除条件与复查方法
 ├── modules/
 │   ├── home/                     # Home Manager 模块（跨机器复用）
 │   │   ├── backup.nix            # 运行时配置缺失时自动恢复快照
-│   │   ├── default.nix           # 入口和模块 imports
-│   │   ├── desktop.nix           # DMS、终端、壁纸/头像
-│   │   ├── git.nix               # Git 用户配置
-│   │   ├── nvchad.nix            # nix4nvchad 包装和依赖
-│   │   ├── packages.nix          # 用户包
-│   │   ├── ssh.nix               # SSH 客户端配置
-│   │   └── theme.nix             # Qt、字体、xdg.portal
+│   │   ├── default.nix           # 入口：imports defaults/ + <username>/ + backup.nix
+│   │   ├── defaults/             # 所有用户共用的模块
+│   │   │   ├── desktop.nix       # DMS、终端、壁纸
+│   │   │   ├── nvchad.nix        # nix4nvchad 包装和依赖
+│   │   │   ├── obs.nix           # OBS Studio 与插件
+│   │   │   ├── packages.nix      # 通用用户包
+│   │   │   ├── ssh.nix           # SSH 客户端配置
+│   │   │   ├── theme.nix         # Qt、字体、xdg.portal
+│   │   │   └── wine.nix          # WINEDLLOVERRIDES 兼容层
+│   │   ├── <username>/           # 个人模块（目录名与 username 同名）
+│   │   │   ├── avatar.nix        # ~/.face 头像
+│   │   │   ├── git.nix           # Git 用户配置
+│   │   │   ├── packages.nix      # 个人包（GUI 应用等）
+│   │   │   └── utils.nix         # 个人脚本
+│   │   └── user/                 # 新用户模板（复制为 modules/home/<username>/）
+│   │       ├── avatar.nix
+│   │       ├── git.nix
+│   │       ├── packages.nix
+│   │       └── utils.nix
 │   └── system/                   # 系统模块（跨机器复用）
-│       ├── config.nix            # my.username 选项
+│       ├── config.nix            # my.username / my.hostname 选项
 │       ├── desktop.nix           # dms-greeter + niri + Firefox
 │       ├── fonts.nix             # 系统级字体
 │       ├── i18n.nix              # 中文语言、fcitx5 输入法
 │       ├── networking.nix        # NetworkManager、Clash Verge
 │       ├── nix.nix               # nix 调优 + 自动 GC
+│       ├── obs.nix               # OBS 虚拟摄像头 + polkit 规则
 │       ├── packages.nix          # 系统级包
-│       ├── services.nix          # 蓝牙、打印、PipeWire、SSH
+│       ├── services.nix          # 蓝牙、打印、PipeWire、SSH、Howdy
 │       ├── users.nix             # 用户 + sudo
 │       └── virtualisation.nix    # 虚拟化配置
+├── patches/                      # 上游补丁（dlib-build-cores.patch）
 ├── README.md
-├── reasonix.toml                 # Reasonix 配置
+├── reasonix.toml                 # Reasonix 配置（未纳入版本管理）
 ├── scripts/                      # 辅助脚本
-│   ├── apollo-upnp.sh            # Apollo UPnP 辅助脚本
 │   └── backup.sh                 # 分布式备份/恢复脚本总入口
-└── user_profiles/<username>/      # 用户运行时配置快照
+└── user_profiles/<username>/     # 用户运行时配置快照
     └── desktop-config/           # DMS/Niri 可变配置备份
         ├── apply.sh              # 从快照恢复运行时配置
         ├── dms/                  # DMS 可变配置快照
@@ -55,18 +75,24 @@
         └── snapshot.sh           # 捕获当前运行时配置到仓库
 ```
 
-## 自定义用户名
+## 自定义用户名和主机名
 
-编辑 `flake.nix`，修改 `let username` 一行即可：
+编辑 `flake.nix`，修改 `let in` 块内的相关变量即可：
 
 ```nix
 outputs = inputs@{ nixpkgs, home-manager, ... }:
   let
-    username = "mooling";  # ← 改为你的用户名
+    username = "mooling";  # <- 改为你的用户名
+    hostname = "nixos";    # <- 改为你的主机名
   in
 ```
 
-所有系统模块和 Home Manager 配置均自动引用此变量，无需其他修改。
+所有系统模块和 Home Manager 配置均自动引用这两个变量，目录名需与之一致：
+
+- `hosts/<hostname>/` - 机器专属配置
+- `modules/home/<username>/` - 个人模块，可从 `modules/home/user/` 复制模板
+- `assets/<username>/` - 个人资源（头像等）
+- `user_profiles/<username>/` - 运行时配置快照（见「运行时配置备份」）
 
 ## 新机器部署
 
@@ -74,14 +100,10 @@ outputs = inputs@{ nixpkgs, home-manager, ... }:
 # 1. 安装 NixOS 后，克隆配置仓库
 git clone git@github.com:Mooling0602/dms-starter.git ~/nixos-config
 
-# 2. 运行部署脚本（交互式）
+# 2. 运行交互式部署脚本即可
 cd ~/nixos-config && ./deploy.sh
 
-# 3. 设置密码
-sudo passwd <username>
-
-# 4. 重建
-sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>
+# 3. 你还可以自行做其他修改，完善你 fork 的配置，也欢迎从此仓库内持续引入各种修复内容
 ```
 
 ## 已部署机器的日常使用
@@ -118,14 +140,14 @@ sudo nix-store --optimise
 
 配置中已启用以下自动策略（见 `modules/system/nix.nix` 和 `hosts/*/default.nix`）：
 
-- **`nix.settings.auto-optimise-store = true`** — 每次构建时自动硬链接优化
-- **`nix.gc.automatic = true` + `--delete-older-than 7d`** — 每周自动垃圾回收
-- **`boot.loader.systemd-boot.configurationLimit = 10`** — 最多保留 10 个 boot 启动项
+- **`nix.settings.auto-optimise-store = true`** - 每次构建时自动硬链接优化
+- **`nix.gc.automatic = true` + `--delete-older-than 1d`** - 每天自动垃圾回收
+- **`boot.loader.systemd-boot.configurationLimit = 10`** - 最多保留 10 个 boot 启动项
 
 ### 手动清理旧世代（只保留最新 N 个）
 
 ```bash
-sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 1d
+sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-than 7d
 ```
 
 ### 查看当前状态
@@ -149,6 +171,8 @@ du -sh /nix/store                                             # nix store 大小
 
 认证开始时会显示 Howdy 的检测提示；若画面太暗或识别超时，则输入密码继续。录入多个光照和角度的样本可提高识别率。
 
+需要设备有摄像头，后续将考虑默认禁用此功能，你可以先自行本地修改。
+
 ```fish
 # 首次录入；为不同光照和角度添加多张样本
 sudo howdy add mooling
@@ -163,6 +187,8 @@ sudo howdy remove mooling
 - 这台设备是普通 RGB 摄像头；Howdy 不提供可靠活体检测，可能被照片欺骗，不应将其视为密码的安全替代品。
 
 ## 运行时配置备份
+
+> 主要是 mooling 个人使用，你可以根据需要复制模板或自行编写模块。
 
 ```fish
 # 捕获当前 DMS/Niri 可变配置到仓库快照

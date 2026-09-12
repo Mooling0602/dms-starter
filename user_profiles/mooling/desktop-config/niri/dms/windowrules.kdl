@@ -111,3 +111,40 @@ window-rule {
     match app-id="^QQ$" title="^图片查看器$"
     open-floating true
 }
+
+// @id=wr_1787647654849762392 @name=米哈游启动器优化
+window-rule {
+    match app-id="^steam_proton$" title="^米哈游启动器$"
+    open-floating true
+}
+
+// @id=wr_1787803216628899127 @name=微信小程序：外卖服务
+window-rule {
+    match title="^美团.*"
+    match title="^淘宝闪购.*"
+    open-floating true
+}
+
+// @id=wr_1788071566896005903 @name=io.missioncenter.MissionCenter
+window-rule {
+    match app-id="^io.missioncenter.MissionCenter$"
+    open-maximized true
+}
+
+// @id=wr_1788438004830649383 @name=画中画
+window-rule {
+    match title="^画中画$"
+    open-floating true
+}
+
+// @id=wr_1789126216546482445 @name=U净生活 - 微信小程序
+window-rule {
+    match title="^U净生活$"
+    open-floating true
+}
+
+// @id=wr_1789186035568409859 @name=沪上阿姨点单 - 微信小程序
+window-rule {
+    match title="^沪上阿姨.*"
+    open-floating true
+}

@@ -1,20 +1,23 @@
 { pkgs, ... }:
 
+let
+  locale = "zh_CN.UTF-8";  # Change this to set your language environment
+in
 {
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = "Asia/Shanghai";  # Change this to set your local timezone
 
-  i18n.defaultLocale = "zh_CN.UTF-8";
+  i18n.defaultLocale = locale;
 
   i18n.extraLocaleSettings = {
-    LC_ADDRESS = "zh_CN.UTF-8";
-    LC_IDENTIFICATION = "zh_CN.UTF-8";
-    LC_MEASUREMENT = "zh_CN.UTF-8";
-    LC_MONETARY = "zh_CN.UTF-8";
-    LC_NAME = "zh_CN.UTF-8";
-    LC_NUMERIC = "zh_CN.UTF-8";
-    LC_PAPER = "zh_CN.UTF-8";
-    LC_TELEPHONE = "zh_CN.UTF-8";
-    LC_TIME = "zh_CN.UTF-8";
+    LC_ADDRESS = locale;
+    LC_IDENTIFICATION = locale;
+    LC_MEASUREMENT = locale;
+    LC_MONETARY = locale;
+    LC_NAME = locale;
+    LC_NUMERIC = locale;
+    LC_PAPER = locale;
+    LC_TELEPHONE = locale;
+    LC_TIME = locale;
   };
 
   i18n.supportedLocales = [

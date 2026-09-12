@@ -2,8 +2,8 @@
 
 output "eDP-1" {
     mode "2560x1440@165.003"
-    scale 1.75
-    position x=1280 y=0
+    scale 1.5
+    position x=0 y=0
     variable-refresh-rate on-demand=true
 }
 

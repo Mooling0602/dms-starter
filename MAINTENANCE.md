@@ -38,7 +38,7 @@
 
 - **位置：** `flake.nix` 的 `dmsPackage` 覆盖。
 - **影响：** 2026-08-28 的 DankMaterialShell 源码将 `quickshell/dms/AGENTS.md` 和 `CLAUDE.md` 安装为指向未打包 `share/quickshell/AGENTS.md` 的符号链接；Nix 的 `noBrokenSymlinks` 检查因此拒绝构建整个系统闭包。
-- **当前处理：** 在上游 `postInstall` 完成复制后，仅删除这两个悬空链接；DMS、头像服务和 NvChad 共用该修复后的包。
+- **当前处理：** 在上游 `postInstall` 完成复制后，仅删除这两个悬空链接；DMS 与 NvChad 模块（`modules/home/defaults/desktop.nix`、`modules/home/defaults/nvchad.nix`）共用该修复后的包。
 - **上游：** [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)。
 - **移除条件：** 上游包不再产生悬空链接，或 Nixpkgs/DMS 包定义以其他方式正确处理这些文档文件。
 - **复查方法：** 更新 DMS 后移除覆盖并运行 `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link`；若构建通过且输出不再含悬空链接，即可删除覆盖。
@@ -116,7 +116,7 @@
 
 ### `qt6ct-kde` 的 KColorScheme 支持
 
-- **位置：** `flake.nix` 的 `nixpkgs.overlays`，由 `modules/system/packages.nix` 和 `modules/home/theme.nix` 共同使用。
+- **位置：** `flake.nix` 的 `nixpkgs.overlays`，由 `modules/system/packages.nix` 和 `modules/home/defaults/theme.nix` 共同使用。
 - **目的：** 为 `qt6ct` 加入 `kconfig`、`kcolorscheme`、`kiconthemes` 构建依赖，并应用 Arch AUR `qt6ct-kde` 的 shenanigans 补丁，使 Qt 配色方案能够使用 KDE 的 `KColorScheme` 支持。DMS 生成的 `DankMatugen.colors` 依赖该能力；覆盖必须位于全局，否则 Niri 实际加载的原生 Qt6ct 平台插件会回退为浅色。
 - **相关提交：** `d4c18f6`（`fix: use qt6ct-kde patch instead of vanilla qt6ct`）。
 - **补丁来源：** 固定为 AUR `qt6ct-kde` 提交 [`8c1003e`](https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde&id=8c1003e13b7e7545e717273e0716f095f195bd13)。原 URL 指向可变分支头，2026-08-18 上游更新补丁后触发固定输出哈希不匹配；更新后的补丁仍针对 `qt6ct 0.11`，保留 KColorScheme、KConfig 和 KIconThemes 集成。
@@ -132,7 +132,7 @@
 ### `obs-studio` 的 NVENC/QSV 硬件编码修复
 
 - **位置：** `flake.nix` 的 `nixpkgs.overlays`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
-- **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/home/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
+- **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/home/defaults/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
 - **影响：** OBS 31+ 用独立子进程 `bin/obs-nvenc-test` 探测 NVENC 能力，但 Nixpkgs 只对 `lib/*.so` 执行 `addDriverRunpath`，测试进程的 RUNPATH 不含 `/run/opengl-driver/lib`，无法 dlopen `libnvidia-encode.so.1`，日志报 `Test process failed: nvenc_lib`，UI 中 NVENC 编码器全部消失。同时 `obs-qsv11` 依赖的 oneVPL 分发器找不到 GPU 运行时（`libmfx-gen`），选 QuickSync 编码器时报 `Failed to initialize MFX (MFX_ERR_NOT_FOUND)`。
 - **当前处理：**
   1. 对 `bin/.obs-nvenc-test-wrapped` 追加 `addDriverRunpath`，使 NVENC 探测进程能找到 NVIDIA 驱动编码库；
@@ -168,7 +168,7 @@
 
 ### DMS 的可写 `adw-gtk3` 副本
 
-- **位置：** `modules/home/theme.nix` 的 `home.activation.installDmsAdwGtk3`。
+- **位置：** `modules/home/defaults/theme.nix` 的 `home.activation.installDmsAdwGtk3`。
 - **影响：** DMS 1.6 的 `scripts/gtk.sh` 只在 `~/.local/share/themes/`、`~/.themes/` 和 `/usr/share/themes/` 查找 `adw-gtk3`，并在 GTK3 的样式表中原地注入 Matugen 色表。Home Manager 安装的 `adw-gtk3` 位于只读 Nix store，因而 DMS 只能退回全局 CSS 覆盖；其 GTK3 补丁步骤以退出码 2 结束，随后不会调用将 `gtk-theme` 切换为 `adw-gtk3`/`adw-gtk3-dark` 的刷新逻辑，传统 GTK 应用会停留在浅色主题。
 - **当前处理：** Home Manager 激活时仅在主题不存在时，将 Nix 包的两个变体复制到 `~/.local/share/themes/` 并授予用户写权限。之后目录完全由 DMS 管理；不使用 `home.file`，避免创建 DMS 无法修改的 store symlink。
 - **上游：** [DMS GTK helper](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/scripts/gtk.sh)，[DMS GTK 切换逻辑](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/Common/Theme.qml)。
@@ -177,7 +177,7 @@
 
 ### Niri 下 `xdg-desktop-portal` 的深浅色状态同步
 
-- **位置：** `modules/home/theme.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。
+- **位置：** `modules/home/defaults/theme.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。
 - **影响：** DMS 会通过 dconf 写入 `org.gnome.desktop.interface color-scheme`，但 `xdg-desktop-portal 1.22` 可同时加载 GTK、GNOME 和 KDE 的 `Settings` 后端，导致门户向 QQ、Telegram、Zen 等应用报告与 DMS 相反的深浅色状态。
 - **当前处理：** 在通用和 Niri 门户配置中将 `org.freedesktop.impl.portal.Settings` 固定为 GTK；同时从用户优先级的 GNOME/KDE portal 定义中去除该接口，仅保留 GTK 作为 Settings 提供方。原定义直接由当前 Nix 包读取，避免手工复制后随上游接口列表漂移。
 - **上游：** xdg-desktop-portal [#2033](https://github.com/flatpak/xdg-desktop-portal/issues/2033)，修复 PR [#2048](https://github.com/flatpak/xdg-desktop-portal/pull/2048)；相关 DMS/Niri 报告 [#2140](https://github.com/AvengeMedia/DankMaterialShell/issues/2140)。
@@ -190,7 +190,7 @@
 
 ### Fcitx5 Plasma 候选窗的 DMS 深浅色同步
 
-- **位置：** `modules/home/desktop.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
+- **位置：** `modules/home/defaults/desktop.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
 - **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色或强调色；在 Niri 会话中它会回退到白色 `breeze-light` 和固定蓝色高亮。服务监听 DMS 写入的 `DankMatugen.colors`，根据同一文件的窗口背景亮度选择 `breeze-light` 或 `breeze-dark` 色表来组装私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，并从该次色表读取选择前景/背景色来重着色候选项，最后调用 Fcitx `Controller1.Restart`。该接口与系统托盘的“重启”相同，会重新创建缓存 `NormalColor` 的 Classic UI，同时保留原实例的插件环境与输入法列表。这样不会因 DMS 先写色表、后更新 dconf 而将浅色调色板配上深色背景，也不必手动重启输入法。
 - **范围：** 只使用已由 `fcitx5-configtool` 引入的 `libplasma`、`kconfig` 与 `kcolorscheme` 库，以及只用于重着色候选项 PNG 的 ImageMagick；不会安装或启动 Plasma Shell、KWin 或其他 KDE 桌面服务。同步 service 不直接由 `graphical-session.target` 启动，而仅由 path unit 在 DMS 写入色表后触发；DMS 本身必须在该 target 之后启动，若同时把同步 service 作为 target 成员并声明 `After=dms.service`，systemd 会形成排序循环并丢弃 DMS 的启动任务。
 - **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
@@ -198,7 +198,7 @@
 
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
-- **位置：** `modules/system/packages.nix` 的 `pulseaudio`、`wine64-symlink` 与 `WINEDLLOVERRIDES`，以及 `modules/home/default.nix` 和生成的 Fish 配置中的同一变量。
+- **位置：** `modules/system/packages.nix` 的 `pulseaudio`、`wine64-symlink` 与 `WINEDLLOVERRIDES`，以及 `modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。
 - **影响：** 禁用 `winealsa.drv`，改由 PipeWire 的 PulseAudio 兼容层处理音频，以避免 `winecfg` 枚举音频设备时卡死；同时伪造 `wine64`，满足 WoW64 模式下的 `winetricks` 查找。
 - **相关提交：** `89f35ae`（`fix: add pulseaudio and disable winealsa to prevent winecfg audio tab freeze`）；`6201ec7`（`fix: add wine64 symlink for winetricks WoW64 compatibility`）。
 - **移除条件：** 当前 Wine 在 PipeWire 下运行 `winecfg` 不再卡死，且 WoW64 的 `winetricks` 可直接找到实际的 `wine64` 可执行文件。

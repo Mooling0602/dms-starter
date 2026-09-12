@@ -79,8 +79,8 @@
       ...
     }:
     let
-      username = "mooling"; # ← 改这里即可替换用户名
-      hostname = "mooling-laptop";
+      username = "mooling"; # Change the username here
+      hostname = "mooling-laptop"; # Change the hostname here
       dmsPackage = inputs.dms.packages.x86_64-linux.default.overrideAttrs (oldAttrs: {
         # The 2026-08-28 DMS source contains documentation symlinks whose
         # targets are not included in the Nix package output. Remove only
@@ -138,7 +138,7 @@
                     });
                     # dlib 20.0.1 有两处回归，均在此覆盖，上游适配后移除（见 MAINTENANCE.md）：
                     #  1) num_available_cpu_cores() 移到模块顶层，nixpkgs 自带 build-cores.patch
-                    #     按旧位置书写导致 Hunk 失配 —— 用匹配新源码的补丁替换。
+                    #     按旧位置书写导致 Hunk 失配 -- 用匹配新源码的补丁替换。
                     #  2) CMakeBuild 不再注册 --set 为 distutils option，nixpkgs 默认 preConfigure
                     #     用 "--set" 传 CMake flags 会报 "option --set not recognized"；
                     #     dlib 20.0.1 改为读取 DLIB_* 环境变量，故据其重写 preConfigure。
