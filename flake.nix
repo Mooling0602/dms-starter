@@ -32,10 +32,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nvchad-starter.follows = "nvcfg";
     };
-    apollo-flake = {
-      url = "github:nil-andreas/apollo-flake";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     nix-packages = {
       url = "github:Mooling0602/nix-packages";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -79,7 +75,6 @@
     inputs@{
       nixpkgs,
       home-manager,
-      apollo-flake,
       dw-proton,
       ...
     }:
@@ -101,13 +96,6 @@
         modules = [
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
-          apollo-flake.nixosModules.x86_64-linux.default
-          (
-            { ... }:
-            {
-              services.apollo.package = apollo-flake.packages.x86_64-linux.default;
-            }
-          )
           (
             { ... }:
             {
@@ -246,7 +234,6 @@
               {
                 imports = [
                   ./modules/home
-                  ./hosts/${hostname}/streaming-display.nix
                   inputs.dms.homeModules.dank-material-shell
                   inputs.danksearch.homeModules.dsearch
                   inputs.dankcalendar.homeModules.dank-calendar

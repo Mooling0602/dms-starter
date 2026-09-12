@@ -16,10 +16,7 @@
 ├── hosts/<hostname>/             # 机器专属
 │   ├── default.nix               # imports + boot + hostname + stateVersion
 │   ├── gpu.nix                   # GPU 驱动配置
-│   ├── hardware-configuration.nix # 自动生成硬件配置
-│   ├── streaming-devices.nix     # 串流虚拟设备
-│   ├── streaming-display.nix     # 串流显示相关 Home Manager 配置
-│   └── streaming.nix             # 串流系统服务配置
+│   └── hardware-configuration.nix # 自动生成硬件配置
 ├── modules/
 │   ├── home/                     # Home Manager 模块（跨机器复用）
 │   │   ├── backup.nix            # 运行时配置缺失时自动恢复快照
