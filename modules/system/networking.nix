@@ -11,7 +11,7 @@
 
   programs.clash-verge = {
     enable = true;
-    serviceMode = true;
+    # serviceMode = true;
     tunMode = true;
   }; # Magical cat that can ignore GFW~
 }
