@@ -34,16 +34,25 @@
 
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
 
-- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/home/defaults/theme.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
+- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/home/defaults/theme.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
 - **影响：** niri 未实现 `org.freedesktop.impl.portal.InputCapture`，而 `xdg-desktop-portal-gnome` 只在 niri 提供 `org.gnome.Mutter.InputCapture` 时才发布该接口，因此 Deskflow、Synergy 3、Input Leap 等在 niri 下作为 server 共享键鼠时会以 `failed to initialize input capture session` 失败。nixpkgs 未收录该后端，故自行打包并跟踪上游 `main`（上游无 tag 与 release）。
 - **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input`——`Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
-- **上游：** [Qingswe/niri-input-portal](https://github.com/Qingswe/niri-input-portal)；缺口跟踪：niri [#823](https://github.com/YaLTeR/niri/issues/823)（自 2024-11 起 open）、[#1966](https://github.com/YaLTeR/niri/pull/1966)（未合并）。
-- **移除条件：** niri 自行实现 InputCapture 门户（#823 关闭，或 #1966 及后续工作合并），或该后端被 nixpkgs 收录；此时移除 overlay 条目、`extraPortals` 中的包、两条门户路由与 systemd 单元。
+- **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码——客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
+- **上游：** [Qingswe/niri-input-portal](https://github.com/Qingswe/niri-input-portal)；缺口跟踪：niri [#823](https://github.com/YaLTeR/niri/issues/823)（自 2024-11 起 open）、[#1966](https://github.com/YaLTeR/niri/pull/1966)（未合并）。region 必须在 `ei_device.done` 之前下发的旁证是 mutter 的 `483601844b4c72fc34b1818a59fef7879cdb5238`（"backends/eis-client: Do not add device before adding EIS regions"）。
+- **移除条件：** 分两层。补丁层：上游自行下发 `ei_device.region` 后即可删掉 `fix-eis-device-region.patch` 与 `package.nix` 中的 `patches` 一行，包本身继续保留。整包层：niri 自行实现 InputCapture 门户（#823 关闭，或 #1966 及后续工作合并），或该后端被 nixpkgs 收录；此时再移除 overlay 条目、`extraPortals` 中的包、两条门户路由与 systemd 单元。
 - **复查方法：** 重建并重启 `xdg-desktop-portal` 后读取门户能力值，接入后应为 `u 3`（keyboard | pointer），未接入时为 `u 0`：
 
   ```fish
   busctl --user get-property org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop org.freedesktop.portal.InputCapture SupportedCapabilities
   ```
+
+  补丁是否仍然必要，直接看上游有没有自己调用 `.region(` 即可，无需构建：
+
+  ```fish
+  curl -s https://raw.githubusercontent.com/Qingswe/niri-input-portal/main/src/eis_server.rs | grep -n '\.region('
+  ```
+
+  补丁生效的现场证据：以 `NIRI_INPUT_PORTAL_LOG=debug` 启动后端，客户端连接时应出现 `reported device region <宽>x<高>`（pointer 与 keyboard 各一条），客户端侧 Deskflow 日志则由 `logical output size: unchanged (no region-reporting device present)` 变为 `logical output size: <宽>x<高>@0.0`，`active sides` 由 `T (0x08)` 变为 `B (0x10)`。
 
 ## 临时构建绕过
 
