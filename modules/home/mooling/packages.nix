@@ -42,6 +42,7 @@
     rclone
     zen-browser
     localsend # Local network file share
+    deskflow # Share keyboard/mouse across computers (backend: niri-input-portal)
     sleepy-launcher # an-anime-team ZZZ launcher (via aagl-gtk-on-nix overlay)
   ];
 }
