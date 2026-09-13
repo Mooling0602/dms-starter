@@ -9,6 +9,9 @@
     # Very useful KDE softwares
     kdePackages.dolphin # KDE filesystem explorer
     kdePackages.dolphin-plugins # Plugins for Dolphin
+    kdePackages.baloo
+    kdePackages.baloo-widgets
+    kdePackages.ffmpegthumbs
     kdePackages.kate # KDE text editor
     kdePackages.discover # KDE software store (Flatpak)
     kdePackages.systemsettings # KDE System Settings
