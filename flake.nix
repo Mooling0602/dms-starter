@@ -179,6 +179,7 @@
                 axolotl-launcher-bin = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.axolotl-launcher-bin;
                 pebble-mail = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.pebble-mail;
                 openfic = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.openfic;
+                niri-input-portal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.niri-input-portal;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
               })
               (final: prev: {

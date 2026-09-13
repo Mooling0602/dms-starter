@@ -32,6 +32,19 @@
 
   构建成功后，在受分数缩放影响的 XWayland 应用中验证弹出窗口不再出现零尺寸锚点。
 
+### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
+
+- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/home/defaults/theme.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
+- **影响：** niri 未实现 `org.freedesktop.impl.portal.InputCapture`，而 `xdg-desktop-portal-gnome` 只在 niri 提供 `org.gnome.Mutter.InputCapture` 时才发布该接口，因此 Deskflow、Synergy 3、Input Leap 等在 niri 下作为 server 共享键鼠时会以 `failed to initialize input capture session` 失败。nixpkgs 未收录该后端，故自行打包并跟踪上游 `main`（上游无 tag 与 release）。
+- **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input`——`Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
+- **上游：** [Qingswe/niri-input-portal](https://github.com/Qingswe/niri-input-portal)；缺口跟踪：niri [#823](https://github.com/YaLTeR/niri/issues/823)（自 2024-11 起 open）、[#1966](https://github.com/YaLTeR/niri/pull/1966)（未合并）。
+- **移除条件：** niri 自行实现 InputCapture 门户（#823 关闭，或 #1966 及后续工作合并），或该后端被 nixpkgs 收录；此时移除 overlay 条目、`extraPortals` 中的包、两条门户路由与 systemd 单元。
+- **复查方法：** 重建并重启 `xdg-desktop-portal` 后读取门户能力值，接入后应为 `u 3`（keyboard | pointer），未接入时为 `u 0`：
+
+  ```fish
+  busctl --user get-property org.freedesktop.portal.Desktop /org/freedesktop/portal/desktop org.freedesktop.portal.InputCapture SupportedCapabilities
+  ```
+
 ## 临时构建绕过
 
 ### DMS 1.6-beta 打包中的悬空文档链接
