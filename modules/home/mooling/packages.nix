@@ -15,6 +15,7 @@
     kdePackages.ark # Zipped file explorer
     kdePackages.ksshaskpass # Used by https://github.com/Mooling0602/mooling-skills/blob/main/request_sudo.md
     kdePackages.plasma-browser-integration # Seems useless, but just keep it
+    kdePackages.gwenview # KDE Image viewer
 
     qq # 腾讯QQ
     wechat # 微信
