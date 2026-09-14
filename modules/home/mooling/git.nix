@@ -7,7 +7,6 @@
       user = {
         name = "Mooling0602";
         email = "clemooling@outlook.com";
-        signingkey = "/home/mooling/.ssh/key-mooling-laptop.pub";
       };
       push = {
         autoSetupRemote = true;
