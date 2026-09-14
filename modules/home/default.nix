@@ -1,4 +1,4 @@
-{ username, ... }:
+{ username, hostname, ... }:
 
 {
   imports = [
@@ -12,6 +12,7 @@
     ./${username}/packages.nix
     ./${username}/avatar.nix
     ./${username}/utils.nix
+    ../../hosts/${hostname}/users/${username}.nix
     ./backup.nix
   ];
 
