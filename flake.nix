@@ -1,11 +1,8 @@
 {
-  description = "NixOS configuration for mooling-laptop";
+  description = "NixOS configuration for DankMaterialShell desktop";
 
   inputs = {
-    # 官方 channel tarball（zstd）作为 nixpkgs 源：比 GitHub flake 下载更小、
-    # 解压更快，不占用 GitHub API rate limit，GitHub 故障时仍可用；
-    # 服务器提供 rel="immutable" 的 Link 头，flake.lock 仍可锁定版本。
-    # xz 版 tarball 计划在 Nixpkgs 27.05 起停止提供（NixOS/nixpkgs#535272）。
+    # Use zdtd tarball, see more in NixOS/nixpkgs#535272
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst";
     niri = {
       url = "github:sodiboo/niri-flake";
@@ -81,15 +78,6 @@
     let
       username = "mooling"; # Change the username here
       hostname = "mooling-laptop"; # Change the hostname here
-      dmsPackage = inputs.dms.packages.x86_64-linux.default.overrideAttrs (oldAttrs: {
-        # The 2026-08-28 DMS source contains documentation symlinks whose
-        # targets are not included in the Nix package output. Remove only
-        # those dangling links so the standard noBrokenSymlinks check passes.
-        postInstall = (oldAttrs.postInstall or "") + ''
-          rm -f $out/share/quickshell/dms/AGENTS.md \
-            $out/share/quickshell/dms/CLAUDE.md
-        '';
-      });
     in
     {
       nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
@@ -104,6 +92,7 @@
               ];
             }
           )
+          ({ pkgs, ... }:
           {
             my = { inherit username hostname; };
             nixpkgs.overlays = [
@@ -168,6 +157,15 @@
                 ];
               })
               (final: prev: {
+                dmsPackage = inputs.dms.packages.${final.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
+                  # The 2026-08-28 DMS source contains documentation symlinks whose
+                  # targets are not included in the Nix package output. Remove only
+                  # those dangling links so the standard noBrokenSymlinks check passes.
+                  postInstall = (oldAttrs.postInstall or "") + ''
+                    rm -f $out/share/quickshell/dms/AGENTS.md \
+                      $out/share/quickshell/dms/CLAUDE.md
+                  '';
+                });
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
                 pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
@@ -250,9 +248,10 @@
                 };
               };
             home-manager.extraSpecialArgs = inputs // {
-              inherit username hostname dmsPackage;
+              inherit username hostname;
+              dmsPackage = pkgs.dmsPackage;
             };
-          }
+          })
         ];
       };
     };
