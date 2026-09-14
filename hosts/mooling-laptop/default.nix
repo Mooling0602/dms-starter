@@ -44,6 +44,7 @@ in
     ../../modules/optional/howdy.nix
     ../../modules/optional/obs.nix
     ../../modules/optional/gaming.nix
+    ../../modules/optional/wine.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
     ../../modules/system/desktop.nix
