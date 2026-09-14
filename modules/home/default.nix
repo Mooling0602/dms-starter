@@ -1,7 +1,10 @@
 { username, hostname, ... }:
 
+let
+  optionalImports = import ../../utils/optional_import.nix;
+in
 {
-  imports = [
+  imports = optionalImports [
     ./defaults/packages.nix
     ./defaults/theme.nix
     ./defaults/desktop.nix
