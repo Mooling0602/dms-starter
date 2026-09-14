@@ -41,6 +41,7 @@ in
     ./gpu.nix
     ./nix-builder.nix
     ./clash-verge-fix.nix
+    ../../modules/optional/howdy.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
     ../../modules/system/desktop.nix
