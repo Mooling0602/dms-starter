@@ -2,7 +2,7 @@
   description = "NixOS configuration for DankMaterialShell desktop";
 
   inputs = {
-    # Use zdtd tarball, see more in NixOS/nixpkgs#535272
+    # Use zstd tarball, see more in NixOS/nixpkgs#535272
     nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst";
     niri = {
       url = "github:sodiboo/niri-flake";
