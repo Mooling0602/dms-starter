@@ -5,7 +5,6 @@
     ./defaults/packages.nix
     ./defaults/theme.nix
     ./defaults/desktop.nix
-    ./defaults/obs.nix
     ./defaults/ssh.nix
     ./defaults/nvchad.nix
     ./defaults/wine.nix
