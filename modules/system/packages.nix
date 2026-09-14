@@ -1,12 +1,6 @@
 { lib, pkgs, ... }:
 
 {
-  programs.steam = {
-    enable = true;
-    protontricks.enable = true;
-  };
-
-  programs.gamemode.enable = true;
   programs.dconf.enable = true;
 
   nixpkgs.config = {
@@ -33,9 +27,6 @@
 
     clash-verge-rev
 
-    gamemode
-    mangohud
-
     # Provide org.gnome.desktop.interface for GTK's GSettings lookup.
     gsettings-desktop-schemas
     glib
@@ -54,9 +45,6 @@
     pulseaudio
 
     winetricks
-
-    # 通过 Steam Runtime + Proton 运行 Windows 游戏（提供 umu-run，依赖 programs.steam）
-    umu-launcher
 
     # wine64 → wine 软链接（winetricks 在 WoW64 模式下需要 wine64）
     (pkgs.runCommand "wine64-symlink" { } ''
