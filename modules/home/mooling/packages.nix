@@ -41,7 +41,7 @@
     zed-editor # Rust based IDE
     reasonix # Coding agent CLI
     reasonix-desktop # Coding agent GUI
-    qoder # AI IDE
+    qoder-ide # AI IDE
     clawd-on-desk # Nice AI pet in desktop
     prismlauncher # Awesome unofficial Minecraft Launcher
     rclone
