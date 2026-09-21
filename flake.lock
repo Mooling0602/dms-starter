@@ -64,11 +64,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789904024,
-        "narHash": "sha256-0aPEtu6dKN//tGFTiL4+QHwwZsR00+Sbxrqj3A2tK+s=",
+        "lastModified": 1789909650,
+        "narHash": "sha256-vvgXKa/f3phiRF1vuMDzKT+qwWkEN+BK4fx5hiDHfGI=",
         "owner": "ilysenko",
         "repo": "codex-desktop-linux",
-        "rev": "4a8aa4b0f13ca17f6a0c35f4b0ec8c06745c6770",
+        "rev": "49d5bc1c38aba9d25c1c798c1fffad8918390ae1",
         "type": "github"
       },
       "original": {
@@ -96,11 +96,11 @@
     "dank-qml-common_2": {
       "flake": false,
       "locked": {
-        "lastModified": 1789885254,
-        "narHash": "sha256-l4ubSze3SNveYNhH19SlusjO+kTTThT8mvUEXeSZ2hw=",
+        "lastModified": 1789958362,
+        "narHash": "sha256-cR1S8SdXzGGmnCRNIPacLXThEHsU1jk0yS+M7QCxylw=",
         "owner": "AvengeMedia",
         "repo": "dank-qml-common",
-        "rev": "1d28494b71bf3f2f2822265df5b12aea8d51449f",
+        "rev": "0de254e8dde48af44bd3411f625a930ce47cf136",
         "type": "github"
       },
       "original": {
@@ -157,11 +157,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789657958,
-        "narHash": "sha256-0zWMFcxLZEVPzCRe5yDgPlPHBNgw3MMq78MAUvGNu/4=",
+        "lastModified": 1789922039,
+        "narHash": "sha256-nCmCj0tBJvxwUIA4aJskbnYCpqJ8ONVj1RS4e08jr+Q=",
         "owner": "AvengeMedia",
         "repo": "dgop",
-        "rev": "56a43ff5b8c6b14c5a7c190a69eec43f2297d76b",
+        "rev": "59c7d81ae3b95a27b9ed76d7984eefc14232677d",
         "type": "github"
       },
       "original": {
@@ -179,11 +179,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789889049,
-        "narHash": "sha256-qhYiRS1QHRVLXF55VkvMIaH0TUQmMUILUNt9ML9c1y4=",
+        "lastModified": 1789958440,
+        "narHash": "sha256-fWzhqM/DzWChcg0gWgc4C4Mh/013KIpb+5F66818jBE=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "df71c65478554a7393d98849fea20a712f728890",
+        "rev": "567c14f6d9e0028ab042b151a9d897ec081820f1",
         "type": "github"
       },
       "original": {
@@ -199,11 +199,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789691973,
-        "narHash": "sha256-t5R9XCxjZ69JRw3BFE+bvCXmsrIlnrSVkza/Fi7MFvU=",
+        "lastModified": 1789963729,
+        "narHash": "sha256-K2GokMvukCHdE+3k0Kbheefma6DYKbn09jlq4GQ+1Ro=",
         "owner": "imaviso",
         "repo": "dwproton-flake",
-        "rev": "e98342102291287d1809117030c79e108fd90775",
+        "rev": "122f5915766b1fd2f20a051ecc984b923ff8fa41",
         "type": "github"
       },
       "original": {
@@ -290,11 +290,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789867870,
-        "narHash": "sha256-sOag/7DTqw4tXLI7UxjrZxPGV+dlTe6zFtJn0VSkgFM=",
+        "lastModified": 1789915421,
+        "narHash": "sha256-sLY2PSiu5EGJXgTDAQjHKzzezdpPk0lre9MD2VLpqew=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "d2a22a3659a6ae99847ea9176114f6957b8ac62e",
+        "rev": "1944398834e2b9677ee6081e11e42c32d7c1eb5d",
         "type": "github"
       },
       "original": {
@@ -334,11 +334,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1789896999,
-        "narHash": "sha256-6XKTeBlL5BDLjrvE+ATyQgdffl/bhGybo1+sgJdQmXw=",
+        "lastModified": 1789963405,
+        "narHash": "sha256-e3qHxHHhjTeqsHWalC01zt1JDrLWLun0sWxeFPzXSiE=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "e0099c992f0e8e46fbf4f3bf32984e6cec29a591",
+        "rev": "7890992b74a7620d9ab7ebcbc2c05b36ba59e0f4",
         "type": "github"
       },
       "original": {
@@ -413,11 +413,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789903981,
-        "narHash": "sha256-/XISMqhDjVNa9wY4BT+u0O6F4OEM0KrhbLCMlkqnJzM=",
+        "lastModified": 1789989744,
+        "narHash": "sha256-dT0fypzzz1V/Pa8uBkdEwW9Sp2/h9qKC7OXLF4pjUk8=",
         "owner": "Mooling0602",
         "repo": "nix-packages",
-        "rev": "5c469cc97b057804da4c2e1a045f6c85fd719efc",
+        "rev": "a2c59c7ffe72e46c18c7b8da2dfe95728069b0ae",
         "type": "github"
       },
       "original": {
