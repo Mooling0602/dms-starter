@@ -3,7 +3,7 @@
 {
   xresources.properties = {
     "Xcursor.size" = 24;
-    "Xft.dpi" = 168;
+    "Xft.dpi" = 144;
   };
 
   qt = {
