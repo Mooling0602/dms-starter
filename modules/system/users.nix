@@ -7,6 +7,8 @@
     "-${pkgs.acl}/bin/setfacl -m u:${config.my.username}:x /run/user/%i"
   ];
 
+  systemd.services.greetd.serviceConfig.UMask = "0007";
+
   users.users.${config.my.username} = {
     isNormalUser = true;
     description = config.my.username;
