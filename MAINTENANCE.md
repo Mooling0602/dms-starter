@@ -10,28 +10,6 @@
 
 ## 上游包源替换
 
-### `xwayland-satellite` fork 的弹出窗口锚点修复
-
-- **位置：** `flake.nix` 的 `xwayland-satellite` 输入及对应覆盖。
-- **影响：** 用 `Mooling0602/xwayland-satellite` 的 `6309aa1` 提供的包替代了原来 `niri` 输入中的 `xwayland-satellite-unstable`；该 fork 比当前 `niri` 锁定的上游提交多出一个补丁提交。
-- **相关提交：** `a86d3ef`（`fix!: use personal xwayland-satellite patch`）。
-- **补丁与上游：** https://github.com/Mooling0602/xwayland-satellite/commit/6309aa16e216189d5339857274e53030b7957a4d ，上游 PR： https://github.com/Supreeeme/xwayland-satellite/pull/448
-- **移除条件：** PR #448 合并，且更新后的 `niri` 输入锁定的 `xwayland-satellite-unstable` 已包含该修复；仅 PR 合并不足以移除 fork。
-- **复查方法：** 更新 `niri` 后，删除 fork 输入并恢复覆盖为：
-
-  ```nix
-  xwayland-satellite = inputs.niri.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite-unstable;
-  ```
-
-  然后运行：
-
-  ```fish
-  nix flake update niri
-  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
-  ```
-
-  构建成功后，在受分数缩放影响的 XWayland 应用中验证弹出窗口不再出现零尺寸锚点。
-
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
 
 - **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/home/defaults/theme.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。

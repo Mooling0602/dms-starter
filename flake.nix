@@ -62,10 +62,6 @@
       url = "github:ilysenko/codex-desktop-linux";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    xwayland-satellite = {
-      url = "git+https://github.com/Mooling0602/xwayland-satellite";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -117,7 +113,8 @@
                 };
               })
               (final: prev: {
-                xwayland-satellite = inputs.xwayland-satellite.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite;
+                # 跟随 niri 输入锁定的 unstable 构建，比 nixpkgs 收录的版本更新。
+                xwayland-satellite = inputs.niri.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite-unstable;
               })
               (final: prev: {
                 pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
