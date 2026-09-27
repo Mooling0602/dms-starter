@@ -168,6 +168,7 @@
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
                 # Mooling0602/nix-packages 中 dsh 的包名是 deepseek-harness（产出的二进制为 dsh）。
                 dsh = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.deepseek-harness-git;
+                dsh-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.deepseek-harness-desktop;
                 reasonix-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.reasonix-desktop;
                 qoder = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder;
                 qoder-ide = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.qoder-ide;

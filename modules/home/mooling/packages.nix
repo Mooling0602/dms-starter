@@ -36,6 +36,7 @@
     codex # OpenAI's coding CLI
     pi # Pi Coding Agent
     dsh # DeepSeek Harness (from git source)
+    dsh-desktop # DeepSeek Harness Desktop (build from git source)
     opencode # Coding agent CLI
     opencode-desktop # Coding agent GUI
     zed-editor # Rust based IDE
