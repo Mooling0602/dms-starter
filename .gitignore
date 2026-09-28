@@ -8,3 +8,4 @@ reasonix.toml
 .env
 .codex/
 .dsh-vision-toolkit/
+*.todo
