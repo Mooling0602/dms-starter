@@ -14,6 +14,7 @@
   environment.systemPackages = with pkgs; [
     gamemode
     mangohud
+    gamescope
     umu-launcher
   ];
 }
