@@ -78,14 +78,6 @@
 
 ## 已解除的临时构建绕过
 
-### Niri 与 `libdisplay-info 0.4` 的版本不兼容
-
-- **原处理：** 在 `modules/system/desktop.nix` 中将 `programs.niri.package` 的 `libdisplay-info` 参数覆盖为 `libdisplay-info_0_2`。
-- **解除原因：** 更新后的 Niri 包定义已不再接收该参数，且会自行选择兼容的 `libdisplay-info` 依赖；继续覆盖会在配置评估阶段报出 `unexpected argument 'libdisplay-info'`。
-- **相关提交：** `4d9906a`（添加覆盖）；本次提交（移除覆盖）。
-- **上游：** https://github.com/NixOS/nixpkgs/issues/545976 ，修复 PR： https://github.com/NixOS/nixpkgs/pull/546004
-- **验证：** `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link --print-build-logs` 已通过。
-
 ### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
 
 - **原处理：** 在 `flake.nix` 的 `pythonPackagesExtensions` 覆盖中，将 `pkg_resources.resource_filename` 替换为 `importlib.resources.files`。

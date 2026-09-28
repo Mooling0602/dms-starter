@@ -1,4 +1,7 @@
-{ config, ... }:
+{
+  config,
+  ...
+}:
 
 {
   services.displayManager.dms-greeter = {
@@ -10,6 +13,4 @@
   programs.niri = {
     enable = true;
   };
-
-  programs.firefox.enable = true; # Basic browser default used by many Linux distros
 }

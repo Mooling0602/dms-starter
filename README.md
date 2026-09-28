@@ -1,79 +1,8 @@
-# NixOS Configuration
+# NixOS Configuration: dms-starter
 
-基于 [DankMaterialShell](https://danklinux.com/) 的 NixOS + niri 桌面配置。
+A template with desktop modification sets.
 
-## 模块结构
-
-> 该部分信息存在滞后性，当前版本：2026-09-12 16:00
-
-```
-├── AGENTS.md                     # Agent 工作说明和项目约定
-├── assets/                       # 静态资源
-│   ├── <username>/               # 个人资源（目录名与 flake.nix 的 username 同名）
-│   │   └── avatar.jpg            # 用户头像
-│   ├── wallpaper-dark-cyrene.png # 深色模式壁纸
-│   └── wallpaper-light-kokomi.png # 浅色模式壁纸
-├── cache/                        # 本地缓存文件（未纳入版本管理）
-├── deploy.sh                     # 新机器交互式部署脚本
-├── flake.lock
-├── flake.nix                     # Flake 入口（username/hostname let 绑定在此）
-├── hosts/<hostname>/             # 机器专属（目录名与 hostname 同名）
-│   ├── default.nix               # imports + boot + hostname + stateVersion
-│   ├── gpu.nix                   # GPU 驱动配置
-│   ├── nix-builder.nix           # 远程构建节点（可选）
-│   ├── clash-verge-fix.nix       # Mihomo TUN 的 UPnP/SSDP 路由绕过（可选）
-│   └── hardware-configuration.nix # 自动生成硬件配置
-├── MAINTENANCE.md                # 维护清单：上游覆盖、移除条件与复查方法
-├── modules/
-│   ├── home/                     # Home Manager 模块（跨机器复用）
-│   │   ├── backup.nix            # 运行时配置缺失时自动恢复快照
-│   │   ├── default.nix           # 入口：imports defaults/ + <username>/ + backup.nix
-│   │   ├── defaults/             # 所有用户共用的模块
-│   │   │   ├── desktop.nix       # DMS、终端、壁纸
-│   │   │   ├── nvchad.nix        # nix4nvchad 包装和依赖
-│   │   │   ├── obs.nix           # OBS Studio 与插件
-│   │   │   ├── packages.nix      # 通用用户包
-│   │   │   ├── ssh.nix           # SSH 客户端配置
-│   │   │   ├── theme.nix         # Qt、字体、xdg.portal
-│   │   │   └── wine.nix          # WINEDLLOVERRIDES 兼容层
-│   │   ├── <username>/           # 个人模块（目录名与 username 同名）
-│   │   │   ├── avatar.nix        # ~/.face 头像
-│   │   │   ├── git.nix           # Git 用户配置
-│   │   │   ├── packages.nix      # 个人包（GUI 应用等）
-│   │   │   └── utils.nix         # 个人脚本
-│   │   └── user/                 # 新用户模板（复制为 modules/home/<username>/）
-│   │       ├── avatar.nix
-│   │       ├── git.nix
-│   │       ├── packages.nix
-│   │       └── utils.nix
-│   └── system/                   # 系统模块（跨机器复用）
-│       ├── config.nix            # my.username / my.hostname 选项
-│       ├── desktop.nix           # dms-greeter + niri + Firefox
-│       ├── fonts.nix             # 系统级字体
-│       ├── i18n.nix              # 中文语言、fcitx5 输入法
-│       ├── networking.nix        # NetworkManager、Clash Verge
-│       ├── nix.nix               # nix 调优 + 自动 GC
-│       ├── obs.nix               # OBS 虚拟摄像头 + polkit 规则
-│       ├── packages.nix          # 系统级包
-│       ├── services.nix          # 蓝牙、打印、PipeWire、SSH、Howdy
-│       ├── users.nix             # 用户 + sudo
-│       └── virtualisation.nix    # 虚拟化配置
-├── patches/                      # 上游补丁（dlib-build-cores.patch）
-├── README.md
-├── reasonix.toml                 # Reasonix 配置（未纳入版本管理）
-├── scripts/                      # 辅助脚本
-│   └── backup.sh                 # 分布式备份/恢复脚本总入口
-└── user_profiles/<username>/     # 用户运行时配置快照
-    └── desktop-config/           # DMS/Niri 可变配置备份
-        ├── apply.sh              # 从快照恢复运行时配置
-        ├── dms/                  # DMS 可变配置快照
-        │   ├── plugins/          # DMS 插件元数据快照
-        │   └── settings.json     # DMS 主设置快照
-        ├── niri/                 # Niri 可变配置快照
-        │   ├── config.kdl        # Niri 主配置快照
-        │   └── dms/              # DMS 生成的 Niri KDL 快照
-        └── snapshot.sh           # 捕获当前运行时配置到仓库
-```
+模块化的 NixOS Flake 系统配置，支持多用户、多设备和可选的桌面模块功能进行自由组合。
 
 ## 自定义用户名和主机名
 
@@ -110,7 +39,7 @@ cd ~/nixos-config && ./deploy.sh
 
 ```fish
 cd ~/nixos-config
-# 修改配置 → git commit → 重建 → git push
+# 修改配置 -> git commit -> 重建 -> git push
 nixos-rebuild-nom switch --flake ~/nixos-config#mooling-laptop
 ```
 
@@ -153,7 +82,7 @@ sudo nix profile wipe-history --profile /nix/var/nix/profiles/system --older-tha
 ### 查看当前状态
 
 ```bash
-nix profile history --profile /nix/var/nix/profiles/system  # 系统世代历史
+nix profile history --profile /nix/var/nix/profiles/system    # 系统世代历史
 sudo bootctl list                                             # 当前 boot 启动项
 df -h / /boot                                                 # 磁盘使用
 du -sh /nix/store                                             # nix store 大小
@@ -182,9 +111,8 @@ sudo howdy list
 sudo howdy remove mooling
 ```
 
-- 摄像头使用稳定路径 `/dev/v4l/by-id/usb-Sonix_Technology_Co.__Ltd._BisonCam_NB_Pro-video-index0`。
 - SSH 认证时，Howdy 扫描的是本机摄像头，不能读取 SSH 客户端的摄像头。
-- 这台设备是普通 RGB 摄像头；Howdy 不提供可靠活体检测，可能被照片欺骗，不应将其视为密码的安全替代品。
+- 对于普通的 RGB 摄像头，Howdy 不提供可靠活体检测，可能被照片欺骗，不应将其视为密码的安全替代品。
 
 ## 运行时配置备份
 

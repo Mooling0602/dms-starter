@@ -7,6 +7,8 @@
     allowUnfree = true;
   };
 
+  programs.firefox.enable = true; # Basic browser default used by many Linux distros
+
   # 排除 GNOME 文件管理器，使用 KDE/Dolphin
   environment.gnome.excludePackages = with pkgs; [
     nautilus
@@ -37,7 +39,7 @@
     accountsservice
     mission-center
   ];
-  
+
   # Fix dolphin application menu
   environment.etc."xdg/menus/applications.menu".source =
     "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";

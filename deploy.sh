@@ -243,7 +243,6 @@ else
     ./hardware-configuration.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
-    ../../modules/system/desktop.nix
     ../../modules/system/fonts.nix
     ../../modules/system/networking.nix
     ../../modules/system/nix.nix
@@ -251,6 +250,7 @@ else
     ../../modules/system/services.nix
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
+    ../../modules/desktop/dms-with-niri/system.nix
   ];
 
 $BOOT_LOADER_LINES

@@ -5,12 +5,15 @@ let
 in
 {
   imports = optionalImports [
+    ../desktop/dms-with-niri/default.nix
     ./defaults/packages.nix
     ./defaults/theme.nix
-    ./defaults/desktop.nix
     ./defaults/ssh.nix
     ./defaults/nvchad.nix
     ./defaults/wine.nix
+    ./defaults/terminal.nix
+    ./defaults/file-manager.nix
+    ./defaults/kde-connect.nix
     ./${username}/git.nix
     ./${username}/packages.nix
     ./${username}/avatar.nix

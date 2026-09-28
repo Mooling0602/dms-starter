@@ -47,7 +47,6 @@ in
     ../../modules/optional/wine.nix
     ../../modules/system/config.nix
     ../../modules/system/i18n.nix
-    ../../modules/system/desktop.nix
     ../../modules/system/fonts.nix
     ../../modules/system/networking.nix
     ../../modules/system/nix.nix
@@ -56,6 +55,8 @@ in
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
     ../../modules/system/obs.nix
+    ../../modules/desktop/dms-with-niri/system.nix
+    # ../../modules/desktop/kde-plasma/system.nix
   ];
 
   boot.loader = {

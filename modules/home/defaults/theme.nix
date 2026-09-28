@@ -159,6 +159,12 @@
     };
   };
 
+  # Pretty beautiful wallpapers from the Internet (in assets/ resource folder)
+  home.file.".local/share/wallpapers/wallpaper-light.png".source =
+    ../../../assets/wallpaper-light-kokomi.png;
+  home.file.".local/share/wallpapers/wallpaper-dark.png".source =
+    ../../../assets/wallpaper-dark-cyrene.png;
+
   home.packages = with pkgs; [
     # Fonts
     sarasa-gothic
