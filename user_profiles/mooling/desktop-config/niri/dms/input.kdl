@@ -15,5 +15,7 @@ input {
         natural-scroll
         dwt
     }
+    keyboard {
+        numlock
+    }
 }
-

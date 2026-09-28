@@ -19,10 +19,10 @@ window-rule {
     open-maximized true
 }
 
-// @id=wr_1783357678962746861 @name=steam
+// @id=wr_1783357678962746861 @name=Steam 大屏幕优化
 window-rule {
-    match app-id="^steam$"
-    open-maximized true
+    match app-id="^steam$" title="^Steam 大屏幕模式$"
+    open-fullscreen true
 }
 
 // @id=wr_1783763777044453732 @name=Steam for Windows 窗口优化
@@ -147,4 +147,34 @@ window-rule {
 window-rule {
     match title="^沪上阿姨.*"
     open-floating true
+}
+
+// @id=wr_1789300272763535238 @name=微信语音通话
+window-rule {
+    match app-id="^wechat$" title="^语音聊天$"
+    open-floating true
+}
+
+// @id=wr_1789485549768166875 @name=Chrome 字幕
+window-rule {
+    match title="^实时字幕$"
+    open-floating true
+}
+
+// @id=wr_1790491025271796822 @name=google-chrome
+window-rule {
+    match app-id="^google-chrome$"
+    open-maximized true
+}
+
+// @id=wr_1790494471772302895 @name=DeepSeek Harness Desktop
+window-rule {
+    match app-id="^deepseek-ai-dsh-desktop$"
+    open-maximized true
+}
+
+// @id=wr_1790518670175213771 @name=Qoder IDE
+window-rule {
+    match app-id="^qoder-ide$"
+    open-maximized true
 }

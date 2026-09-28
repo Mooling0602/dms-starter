@@ -31,6 +31,13 @@ binds {
     Mod+Alt+G {
         spawn "/home/mooling/.local/bin/region-record";
     }
+    // 紧急释放 InputCapture 捕获：指针被锁、键盘被独占时无法操作电脑，而
+    // niri 会先于客户端处理自己的绑定，所以这里是唯一可靠的出口
+    // （allow-inhibiting=false 保证客户端请求抑制快捷键时也生效）。
+    // 后端由 nix-packages 的 niri-input-portal 提供，详见 MAINTENANCE.md。
+    Mod+Shift+Space allow-inhibiting=false {
+        spawn "/etc/profiles/per-user/mooling/bin/niri-input-portal" "--release";
+    }
 }
 
 spawn-at-startup "xrdb" "-merge" "/home/mooling/.Xresources"
