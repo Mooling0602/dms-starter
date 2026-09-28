@@ -413,11 +413,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1790570248,
-        "narHash": "sha256-j1pGJ76RZvdMr3M8UVAhjhM5lvDU5wu5FblDuwiXpFQ=",
+        "lastModified": 1790602474,
+        "narHash": "sha256-rR0aN5IuOVHgRONjbO0ncFhlmt/u6mj6EWswJaVToxY=",
         "owner": "Mooling0602",
         "repo": "nix-packages",
-        "rev": "b3c689c6e20fa982c291579bbf691e25f986f7aa",
+        "rev": "fa74be1b0a9f769396a8c9c53c640add3c72cacc",
         "type": "github"
       },
       "original": {
@@ -483,11 +483,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1790463110,
-        "narHash": "sha256-VZHcT2wKLkApBCACQ2SH4P1jVZUbbOA7jWAGi1MIViw=",
-        "rev": "e158d9ed9b51c98974c5e66e1ba1c9e0255fecaa",
+        "lastModified": 1790578696,
+        "narHash": "sha256-EvoKOTtoIJ7Xflls2Nfo5WDcqjFJB0kuzwOz0nLWs0w=",
+        "rev": "7a0f122f5090cf4c2ade2a13a0e229d4e19ba71f",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1080189.e158d9ed9b51/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1080855.7a0f122f5090/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
