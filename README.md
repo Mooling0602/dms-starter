@@ -4,6 +4,11 @@ A template with desktop modification sets.
 
 模块化的 NixOS Flake 系统配置，支持多用户、多设备和可选的桌面模块功能进行自由组合。
 
+## 支持的桌面模块
+
+- [DankMaterialShell](https://danklinux.com/)
+- [KDE Plasma](https://wiki.nixos.cn/wiki/KDE)
+
 ## 自定义用户名和主机名
 
 编辑 `flake.nix`，修改 `let in` 块内的相关变量即可：
