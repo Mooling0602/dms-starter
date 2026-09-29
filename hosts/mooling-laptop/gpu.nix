@@ -6,10 +6,21 @@
     enable32Bit = true;
     extraPackages = with pkgs; [
       intel-media-driver
+      vpl-gpu-rt
+      intel-compute-runtime
     ];
   };
 
-  services.xserver.videoDrivers = [ "nvidia" ];
+  environment.sessionVariables = {
+    LIBVA_DRIVER_NAME = "iHD";
+  };
+
+  services.xserver.videoDrivers = [
+    "nvidia"
+    "modesetting"
+  ];
+
+  boot.kernelParams = [ "i915.enable_guc=3" ];
 
   hardware.nvidia = {
     open = true;
