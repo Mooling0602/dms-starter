@@ -20,6 +20,7 @@
     curl
     wget
     brightnessctl
+    smartmontools
     pulseaudio
     nil
     nixd
