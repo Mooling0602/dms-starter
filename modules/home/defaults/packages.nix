@@ -84,6 +84,7 @@
     ethtool
     pciutils
     usbutils
+    libinput
 
     xwayland-satellite
     xrdb
