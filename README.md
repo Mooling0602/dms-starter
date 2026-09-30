@@ -6,8 +6,8 @@ A template with desktop modification sets.
 
 ## 支持的桌面模块
 
-- [DankMaterialShell](https://danklinux.com/)
-- [KDE Plasma](https://wiki.nixos.cn/wiki/KDE)
+- [DankMaterialShell](https://danklinux.com/) 已完成，持续维护
+- [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) 工作中，尚不推荐使用
 
 ## 自定义用户名和主机名
 
@@ -16,7 +16,7 @@ A template with desktop modification sets.
 ```nix
 outputs = inputs@{ nixpkgs, home-manager, ... }:
   let
-    username = "mooling";  # <- 改为你的用户名
+    username = "user";  # <- 改为你的用户名
     hostname = "nixos";    # <- 改为你的主机名
   in
 ```
