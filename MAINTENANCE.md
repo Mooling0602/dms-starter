@@ -34,15 +34,6 @@
 
 ## 临时构建绕过
 
-### DMS 1.6-beta 打包中的悬空文档链接
-
-- **位置：** `flake.nix` 的 `dmsPackage` 覆盖。
-- **影响：** 2026-08-28 的 DankMaterialShell 源码将 `quickshell/dms/AGENTS.md` 和 `CLAUDE.md` 安装为指向未打包 `share/quickshell/AGENTS.md` 的符号链接；Nix 的 `noBrokenSymlinks` 检查因此拒绝构建整个系统闭包。
-- **当前处理：** 在上游 `postInstall` 完成复制后，仅删除这两个悬空链接；DMS 与 NvChad 模块（`modules/home/defaults/desktop.nix`、`modules/home/defaults/nvchad.nix`）共用该修复后的包。
-- **上游：** [DankMaterialShell](https://github.com/AvengeMedia/DankMaterialShell)。
-- **移除条件：** 上游包不再产生悬空链接，或 Nixpkgs/DMS 包定义以其他方式正确处理这些文档文件。
-- **复查方法：** 更新 DMS 后移除覆盖并运行 `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link`；若构建通过且输出不再含悬空链接，即可删除覆盖。
-
 ### `dlib` 的 `build-cores.patch` 失配（Python 3.14 / dlib 20.0.1）
 
 - **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。
@@ -98,7 +89,7 @@
 
 - **原处理：** 在 `flake.nix` 的 `pythonPackagesExtensions` 覆盖中，将 `pkg_resources.resource_filename` 替换为 `importlib.resources.files`。
 - **解除原因：** 更新后的 Nixpkgs 包定义已原生应用相同修复；继续执行本地 `--replace-fail` 会因旧代码已不存在而在 `patchPhase` 失败。
-- **移除提交：** 待提交。
+- **移除提交：** `69d1b85`（`fix: remove obsolete face-recognition-models pkg_resources override`）。
 - **验证：** 完整系统闭包构建成功，`sudo nixos-rebuild switch` 已通过。
 
 ### `pdal` 与 GDAL 3.13 的元数据 API 兼容性
@@ -140,7 +131,7 @@
 ### `obs-studio` 的 NVENC/QSV 硬件编码修复
 
 - **位置：** `flake.nix` 的 `nixpkgs.overlays`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
-- **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/home/defaults/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
+- **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/optional/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
 - **影响：** OBS 31+ 用独立子进程 `bin/obs-nvenc-test` 探测 NVENC 能力，但 Nixpkgs 只对 `lib/*.so` 执行 `addDriverRunpath`，测试进程的 RUNPATH 不含 `/run/opengl-driver/lib`，无法 dlopen `libnvidia-encode.so.1`，日志报 `Test process failed: nvenc_lib`，UI 中 NVENC 编码器全部消失。同时 `obs-qsv11` 依赖的 oneVPL 分发器找不到 GPU 运行时（`libmfx-gen`），选 QuickSync 编码器时报 `Failed to initialize MFX (MFX_ERR_NOT_FOUND)`。
 - **当前处理：**
   1. 对 `bin/.obs-nvenc-test-wrapped` 追加 `addDriverRunpath`，使 NVENC 探测进程能找到 NVIDIA 驱动编码库；
@@ -177,7 +168,7 @@
 ### DMS 的可写 `adw-gtk3` 副本
 
 - **位置：** `modules/home/defaults/theme.nix` 的 `home.activation.installDmsAdwGtk3`。
-- **影响：** DMS 1.6 的 `scripts/gtk.sh` 只在 `~/.local/share/themes/`、`~/.themes/` 和 `/usr/share/themes/` 查找 `adw-gtk3`，并在 GTK3 的样式表中原地注入 Matugen 色表。Home Manager 安装的 `adw-gtk3` 位于只读 Nix store，因而 DMS 只能退回全局 CSS 覆盖；其 GTK3 补丁步骤以退出码 2 结束，随后不会调用将 `gtk-theme` 切换为 `adw-gtk3`/`adw-gtk3-dark` 的刷新逻辑，传统 GTK 应用会停留在浅色主题。
+- **影响：** DMS 的 `scripts/gtk.sh` 只在用户可写目录（`~/.local/share/themes/`、`~/.themes/`，以及 `system_theme_roots` 返回的其他用户目录）中查找 `adw-gtk3`，并在 GTK3 的样式表中原地注入 Matugen 色表（`is_user_theme_dir()` 显式排除只读路径，注释说明以 `^/usr` 判定会把 Nix store 路径误判为用户副本）。Home Manager 安装的 `adw-gtk3` 位于只读 Nix store，因而 DMS 无法就地修补；其 GTK3 补丁步骤以退出码 2 结束，随后不会调用将 `gtk-theme` 切换为 `adw-gtk3`/`adw-gtk3-dark` 的刷新逻辑，传统 GTK 应用会停留在浅色主题。
 - **当前处理：** Home Manager 激活时仅在主题不存在时，将 Nix 包的两个变体复制到 `~/.local/share/themes/` 并授予用户写权限。之后目录完全由 DMS 管理；不使用 `home.file`，避免创建 DMS 无法修改的 store symlink。
 - **上游：** [DMS GTK helper](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/scripts/gtk.sh)，[DMS GTK 切换逻辑](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/Common/Theme.qml)。
 - **移除条件：** DMS 能通过 `XDG_DATA_DIRS` 使用 Nix store 中的主题，或停止原地修改 `adw-gtk3` 样式表。
@@ -198,7 +189,7 @@
 
 ### Fcitx5 Plasma 候选窗的 DMS 深浅色同步
 
-- **位置：** `modules/home/defaults/desktop.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
+- **位置：** `modules/desktop/dms-with-niri/default.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
 - **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色或强调色；在 Niri 会话中它会回退到白色 `breeze-light` 和固定蓝色高亮。服务监听 DMS 写入的 `DankMatugen.colors`，根据同一文件的窗口背景亮度选择 `breeze-light` 或 `breeze-dark` 色表来组装私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，并从该次色表读取选择前景/背景色来重着色候选项，最后调用 Fcitx `Controller1.Restart`。该接口与系统托盘的“重启”相同，会重新创建缓存 `NormalColor` 的 Classic UI，同时保留原实例的插件环境与输入法列表。这样不会因 DMS 先写色表、后更新 dconf 而将浅色调色板配上深色背景，也不必手动重启输入法。
 - **范围：** 只使用已由 `fcitx5-configtool` 引入的 `libplasma`、`kconfig` 与 `kcolorscheme` 库，以及只用于重着色候选项 PNG 的 ImageMagick；不会安装或启动 Plasma Shell、KWin 或其他 KDE 桌面服务。同步 service 不直接由 `graphical-session.target` 启动，而仅由 path unit 在 DMS 写入色表后触发；DMS 本身必须在该 target 之后启动，若同时把同步 service 作为 target 成员并声明 `After=dms.service`，systemd 会形成排序循环并丢弃 DMS 的启动任务。
 - **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。

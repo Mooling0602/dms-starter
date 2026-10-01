@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   nix.buildMachines = [
@@ -7,7 +7,7 @@
       protocol = "ssh-ng";
       system = "aarch64-linux";
       sshUser = "builder";
-      sshKey = "/home/mooling/.ssh/id_ed25519";
+      sshKey = "/home/${config.my.username}/.ssh/id_ed25519";
       maxJobs = 4;
       speedFactor = 2;
       supportedFeatures = [ "big-parallel" ];

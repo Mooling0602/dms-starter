@@ -7,14 +7,14 @@
 #
 # 流程：
 #   1. 以 hosts/*/hardware-configuration.nix 是否存在判定新机器
-#   2. 采集用户名与主机名（直接回车取 flake.nix 中的当前值）
+#   2. 采集用户名与主机名（直接回车取已有 host 目录中的当前值）
 #   3. 创建 assets/<username>、modules/home/<username>、hosts/<hostname>、user_profiles/<username>
-#   4. 把用户名与主机名写回 flake.nix
+#   4. flake.nix 无需改动：主机由 hosts/ 目录枚举，身份写在 hosts/<hostname>/default.nix
 #   5. 生成硬件配置到 hosts/<hostname>/，并据此写出该机器的 default.nix
 #   6. 设置登录密码（已有机器上改为先询问是否重设）
 #   7. 暂存本次新增内容后，询问并执行一次 sudo nixos-rebuild switch --flake .#<hostname>
 #
-# 已有机器上第 3~5 步是覆盖操作，本脚本不回滚，需要你自己用 git 恢复。
+# 已有机器上第 3、5 步是覆盖操作，本脚本不回滚，需要你自己用 git 恢复。
 
 set -euo pipefail
 
@@ -38,9 +38,47 @@ die() {
   exit 1
 }
 
-# 读取 flake.nix let 绑定中的字符串，作为交互默认值
+# 枚举主机与读取身份都依赖 hosts/ 存在（flake 的 readDir ./hosts 同理）
+[ -d hosts ] || die "仓库根目录下缺少 hosts/，无法枚举主机。"
+
+# 读取已存在主机的用户名；flake.nix 不再承载用户名/主机名。
 flake_value() {
-  sed -n "s/^[[:space:]]*$1 = \"\([^\"]*\)\";.*$/\1/p" flake.nix | head -n1
+  local key="$1" host_dir
+  host_dir="$(existing_host_dir)"
+  [ -n "$host_dir" ] || return 0
+  sed -n "s/^[[:space:]]*my\.$key = \"\([^\"]*\)\";.*$/\1/p" "$host_dir/default.nix" | head -n1
+}
+
+# 主机名即 hosts/<host>/ 的目录名（flake.nix 用目录名注入 hostname）
+existing_hostname() {
+  local host_dir
+  host_dir="$(existing_host_dir)"
+  [ -n "$host_dir" ] || return 0
+  printf '%s' "${host_dir#hosts/}"
+}
+
+# 列出 hosts/ 下的主机目录名（只认含 default.nix 的目录）
+host_dirs() {
+  local d
+  for d in hosts/*/; do
+    [ -f "$d/default.nix" ] || continue
+    printf '%s\n' "${d#hosts/}" | sed 's:/$::'
+  done
+}
+
+# 供交互默认值使用的主机目录：与当前 hostname 同名者优先，否则唯一主机
+existing_host_dir() {
+  local names name
+  names="$(host_dirs)"
+  [ -n "$names" ] || return 0
+  name="$(hostname 2>/dev/null || true)"
+  if [ -n "$name" ] && [ -f "hosts/$name/default.nix" ]; then
+    printf 'hosts/%s' "$name"
+    return 0
+  fi
+  if [ "$(printf '%s\n' "$names" | wc -l)" -eq 1 ]; then
+    printf 'hosts/%s' "$names"
+  fi
 }
 
 # 带默认值的提问，直接回车即取默认值
@@ -157,9 +195,9 @@ else
 fi
 
 DEFAULT_USERNAME="$(flake_value username)"
-DEFAULT_HOSTNAME="$(flake_value hostname)"
-[ -n "$DEFAULT_USERNAME" ] || die "无法从 flake.nix 读取 username 默认值。"
-[ -n "$DEFAULT_HOSTNAME" ] || die "无法从 flake.nix 读取 hostname 默认值。"
+DEFAULT_HOSTNAME="$(existing_hostname)"
+[ -n "$DEFAULT_USERNAME" ] || die "无法从 hosts/*/default.nix 读取 my.username 默认值。"
+[ -n "$DEFAULT_HOSTNAME" ] || die "无法从 hosts/*/ 的目录名确定主机名默认值。"
 
 # -------------------------------------------- 2. 用户名与主机名（1.1.1/1.1.2）
 
@@ -177,25 +215,25 @@ HOSTNAME="$(ask '主机名' "$DEFAULT_HOSTNAME")"
 step "创建目录"
 mkdir -p "assets/$USERNAME" "user_profiles/$USERNAME" "hosts/$HOSTNAME"
 
-if [ "$USERNAME" = "user" ]; then
-  echo "用户名为 user，跳过 modules/home/user 模板复制。"
+# 个人模块目录：模块本身由用户自行编写（旧版 modules/home/user 模板已于
+# a3328c3 移除，不再复制）。这里只保证目录存在，home/default.nix 通过
+# optionalImports 容忍其下的文件缺失。
+mkdir -p "modules/home/$USERNAME"
+if [ -z "$(ls -A "modules/home/$USERNAME")" ]; then
+  echo "已创建空的 modules/home/$USERNAME，请按需添加 git.nix、packages.nix 等模块。"
 else
-  mkdir -p "modules/home/$USERNAME"
-  if [ -z "$(ls -A "modules/home/$USERNAME")" ]; then
-    cp -a modules/home/user/. "modules/home/$USERNAME/"
-    echo "已从 modules/home/user 复制模板到 modules/home/$USERNAME。"
-  else
-    echo "modules/home/$USERNAME 已存在文件，跳过模板复制。"
-  fi
+  echo "modules/home/$USERNAME 已存在文件，保留原内容。"
 fi
 
-# ------------------------------------------- 4. 写入 flake.nix（1.1.4）
+# --------------------------------------- 4. flake.nix 不变式检查（1.1.4）
 
-step "写入 flake.nix 的 username / hostname"
-sed -i "s/^\([[:space:]]*username = \"\)[^\"]*\(\";\)/\1$USERNAME\2/" flake.nix
-sed -i "s/^\([[:space:]]*hostname = \"\)[^\"]*\(\";\)/\1$HOSTNAME\2/" flake.nix
-grep -nE '^[[:space:]]*(username|hostname) = ' flake.nix ||
-  die "写入 flake.nix 失败，未找到 username / hostname 绑定。"
+step "检查 flake.nix 不承载设备身份"
+# 主机由 hosts/*/ 目录枚举，身份写在 hosts/<hostname>/default.nix；
+# flake.nix 里出现具体用户名/主机名就说明有人把身份写回去了。
+if grep -nF -e "\"$USERNAME\"" -e "\"$HOSTNAME\"" flake.nix; then
+  die "flake.nix 中出现硬编码身份（$USERNAME / $HOSTNAME），请移除后重试。"
+fi
+echo "flake.nix 未包含硬编码身份，符合预期。"
 
 # ------------------------------------- 5. 生成硬件配置与主机配置（1.1.5）
 
@@ -236,9 +274,15 @@ else
   STATE_VERSION="${STATE_VERSION:-25.11}"
 
   cat > "$HOST_MODULE" << NIXEOF
-{ config, ... }:
+{ config, hostname, ... }:
 
 {
+  # ── 设备身份（本机唯一改动点）────────────────────────────────
+  # flake.nix 只枚举 hosts/ 目录名并注入 hostname，其余设备改自己的目录。
+  my.username = "$USERNAME";
+  my.hostname = hostname;
+  # ───────────────────────────────────────────────────────────
+
   imports = [
     ./hardware-configuration.nix
     ../../modules/system/config.nix
@@ -283,12 +327,13 @@ fi
 step "暂存本次变更"
 # flake 源只包含 git 已跟踪的文件：新增目录必须 add，被 .gitignore 忽略的
 # hardware-configuration.nix 必须 -f add，否则重建求值时会报路径不存在。
+# flake.nix 在方案 A 下无需改动，但仍一并暂存以防有手动调整。
 git add -- flake.nix
 git add -f -- "$HARDWARE_CONFIG"
 stage "hosts/$HOSTNAME"
 stage "assets/$USERNAME"
 stage "user_profiles/$USERNAME"
-[ "$USERNAME" = "user" ] || stage "modules/home/$USERNAME"
+stage "modules/home/$USERNAME"
 git status --short -- "hosts/$HOSTNAME" "assets/$USERNAME" "user_profiles/$USERNAME" "modules/home/$USERNAME" flake.nix
 
 step "系统重建切换"

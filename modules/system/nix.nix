@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   nix.settings = {
@@ -15,7 +15,7 @@
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
       "ezkea.cachix.org-1:ioBmUbJTZIKsHmWWXPe1FSFbeVe+afhfgqgTSNd34eI="
     ];
-    trusted-users = [ "root" "mooling" ];
+    trusted-users = [ "root" config.my.username ];
     builders-use-substitutes = true;
   };
 

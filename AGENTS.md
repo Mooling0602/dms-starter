@@ -10,7 +10,7 @@
 
 > 在重建前进行提交，可以避免 `warning: Git tree '/home/mooling/nixos-config' is dirty` 警告和 git 未暂存引发的重建报错。快速验证时 git add . 即可。
 
-3. **重建切换并验证** - `sudo nixos-rebuild switch --flake ~/nixos-config#mooling-laptop`，确认无报错
+3. **重建切换并验证** - `sudo nixos-rebuild switch --flake ~/nixos-config#<hostname>`（`<hostname>` 即 `hosts/` 下的目录名，本机为 `mooling-laptop`），确认无报错
 
 4. **推送** - `git push`
 
@@ -37,7 +37,7 @@
 
 6. **NvChad Lua 配置独立仓库** - `nix4nvchad` 继续负责包装 Neovim 和运行时依赖，`nvchad-starter` 跟随 `github:Mooling0602/NvCfg`。主仓库只保留 `programs.nvchad.enable`、`extraPackages` 和 `backup`。
 
-7. **用户名和主机名参数化** - `flake.nix` 的 `let username` 注入到 `my.username`（系统模块）和 `extraSpecialArgs`（Home Manager 模块）。`users.nix`、`desktop.nix`、`home/default.nix` 均通过 `${username}` 或 `${config.my.username}` 引用，消除所有硬编码。
+7. **用户名和主机名参数化（身份下沉到主机目录）** - `flake.nix` 只枚举 `hosts/` 下的主机目录（目录名即主机名）并通过 `specialArgs` 注入 `hostname`，`nixosConfigurations` 由 `lib.genAttrs` 生成；设备身份写在各自 `hosts/<host>/default.nix` 顶部的 `my.username` / `my.hostname`，多设备共用仓库时不会互相冲突。`modules/system/users.nix`、`hosts/*/nix-builder.nix`、`modules/home/default.nix` 均通过 `${hostname}`（specialArgs）或 `${config.my.username}`（系统模块）引用，`flake.nix` 内不得出现具体用户名或主机名字符串。
 
 ## Niri 配置文件管理
 
@@ -55,7 +55,7 @@
 | Qt 应用 DMS 启动时 env 错误 | systemd.user.sessionVariables 写入 environment.d |
 | Qt 标题栏风格 | `QT_WAYLAND_DECORATION=ssd` 与 `QT_WAYLAND_DISABLE_WINDOWDECORATION=1`，让 niri 提供 SSD |
 | Dolphin 右键"打开方式"无应用 | `applications.menu` symlink |
-| Greeter 不跟随桌面主题 | `configHome = "/home/mooling"` |
+| Greeter 不跟随桌面主题 | `services.displayManager.dms-greeter.configHome = "/home/${config.my.username}"` |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | Alacritty 不跟随浅色/暗色模式 | 导入 DMS 生成的 `dank-theme.toml` |

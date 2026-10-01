@@ -9,24 +9,37 @@ A template with desktop modification sets.
 - [DankMaterialShell](https://danklinux.com/) 已完成，持续维护
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) 工作中，尚不推荐使用
 
-## 自定义用户名和主机名
+## 设备身份：用户名与主机名
 
-编辑 `flake.nix`，修改 `let in` 块内的相关变量即可：
+`flake.nix` 只枚举 `hosts/` 下的主机目录，**不承载任何具体设备信息**。每台设备的身份写在自己的主机目录里：
 
 ```nix
-outputs = inputs@{ nixpkgs, home-manager, ... }:
-  let
-    username = "user";  # <- 改为你的用户名
-    hostname = "nixos";    # <- 改为你的主机名
-  in
+# hosts/<hostname>/default.nix
+{ config, hostname, ... }:
+
+{
+  # ── 设备身份（本机唯一改动点）────────────────────────────────
+  my.username = "user";
+  my.hostname = hostname;   # 目录名由 flake.nix 注入
+  # ───────────────────────────────────────────────────────────
+
+  imports = [ /* ... */ ];
+  networking.hostName = config.my.hostname;
+}
 ```
 
-所有系统模块和 Home Manager 配置均自动引用这两个变量，目录名需与之一致：
+多个设备共用本仓库时，各自只改自己 `hosts/<hostname>/default.nix` 的顶部两行，不会互相冲突或覆盖。
+
+约定的目录名需与身份一致：
 
 - `hosts/<hostname>/` - 机器专属配置
-- `modules/home/<username>/` - 个人模块，可从 `modules/home/user/` 复制模板
+- `modules/home/<username>/` - 个人模块，按需自行编写；缺失的文件由 `utils/optional_import.nix` 跳过并给出求值警告（旧版曾提供 `modules/home/user/` 模板，已于 `a3328c3` 移除）
 - `assets/<username>/` - 个人资源（头像等）
 - `user_profiles/<username>/` - 运行时配置快照（见「运行时配置备份」）
+
+`modules/home/default.nix` 会从 `modules/home/<username>/` 导入 `git.nix`、`packages.nix`、`avatar.nix`、`utils.nix` 四个文件（均非必需），以及 `hosts/<hostname>/users/<username>.nix`。
+
+新增设备只需新建一个 `hosts/<hostname>/default.nix`，**无需改动 `flake.nix`**（注意 git flake 只打包已跟踪文件，新目录要先 `git add`）。
 
 ## 新机器部署
 
@@ -39,6 +52,8 @@ cd ~/nixos-config && ./deploy.sh
 
 # 3. 你还可以自行做其他修改，完善你 fork 的配置，也欢迎从此仓库内持续引入各种修复内容
 ```
+
+`deploy.sh` 会写出 `hosts/<hostname>/default.nix` 并填好 `my.username` / `my.hostname`，全程不改 `flake.nix`。
 
 ## 已部署机器的日常使用
 
@@ -75,7 +90,7 @@ sudo nix-store --optimise
 配置中已启用以下自动策略（见 `modules/system/nix.nix` 和 `hosts/*/default.nix`）：
 
 - **`nix.settings.auto-optimise-store = true`** - 每次构建时自动硬链接优化
-- **`nix.gc.automatic = true` + `--delete-older-than 1d`** - 每天自动垃圾回收
+- **`nix.gc.automatic = true`，`dates = "weekly"` + `--delete-older-than 1d`** - 每周自动垃圾回收，删除 1 天前的世代
 - **`boot.loader.systemd-boot.configurationLimit = 10`** - 最多保留 10 个 boot 启动项
 
 ### 手动清理旧世代（只保留最新 N 个）
@@ -136,6 +151,7 @@ sudo howdy remove mooling
 
 - `snapshot.sh` 直接覆盖仓库快照中有变化的文件，不做二次确认。
 - `apply.sh` 默认在已有 DMS/Niri 配置时要求二次确认；`-f` 或 `--force` 可跳过确认。
+- 两者位于各用户的 `user_profiles/<username>/desktop-config/` 下，`scripts/backup.sh` 负责按用户分发调用。
 - `modules/home/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。
 - 当前 DMS 快照只保留 `settings.json` 和插件 `.meta`，不提交 `plugin_settings.json`、浏览器 CSS、插件仓库缓存等易变或可能含设备标识的文件。
 

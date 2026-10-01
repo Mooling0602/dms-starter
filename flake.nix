@@ -72,11 +72,17 @@
       ...
     }:
     let
-      username = "mooling"; # Change the username here
-      hostname = "mooling-laptop"; # Change the hostname here
+      # 只枚举 hosts/ 下的主机目录：目录名即主机名，设备身份由各主机自己的
+      # hosts/<host>/default.nix 提供。新增设备只需新建目录，不必改本文件。
+      entries = builtins.readDir ./hosts;
+      hostNames = builtins.filter (
+        name: entries.${name} == "directory" && builtins.pathExists ./hosts/${name}/default.nix
+      ) (builtins.attrNames entries);
     in
     {
-      nixosConfigurations.${hostname} = nixpkgs.lib.nixosSystem {
+      nixosConfigurations = nixpkgs.lib.genAttrs hostNames (hostname: nixpkgs.lib.nixosSystem {
+        # 注入目录名，hosts/<host>/default.nix 直接用它填 my.hostname。
+        specialArgs = { inherit hostname; };
         modules = [
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
@@ -88,9 +94,9 @@
               ];
             }
           )
-          ({ pkgs, ... }:
+          ({ pkgs, config, ... }:
           {
-            my = { inherit username hostname; };
+            # my.username / my.hostname 由 ./hosts/${hostname}/default.nix 提供。
             nixpkgs.overlays = [
               inputs.aagl.overlays.default
               (final: prev: {
@@ -154,15 +160,7 @@
                 ];
               })
               (final: prev: {
-                dmsPackage = inputs.dms.packages.${final.stdenv.hostPlatform.system}.default.overrideAttrs (oldAttrs: {
-                  # The 2026-08-28 DMS source contains documentation symlinks whose
-                  # targets are not included in the Nix package output. Remove only
-                  # those dangling links so the standard noBrokenSymlinks check passes.
-                  postInstall = (oldAttrs.postInstall or "") + ''
-                    rm -f $out/share/quickshell/dms/AGENTS.md \
-                      $out/share/quickshell/dms/CLAUDE.md
-                  '';
-                });
+                dmsPackage = inputs.dms.packages.${final.stdenv.hostPlatform.system}.default;
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
                 pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
@@ -228,7 +226,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.backupFileExtension = "backup";
-            home-manager.users.${username} =
+            home-manager.users.${config.my.username} =
               { ... }:
               {
                 imports = [
@@ -248,11 +246,12 @@
                 };
               };
             home-manager.extraSpecialArgs = inputs // {
-              inherit username hostname;
+              inherit hostname;
+              username = config.my.username;
               dmsPackage = pkgs.dmsPackage;
             };
           })
         ];
-      };
+      });
     };
 }

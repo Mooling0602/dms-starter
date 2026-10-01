@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, hostname, ... }:
 
 let
   dmsKeyboardBacklightSync = pkgs.writeShellScript "dms-keyboard-backlight-sync" ''
@@ -36,6 +36,13 @@ let
 in
 
 {
+  # ── 设备身份（本机唯一改动点）────────────────────────────────
+  # flake.nix 只枚举主机目录并注入目录名；用户名与主机名在这里声明，
+  # 其他设备改自己的 hosts/<host>/default.nix，不会再和本机冲突。
+  my.username = "mooling";
+  my.hostname = hostname;
+  # ───────────────────────────────────────────────────────────
+
   imports = [
     ./hardware-configuration.nix
     ./gpu.nix
