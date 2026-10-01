@@ -76,6 +76,22 @@
 
   成功后删除覆盖，再重复同一命令确认。
 
+### `ltrace` 的 `demangle` 测试在 GCC 16 下编译失败
+
+- **位置：** `modules/home/defaults/packages.nix` 的 `ltrace` 覆盖。
+- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1082427.b4fd65b198c5` 后，工具链默认编译器升到 GCC 16.2.0。`testsuite/ltrace.minor/demangle-lib.cpp` 里的 `volatile int Fv_Vi(void)` 触发 GCC 16 新增的 `-Wvolatile` 警告，而 ltrace 的测试框架（`testsuite/lib/ltrace.exp` 中 `if { $result != "" ... }`）只判断编译器输出是否为空 —— 任何输出（含 warning）都算 "compile failed"。测试程序因此未生成，`make check` 报 15 个 unexpected failures 并以退出码 2 结束。
+- **附带影响：** 上游 Hydra 构建同一派生（`049gzs92…` → 输出 `0l6dxxqz…-ltrace-0.7.91`）同样失败（[build 347357345](https://hydra.nixos.org/build/347357345)，`buildstatus` 为 failed），该输出因此没有任何二进制缓存；本机重建时必然回落为本地构建并复现同一失败。
+- **当前处理：** 按上游 MR !112 的思路，在 `postPatch` 中删除 `demangle-lib.cpp` 与 `demangle.cpp` 里 `Fv_Vi` 的 `volatile` 限定符（该限定符不参与 Itanium 符号名，不影响测试校验的 `Fv_Vi()` 名称）。测试套件得以保留并全部通过：244 expected passes / 0 unexpected failures。
+- **上游：** ltrace MR https://gitlab.com/cespedes/ltrace/-/merge_requests/112 （2026-09-30 提交，尚未合并）；nixpkgs 的 ltrace 定义尚未收录该修复：https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/lt/ltrace/package.nix
+- **移除条件：** ltrace 上游合并该修复且 nixpkgs 收录（或 nixpkgs 改用 ltrace 0.8.1 等其他方式修复），使默认 `doCheck = true` 下构建可通过。
+- **复查方法：** 删除该覆盖后运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.pkgs.ltrace --no-link
+  ```
+
+  构建成功（或该输出已能从二进制缓存取得）即可移除本覆盖。
+
 ## 已解除的临时构建绕过
 
 ### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
