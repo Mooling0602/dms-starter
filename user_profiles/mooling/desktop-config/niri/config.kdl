@@ -52,6 +52,12 @@ cursor {
 }
 
 environment {
+    // NVIDIA 显式同步（explicit sync）在 Wayland 合成器下存在驱动 bug，
+    // 会导致 OBS 等捕获客户端卡顿/崩溃。禁用后走隐式同步回退路径。
+    // 注意：本机为 muxless Optimus（屏幕由 Intel i915 驱动，NVIDIA 无任何
+    // 显示连接器），niri 用 renderD128/Intel 渲染已是正确选择，切勿改成
+    // debug { render-drm-device "/dev/dri/renderD129" }，那会引入跨 GPU 拷贝。
+    "__NV_DISABLE_EXPLICIT_SYNC" "1"
     "QT_QPA_PLATFORMTHEME" "qt5ct"
     "QT_QPA_PLATFORMTHEME_QT6" "qt6ct"
     "QT_PLUGIN_PATH" "/etc/profiles/per-user/mooling/lib/qt-6/plugins:/etc/profiles/per-user/mooling/lib/qt-5.15.19/plugins"

@@ -65,6 +65,9 @@
       "showTrash": false,
       "trashFileManager": "dolphin",
       "trashCustomCommand": "",
+      "magnification": false,
+      "magnificationScale": 130,
+      "magnificationProfile": "parabolic",
       "order": [],
       "widgets": [
         {
@@ -104,58 +107,103 @@
   "blurWallpaperOnOverview": true,
   "controlCenterWidgets": [
     {
-      "id": "header",
+      "id": "user",
       "enabled": true,
-      "w": 8,
-      "h": 1
+      "w": 5,
+      "h": 1,
+      "col": 0,
+      "row": 0
+    },
+    {
+      "id": "settings",
+      "enabled": true,
+      "w": 1,
+      "h": 1,
+      "small": true,
+      "col": 5,
+      "row": 0
+    },
+    {
+      "id": "lock",
+      "enabled": true,
+      "w": 1,
+      "h": 1,
+      "small": true,
+      "col": 6,
+      "row": 0
+    },
+    {
+      "id": "power",
+      "enabled": true,
+      "w": 1,
+      "h": 1,
+      "small": true,
+      "col": 7,
+      "row": 0
     },
     {
       "id": "volumeSlider",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 1
     },
     {
       "id": "brightnessSlider",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 1
     },
     {
       "id": "wifi",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 7
     },
     {
       "id": "bluetooth",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 2
     },
     {
       "id": "audioOutput",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 3
     },
     {
       "id": "audioInput",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 3
     },
     {
       "id": "nightMode",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 4
     },
     {
       "id": "darkMode",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 4
     },
     {
       "id": "diskUsage",
@@ -163,31 +211,48 @@
       "instanceId": "mptc7j5vij70sy4hfev9gjdccfc12x",
       "mountPath": "/",
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 5
     },
     {
       "id": "plugin_dankKDEConnect",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 5
     },
     {
       "id": "plugin_niriScreenshot",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 4,
+      "row": 6
     },
     {
       "id": "idleInhibitor",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 6
     },
     {
       "id": "plugin_screenRecorder",
       "enabled": true,
       "w": 4,
-      "h": 1
+      "h": 1,
+      "col": 0,
+      "row": 7
+    },
+    {
+      "id": "runningApps",
+      "enabled": true,
+      "w": 4,
+      "h": 1,
+      "footer": true
     }
   ],
   "bluetoothMprisEnabled": true,
@@ -213,7 +278,7 @@
       "io": true
     }
   },
-  "networkPreference": "ethernet",
+  "networkPreference": "wifi",
   "iconThemeDark": "Tela-dark",
   "iconThemeLight": "Tela-light",
   "iconThemePerMode": true,
@@ -252,6 +317,7 @@
       "harmony": 0.5
     }
   },
+  "notificationPopupPrivacyMode": true,
   "lockScreenNotificationMode": 2,
   "notificationCompactMode": true,
   "notificationShowTimeoutBar": true,
@@ -298,6 +364,10 @@
           "focusedWindowSize": 0,
           "focusedWindowCompactMode": true,
           "focusedWindowShowIcon": false
+        },
+        {
+          "id": "bongoCat",
+          "enabled": true
         }
       ],
       "centerWidgets": [
@@ -687,5 +757,5 @@
     }
   },
   "clipboardUseOverlayLayer": true,
-  "configVersion": 33
+  "configVersion": 36
 }

@@ -5,6 +5,7 @@
 window-rule {
     match app-id="^zen$"
     open-maximized true
+    block-out-from "screencast"
 }
 
 // @id=wr_1781358289986659464 @name=QQ音乐歌词
@@ -53,6 +54,7 @@ window-rule {
 window-rule {
     match app-id="^clash-verge$"
     open-maximized true
+    block-out-from "screencast"
 }
 
 // @id=wr_1785836565260160345 @name=com.danklinux.dms
@@ -177,4 +179,40 @@ window-rule {
 window-rule {
     match app-id="^qoder-ide$"
     open-maximized true
+}
+
+// @id=wr_1790590359331536740 @name=com.obsproject.Studio
+window-rule {
+    match app-id="^com.obsproject.Studio$"
+    block-out-from "screencast"
+}
+
+// @id=wr_1790590732746444754 @name=QQ
+window-rule {
+    match app-id="^QQ$"
+    block-out-from "screencast"
+}
+
+// @id=wr_1790592804957410810 @name=org.telegram.desktop
+window-rule {
+    match app-id="^org.telegram.desktop$"
+    block-out-from "screencast"
+}
+
+// @id=wr_1790744274125932947 @name=yad
+window-rule {
+    match app-id="^yad$"
+    open-floating true
+}
+
+// @id=wr_1790744501317165050 @name=zenity
+window-rule {
+    match app-id="^zenity$"
+    open-floating true
+}
+
+// @id=wr_1790762073451359678 @name=python3
+window-rule {
+    match app-id="^python3$" title="^StartLive 开播器 1.2.1$"
+    block-out-from "screencast"
 }
