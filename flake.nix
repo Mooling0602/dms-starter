@@ -8,8 +8,13 @@
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # 钉住 rev，不跟随 master：DMS 默认分支是 master（未发布变更），
+    # 而 AvengeMedia/DankMaterialShell 的 release tag 与 master 是分叉关系。
+    # 固定 rev 同时锁死它自己的传递输入 dank-qml-common（该 rev 的 flake.lock
+    # 是确定内容），避免 QML 组件与 shell 版本错配导致的界面异常。
+    # 升级方法见 MAINTENANCE.md。
     dms = {
-      url = "github:AvengeMedia/DankMaterialShell";
+      url = "github:AvengeMedia/DankMaterialShell/a8623e3ccb8a09bfcd5f793f23687282f5c6dd64";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     dgop = {
