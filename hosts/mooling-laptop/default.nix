@@ -46,7 +46,7 @@ in
   imports = [
     ./hardware-configuration.nix
     ./gpu.nix
-    ./nix-builder.nix
+    # ./nix-builder.nix
     ./clash-verge-fix.nix
     ../../modules/optional/howdy.nix
     ../../modules/optional/obs.nix
