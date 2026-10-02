@@ -1,12 +1,12 @@
 { ... }:
 
+# Desktop-independent terminal configuration: which terminals exist and how they
+# look. Colour theming that depends on the running desktop session lives in the
+# desktop module instead (e.g. modules/desktop/dms-with-niri/terminal.nix).
 {
   programs.alacritty = {
     enable = true;
     settings = {
-      general = {
-        import = [ "~/.config/alacritty/dank-theme.toml" ];
-      };
       window = {
         decorations = "None";
         opacity = 0.6;
@@ -30,16 +30,11 @@
       hide_window_decorations = "yes";
       confirm_os_window_close = 0;
     };
-    extraConfig = ''
-      include dank-theme.conf
-      include dank-tabs.conf
-    '';
   };
 
   programs.ghostty = {
     enable = true;
     settings = {
-      theme = "dankcolors";
       "font-family" = "Maple Mono NF CN";
       "font-size" = 12;
       "window-decoration" = false;

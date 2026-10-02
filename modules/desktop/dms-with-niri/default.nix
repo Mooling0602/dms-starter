@@ -5,6 +5,8 @@
 }:
 
 let
+  optionalImports = import ../../../utils/optional_import.nix;
+
   fcitxDmsThemeSync = pkgs.writeShellScript "fcitx5-dms-theme-sync" ''
     set -eu
 
@@ -96,6 +98,10 @@ let
   '';
 in
 {
+  imports = optionalImports [
+    ./terminal.nix
+  ];
+
   programs.dank-material-shell = {
     enable = true;
     package = dmsPackage;

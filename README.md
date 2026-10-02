@@ -113,6 +113,7 @@ du -sh /nix/store                                             # nix store 大小
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
+- 终端分两层：`modules/home/defaults/terminal.nix` 定义终端程序、字体与桌面无关的偏好；跟随桌面会话的配色放在各桌面模块内（如 `modules/desktop/dms-with-niri/terminal.nix` 引用 DMS matugen 生成的配色文件），由 Home Manager 自动合并。
 
 ## 人脸认证
 

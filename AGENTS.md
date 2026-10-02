@@ -58,7 +58,7 @@
 | Greeter 不跟随桌面主题 | `services.displayManager.dms-greeter.configHome = "/home/${config.my.username}"` |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
-| Alacritty 不跟随浅色/暗色模式 | 导入 DMS 生成的 `dank-theme.toml` |
+| 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
 | DMS 不随系统启动 | 从 niri spawn 切换到 systemd 管理 |
 | NVIDIA 驱动 | hardware.nvidia 配置 + Prime offload |
 | fcitx5 Wayland 警告 | `waylandFrontend = true` |
