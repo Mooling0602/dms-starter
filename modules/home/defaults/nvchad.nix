@@ -1,4 +1,4 @@
-{ pkgs, dmsPackage, ... }:
+{ pkgs, ... }:
 
 {
   programs.nvchad = {
@@ -9,8 +9,10 @@
       bash-language-server
       python3Packages.python-lsp-server
       stylua
-      dmsPackage
     ];
-    backup = true;
+    # nix4nvchad copies the store config into ~/.config/nvim on every
+    # activation. Backing up first leaves one nvim_<timestamp>.bak per rebuild
+    # (110 had accumulated); the config is fully declarative, so disable it.
+    backup = false;
   };
 }

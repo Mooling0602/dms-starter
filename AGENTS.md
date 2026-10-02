@@ -35,7 +35,7 @@
 
 5. **壁纸/头像资源仍由 Nix 提供** - 壁纸文件通过 `home.file` 拷贝到 `~/.local/share/wallpapers/`，头像通过 `home.file` 设置；DMS 的具体 session 设置由 DMS 自己写入。
 
-6. **NvChad Lua 配置独立仓库** - `nix4nvchad` 继续负责包装 Neovim 和运行时依赖，`nvchad-starter` 跟随 `github:Mooling0602/NvCfg`。主仓库只保留 `programs.nvchad.enable`、`extraPackages` 和 `backup`。
+6. **NvChad Lua 配置独立仓库** - `nix4nvchad` 继续负责包装 Neovim 和运行时依赖，`nvchad-starter` 跟随 `github:Mooling0602/NvCfg`。主仓库只保留 `programs.nvchad.enable` 和 `extraPackages`。主题在 NvCfg 的 `lua/chadrc.lua` 内静态指定（`catppuccin` / `catppuccin-latte`），不依赖 DMS。`backup = false` - 该模块每次激活都会把 store 配置整体复制到 `~/.config/nvim`，开启备份会按时间戳累积目录（曾达 110 个）；配置已完全声明式管理，无需备份。
 
 7. **用户名和主机名参数化（身份下沉到主机目录）** - `flake.nix` 只枚举 `hosts/` 下的主机目录（目录名即主机名）并通过 `specialArgs` 注入 `hostname`，`nixosConfigurations` 由 `lib.genAttrs` 生成；设备身份写在各自 `hosts/<host>/default.nix` 顶部的 `my.username` / `my.hostname`，多设备共用仓库时不会互相冲突。`modules/system/users.nix`、`hosts/*/nix-builder.nix`、`modules/home/default.nix` 均通过 `${hostname}`（specialArgs）或 `${config.my.username}`（系统模块）引用，`flake.nix` 内不得出现具体用户名或主机名字符串。
 
