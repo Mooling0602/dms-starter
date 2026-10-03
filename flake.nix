@@ -62,6 +62,11 @@
       url = "github:ilysenko/codex-desktop-linux";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # QQ 在 Wayland 下的屏幕共享 / 截图 / 剪贴板修复（上游自带 flake 与 NixOS 模块）。
+    linuxqq-wayland-fix = {
+      url = "github:SHORiN-KiWATA/linuxqq-wayland-fix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -179,6 +184,14 @@
                 niri-input-portal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.niri-input-portal;
                 startlive = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.startlive;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
+                # QQ 的 Wayland 修复启动器（屏幕共享 / 截图 / 剪贴板）。只经
+                # modules/home/mooling/packages.nix 装进用户环境，不导入上游的
+                # nixosModules——那个模块会把修复包与 pkgs.qq 一并塞进
+                # environment.systemPackages。qqPackage 显式指向同一个 pkgs.qq，
+                # 让启动器写死 QQ 路径，--doctor 也能自检 QQ 内部实现。
+                linuxqq-wayland-fix = inputs.linuxqq-wayland-fix.packages.${final.stdenv.hostPlatform.system}.default.override {
+                  qqPackage = final.qq;
+                };
               })
               (final: prev: {
                 # Firebat T5K uses the Clevo keyboard protocol, but upstream's

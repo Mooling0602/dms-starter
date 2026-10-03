@@ -325,6 +325,26 @@
         "url": "https://tangled.org/scrumplex.net/importPnpmLock.nix"
       }
     },
+    "linuxqq-wayland-fix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791038722,
+        "narHash": "sha256-FCOFga9MbhOTDNh9Shmq2WSxO9v1Lgokohh0uhAkojQ=",
+        "owner": "SHORiN-KiWATA",
+        "repo": "linuxqq-wayland-fix",
+        "rev": "2ba638851f09ec455ea07ea0c7b7f8c6a8d4af08",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SHORiN-KiWATA",
+        "repo": "linuxqq-wayland-fix",
+        "type": "github"
+      }
+    },
     "llm-agents": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -520,6 +540,7 @@
         "dms": "dms",
         "dw-proton": "dw-proton",
         "home-manager": "home-manager",
+        "linuxqq-wayland-fix": "linuxqq-wayland-fix",
         "llm-agents": "llm-agents",
         "niri": "niri",
         "nix-packages": "nix-packages",

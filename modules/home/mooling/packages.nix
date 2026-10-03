@@ -24,6 +24,9 @@
     kdePackages.filelight # KDE storage size analyzer
 
     qq # 腾讯QQ
+    # QQ 的 Wayland 修复启动器，从应用菜单的「QQ（Wayland修复版）」进入；
+    # 原生 qq 入口保留作对照。包由 flake.nix 的 overlay 提供。
+    linuxqq-wayland-fix
     wechat # 微信
     telegram-desktop # Chat social media
     discord # Gaming social media
