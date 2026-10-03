@@ -3,7 +3,8 @@
 let
   # 本机使用的桌面模块名，对应 ./desktop/<desktop>/。
   # 必须是 let 绑定：imports 求值早于 config，写成 config.my.desktop 会无限递归。
-  desktop = "dms-with-niri";
+  # desktop = "dms-with-niri";
+  desktop = "kde-plasma";
 in
 
 {
