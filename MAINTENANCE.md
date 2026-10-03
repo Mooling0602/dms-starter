@@ -198,6 +198,25 @@
   grep -o -- '--password-store=[a-z0-9-]*' (readlink -f (command -v google-chrome))
   ```
 
+### qtkeychain 在 KDE 下改用 libsecret 密钥后端
+
+- **位置：** `modules/home/defaults/ssh.nix` 的 `systemd.user.sessionVariables.QTKEYCHAIN_BACKEND = "libsecret"`。
+- **影响：** `ksshaskpass` 通过 qtkeychain 存取口令，而 qtkeychain 的 `detectDesktopEnvironment()` / `getKeyringBackend()`（`keychain_unix.cpp`，源码注释写明 "the following detection algorithm is derived from chromium, licensed under BSD, see base/nix/xdg_util.cc"）与 Chromium 是**同一套探测逻辑**：`XDG_CURRENT_DESKTOP=KDE` 且 `KDE_SESSION_VERSION=6` 时优先选 `org.kde.kwalletd6`，其余情况（niri 不匹配任何枚举、落进 `DesktopEnv_Other`）在 `LibSecretKeyring::isAvailable()` 通过后选 libsecret。该探测结果缓存在静态变量里、只求值一次，因此会话级设置即可全面生效。
+
+  `ksshaskpass` 写入的条目用 `org.qt.keychain` schema，属性为 `server=ksshaskpass`、`user=<私钥路径>`、`type=plaintext`，实际存放在 `~/.local/share/keyrings/login.keyring`。切到 KDE 后 qtkeychain 转去 KWallet 的同名文件夹查找，那里没有该条目，于是每次都退回弹框，SSH key 自动解锁失效。钉死 libsecret 后两个桌面共用 gnome-keyring 里的同一份口令；前提由 `modules/system/keyring.nix` 提供（所有桌面层都启用 gnome-keyring，并由 PAM 解锁 login keyring）。
+- **为何不用其他值：** `QTKEYCHAIN_BACKEND` 仅识别 `libsecret` / `gnome` / `kwallet4` / `kwallet5` / `kwallet6`；反向钉死 `kwallet6` 也可行，但那样 niri 一侧必须自行保证 KWallet 可达（niri 下并未启动 KWallet）。不设置该变量就只能去改桌面探测结果，不可行。注意这是**会话级**设置，同样影响其他链接 qtkeychain 的程序（kate / plasma-nm / kmailtransport / kdepim-runtime / krdp / kldap / ktextaddons）：落地时 KWallet 内只有 Chrome 的两条记录（且 Chrome 已改走 libsecret），无实际迁移成本。
+- **上游：** qtkeychain 按设计跟随桌面环境，非缺陷：[`qtkeychain/keychain_unix.cpp`](https://github.com/frankosterfeld/qtkeychain/blob/master/qtkeychain/keychain_unix.cpp)。nixpkgs 的 `qtkeychain` 构建时固定链接 libsecret、且没有 KWallet 开关，包级无法指定后端。
+- **移除条件：** qtkeychain 不再按桌面环境自动选择后端，或 nixpkgs 提供构建期指定后端的开关。
+- **复查方法：** 在 KDE 会话下应能直接解锁（无弹框）：
+
+  ```fish
+  # 应输出 QTKEYCHAIN_BACKEND=libsecret，且下面一条命令无需输入口令即 keys=1
+  systemctl --user show-environment | grep QTKEYCHAIN_BACKEND
+  ssh-add ~/.ssh/key-mooling-laptop; and ssh-add -l | grep -c SHA256:
+  ```
+
+  反向对照：临时用 `env QTKEYCHAIN_BACKEND=kwallet6 ssh-add ~/.ssh/key-mooling-laptop` 应超时且 `keys=0`。
+
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
 
 - **位置：** `flake.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
