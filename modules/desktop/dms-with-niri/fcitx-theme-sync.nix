@@ -88,10 +88,17 @@ let
       -e "s/^HighlightColor=.*/HighlightColor=$selection_foreground/" \
       -e "s/^HighlightBackgroundColor=.*/HighlightBackgroundColor=$selection_background/" \
       "$dms_theme/theme.conf"
-    ${pkgs.imagemagick}/bin/mogrify \
-      -fill "$selection_background" \
-      -colorize 100 \
-      "$dms_theme/highlight.png"
+    # fcitx5 5.1.23 起支持高分辨率资源：生成器按 SupportedScale 额外写出
+    # highlight@2x.png 等 @Nx 变体，classicui 再按实际缩放取用
+    # （findScaledImage 用 ceil(显示缩放)，本机 1.5 → 取 @2x）。
+    # 必须逐个变体重着色，否则高分屏下会回落到生成器原始的 breeze 蓝。
+    for highlight_image in "$dms_theme"/highlight*.png; do
+      [ -e "$highlight_image" ] || continue
+      ${pkgs.imagemagick}/bin/mogrify \
+        -fill "$selection_background" \
+        -colorize 100 \
+        "$highlight_image"
+    done
 
     if ${pkgs.qt6Packages.fcitx5-with-addons}/bin/fcitx5-remote --check; then
       # Classic UI caches NormalColor across a config reload. This is the same
