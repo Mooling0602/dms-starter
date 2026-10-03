@@ -8,6 +8,8 @@
     adw-gtk3
   ];
 
+  home.overwriteBackup = true;
+
   # DMS updates adw-gtk3's stylesheets in place when applying its Matugen
   # palette. A package installed through Home Manager is immutable in the Nix
   # store, while DMS only discovers mutable copies below ~/.local/share/themes.
