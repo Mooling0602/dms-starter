@@ -8,28 +8,6 @@
 - 任何 fork 只要用于替代原本由 Nixpkgs、其他 flake 或上游仓库提供的包，就必须在本文档记录；fork 可以属于任意个人或组织，并不限定为本人的仓库。
 - 长期维护的独立配置或包源不因其所有者而自动列入；只有存在明确的上游回归、移除或重新启用条件时才需要记录。
 
-## 输入锁定
-
-### `dms` 固定到指定 rev
-
-- **位置：** `flake.nix` 的 `dms` 输入（URL 末尾为完整 rev）。
-- **影响：** `AvengeMedia/DankMaterialShell` 的默认分支是 `master`，其上是对应尚未发布的版本，而 release tag 与 `master` 是**分叉**关系（`v1.6.2` 与 `master` 各有独有提交），因此上游没有可直接跟随的稳定分支。不固定 rev 时，`nix flake update` 会把 DMS 拉到 `master` 任意一处，界面组件与 shell 版本错配会导致界面异常，且问题往往在重建后才暴露。
-- **当前处理：** URL 内写死 rev，等价于把 `flake.lock` 的当前状态固化到 `flake.nix`，使 DMS 不受全量 `nix flake update` 影响。固定 rev 同时锁死 DMS 自身的传递输入 `dank-qml-common` - 该 rev 自带的 `flake.lock` 是确定内容，全量更新时不会被一并刷新（同一仓库的 `dankcalendar`、`danksearch` 等仍跟默认分支，会照常更新）。
-- **上游：** https://github.com/AvengeMedia/DankMaterialShell
-- **移除条件：** 上游提供可跟随的稳定分支或 tag 语义（例如 release 从 `master` 切出而非分叉），且跟随它不会引入未发布变更。
-- **复查方法：** 确认 DMS 未被全量更新移动，以及错误版本的传递输入会被纠正回锁定值：
-
-  ```fish
-  # 全量更新后 dms 的 rev 应保持不变
-  nix flake update && nix flake metadata --json | jq -r '.locks.nodes.dms.locked.rev'
-  ```
-
-  升级到新版本时，把 `flake.nix` 中 URL 末尾的 rev 换成目标提交，再运行 `nix flake lock` 让 `flake.lock` 的 `original.rev` 跟上（该步骤只写 `original.rev`，不改变锁定内容），最后重建验证。可用 tag 对应的提交作为参照：
-
-  ```fish
-  gh api repos/AvengeMedia/DankMaterialShell/commits/master --jq '.sha'
-  ```
-
 ## 上游包源替换
 
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
