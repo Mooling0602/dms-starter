@@ -1,8 +1,11 @@
 { ... }:
 
+# Home-manager module, has been imported by default.
+#
 # Desktop-independent terminal configuration: which terminals exist and how they
 # look. Colour theming that depends on the running desktop session lives in the
 # desktop module instead (e.g. modules/desktop/dms-with-niri/terminal.nix).
+
 {
   programs.alacritty = {
     enable = true;

@@ -13,11 +13,10 @@ in
     ./defaults/wine.nix
     ./defaults/terminal.nix
     ./defaults/file-manager.nix
-    ./defaults/kde-connect.nix
+    ./${username}/default.nix
     ./${username}/git.nix
     ./${username}/packages.nix
     ./${username}/avatar.nix
-    ./${username}/utils.nix
     ../../hosts/${hostname}/users/${username}.nix
     ./backup.nix
   ];

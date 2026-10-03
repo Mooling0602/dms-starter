@@ -18,7 +18,6 @@
       "input"
       "video"
       "render"
-      "dms-greeter"
       "uinput"
     ];
     shell = pkgs.fish;

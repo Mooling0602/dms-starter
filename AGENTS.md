@@ -39,6 +39,8 @@
 
 7. **用户名和主机名参数化（身份下沉到主机目录）** - `flake.nix` 只枚举 `hosts/` 下的主机目录（目录名即主机名）并通过 `specialArgs` 注入 `hostname`，`nixosConfigurations` 由 `lib.genAttrs` 生成；设备身份写在各自 `hosts/<host>/default.nix` 顶部的 `my.username` / `my.hostname`，多设备共用仓库时不会互相冲突。`modules/system/users.nix`、`hosts/*/nix-builder.nix`、`modules/home/default.nix` 均通过 `${hostname}`（specialArgs）或 `${config.my.username}`（系统模块）引用，`flake.nix` 内不得出现具体用户名或主机名字符串。
 
+8. **桌面模块分三层，切换靠 `let` 绑定** - `hosts/<host>/default.nix` 顶部的 `let desktop = "<name>";` 同时决定 `my.desktop` 的值与 `imports` 中 `./desktop/${desktop}/default.nix` 的路径；该目录再导入 `modules/desktop/<name>/` 下的实现（系统层 `system.nix` + Home Manager 层 `default.nix`）。**必须用 `let` 而非 `config.my.desktop`**：`imports` 求值早于 `config`，引用 `config` 会导致无限递归。`modules/system/config.nix` 断言 `my.desktop` 与实际加载的实现一致（实现模块自报 `my.desktopLayer`），声明与实际不符时在求值阶段即报错。
+
 ## Niri 配置文件管理
 
 - `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl` 是普通可写文件，由 DMS/Niri 在运行时管理

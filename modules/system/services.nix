@@ -24,7 +24,7 @@
   #
   # systembus-notify forwards warnings to the session's D-Bus notification
   # daemon (DMS), which is the only channel visible inside a Niri/Wayland
-  # session — `wall` and X11 messages have nowhere to land. `wall` is
+  # session - `wall` and X11 messages have nowhere to land. `wall` is
   # nonetheless left on deliberately: the NixOS smartd module only emits the
   # `-m <nomailer> -M exec` hook that runs the notification script when mail,
   # wall or x11 is enabled, so disabling all three would silently drop
@@ -51,7 +51,7 @@
   services.smartd.extraOptions = [
     "--savestates=/var/lib/smartmontools/smartd."
   ];
-  
+
   # services.envfs = {
   #   enable = true;
   #   extraFallbackPathCommands = ''

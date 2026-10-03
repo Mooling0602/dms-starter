@@ -1,5 +1,7 @@
 { pkgs, ... }:
 
+# Home-manager module, has been imported by default.
+
 {
   programs.nvchad = {
     enable = true;

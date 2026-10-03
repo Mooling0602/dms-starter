@@ -1,4 +1,17 @@
+{ pkgs, ... }:
+
+# Home-manager module, can be imported in user space.
+
 {
+  home.packages = with pkgs; [
+    grim
+    slurp
+    satty
+
+    # virtual display mode utility
+    wlr-randr
+  ];
+
   # 选区录屏开关脚本（gpu-screen-recorder + slurp）。
   # 由 ~/.config/niri/config.kdl 的 Mod+Alt+G 绑定调用：
   # 首次按下 slurp 选区并开始录制，再次按下 SIGINT 停止并落盘。

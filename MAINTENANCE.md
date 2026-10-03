@@ -14,7 +14,7 @@
 
 - **位置：** `flake.nix` 的 `dms` 输入（URL 末尾为完整 rev）。
 - **影响：** `AvengeMedia/DankMaterialShell` 的默认分支是 `master`，其上是对应尚未发布的版本，而 release tag 与 `master` 是**分叉**关系（`v1.6.2` 与 `master` 各有独有提交），因此上游没有可直接跟随的稳定分支。不固定 rev 时，`nix flake update` 会把 DMS 拉到 `master` 任意一处，界面组件与 shell 版本错配会导致界面异常，且问题往往在重建后才暴露。
-- **当前处理：** URL 内写死 rev，等价于把 `flake.lock` 的当前状态固化到 `flake.nix`，使 DMS 不受全量 `nix flake update` 影响。固定 rev 同时锁死 DMS 自身的传递输入 `dank-qml-common`——该 rev 自带的 `flake.lock` 是确定内容，全量更新时不会被一并刷新（同一仓库的 `dankcalendar`、`danksearch` 等仍跟默认分支，会照常更新）。
+- **当前处理：** URL 内写死 rev，等价于把 `flake.lock` 的当前状态固化到 `flake.nix`，使 DMS 不受全量 `nix flake update` 影响。固定 rev 同时锁死 DMS 自身的传递输入 `dank-qml-common` - 该 rev 自带的 `flake.lock` 是确定内容，全量更新时不会被一并刷新（同一仓库的 `dankcalendar`、`danksearch` 等仍跟默认分支，会照常更新）。
 - **上游：** https://github.com/AvengeMedia/DankMaterialShell
 - **移除条件：** 上游提供可跟随的稳定分支或 tag 语义（例如 release 从 `master` 切出而非分叉），且跟随它不会引入未发布变更。
 - **复查方法：** 确认 DMS 未被全量更新移动，以及错误版本的传递输入会被纠正回锁定值：
@@ -34,10 +34,10 @@
 
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
 
-- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/home/defaults/theme.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
+- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/desktop/dms-with-niri/xdg-portals.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
 - **影响：** niri 未实现 `org.freedesktop.impl.portal.InputCapture`，而 `xdg-desktop-portal-gnome` 只在 niri 提供 `org.gnome.Mutter.InputCapture` 时才发布该接口，因此 Deskflow、Synergy 3、Input Leap 等在 niri 下作为 server 共享键鼠时会以 `failed to initialize input capture session` 失败。nixpkgs 未收录该后端，故自行打包并跟踪上游 `main`（上游无 tag 与 release）。
-- **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input`——`Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
-- **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码——客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
+- **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input` - `Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
+- **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码 - 客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
 - **上游：** [Qingswe/niri-input-portal](https://github.com/Qingswe/niri-input-portal)；缺口跟踪：niri [#823](https://github.com/YaLTeR/niri/issues/823)（自 2024-11 起 open）、[#1966](https://github.com/YaLTeR/niri/pull/1966)（未合并）。region 必须在 `ei_device.done` 之前下发的旁证是 mutter 的 `483601844b4c72fc34b1818a59fef7879cdb5238`（"backends/eis-client: Do not add device before adding EIS regions"）。
 - **移除条件：** 分两层。补丁层：上游自行下发 `ei_device.region` 后即可删掉 `fix-eis-device-region.patch` 与 `package.nix` 中的 `patches` 一行，包本身继续保留。整包层：niri 自行实现 InputCapture 门户（#823 关闭，或 #1966 及后续工作合并），或该后端被 nixpkgs 收录；此时再移除 overlay 条目、`extraPortals` 中的包、两条门户路由与 systemd 单元。
 - **复查方法：** 重建并重启 `xdg-desktop-portal` 后读取门户能力值，接入后应为 `u 3`（keyboard | pointer），未接入时为 `u 0`：
@@ -92,7 +92,7 @@
 ### `ltrace` 的 `demangle` 测试在 GCC 16 下编译失败
 
 - **位置：** `modules/home/defaults/packages.nix` 的 `ltrace` 覆盖。
-- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1082427.b4fd65b198c5` 后，工具链默认编译器升到 GCC 16.2.0。`testsuite/ltrace.minor/demangle-lib.cpp` 里的 `volatile int Fv_Vi(void)` 触发 GCC 16 新增的 `-Wvolatile` 警告，而 ltrace 的测试框架（`testsuite/lib/ltrace.exp` 中 `if { $result != "" ... }`）只判断编译器输出是否为空 —— 任何输出（含 warning）都算 "compile failed"。测试程序因此未生成，`make check` 报 15 个 unexpected failures 并以退出码 2 结束。
+- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1082427.b4fd65b198c5` 后，工具链默认编译器升到 GCC 16.2.0。`testsuite/ltrace.minor/demangle-lib.cpp` 里的 `volatile int Fv_Vi(void)` 触发 GCC 16 新增的 `-Wvolatile` 警告，而 ltrace 的测试框架（`testsuite/lib/ltrace.exp` 中 `if { $result != "" ... }`）只判断编译器输出是否为空 - 任何输出（含 warning）都算 "compile failed"。测试程序因此未生成，`make check` 报 15 个 unexpected failures 并以退出码 2 结束。
 - **附带影响：** 上游 Hydra 构建同一派生（`049gzs92…` → 输出 `0l6dxxqz…-ltrace-0.7.91`）同样失败（[build 347357345](https://hydra.nixos.org/build/347357345)，`buildstatus` 为 failed），该输出因此没有任何二进制缓存；本机重建时必然回落为本地构建并复现同一失败。
 - **当前处理：** 按上游 MR !112 的思路，在 `postPatch` 中删除 `demangle-lib.cpp` 与 `demangle.cpp` 里 `Fv_Vi` 的 `volatile` 限定符（该限定符不参与 Itanium 符号名，不影响测试校验的 `Fv_Vi()` 名称）。测试套件得以保留并全部通过：244 expected passes / 0 unexpected failures。
 - **上游：** ltrace MR https://gitlab.com/cespedes/ltrace/-/merge_requests/112 （2026-09-30 提交，尚未合并）；nixpkgs 的 ltrace 定义尚未收录该修复：https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/lt/ltrace/package.nix
@@ -137,7 +137,7 @@
 
 ### `qt6ct-kde` 的 KColorScheme 支持
 
-- **位置：** `flake.nix` 的 `nixpkgs.overlays`，由 `modules/system/packages.nix` 和 `modules/home/defaults/theme.nix` 共同使用。
+- **位置：** `flake.nix` 的 `nixpkgs.overlays`，由 `modules/home/defaults/theme.nix`（安装 qt6ct 本体）、`modules/desktop/dms-with-niri/ui.nix`（`platformTheme.name` 与 `QT_QPA_PLATFORMTHEME_QT6`）和 `modules/optional/wine.nix`（`QT_PLUGIN_PATH`）共同使用。
 - **目的：** 为 `qt6ct` 加入 `kconfig`、`kcolorscheme`、`kiconthemes` 构建依赖，并应用 Arch AUR `qt6ct-kde` 的 shenanigans 补丁，使 Qt 配色方案能够使用 KDE 的 `KColorScheme` 支持。DMS 生成的 `DankMatugen.colors` 依赖该能力；覆盖必须位于全局，否则 Niri 实际加载的原生 Qt6ct 平台插件会回退为浅色。
 - **相关提交：** `d4c18f6`（`fix: use qt6ct-kde patch instead of vanilla qt6ct`）。
 - **补丁来源：** 固定为 AUR `qt6ct-kde` 提交 [`8c1003e`](https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde&id=8c1003e13b7e7545e717273e0716f095f195bd13)。原 URL 指向可变分支头，2026-08-18 上游更新补丁后触发固定输出哈希不匹配；更新后的补丁仍针对 `qt6ct 0.11`，保留 KColorScheme、KConfig 和 KIconThemes 集成。
@@ -181,7 +181,7 @@
 
 ### Firebat T5K 的 DMS 键盘 RGB 同步
 
-- **位置：** `hosts/mooling-laptop/default.nix` 的 `dms-keyboard-backlight-sync` systemd service 与 path unit。
+- **位置：** `hosts/mooling-laptop/desktop/dms-with-niri/keyboard-backlight-sync.nix` 的 `dms-keyboard-backlight-sync` systemd service 与 path unit。
 - **影响：** DMS 会在 `~/.local/share/color-schemes/DankMatugen.colors` 写入动态调色板。该服务监听该文件，读取 `Colors:Selection/BackgroundNormal` 并写入 `rgb:kbd_backlight/multi_intensity`；只更新 RGB，不改变键盘背光亮度，也不依赖 TUXEDO Control Center。
 - **上游：** DMS：https://github.com/AvengeMedia/DankMaterialShell ，TUXEDO 键盘接口：https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
 - **移除条件：** DMS 原生支持通过稳定接口控制键盘 RGB。
@@ -189,7 +189,7 @@
 
 ### DMS 的可写 `adw-gtk3` 副本
 
-- **位置：** `modules/home/defaults/theme.nix` 的 `home.activation.installDmsAdwGtk3`。
+- **位置：** `modules/desktop/dms-with-niri/ui.nix` 的 `home.activation.installDmsAdwGtk3`。
 - **影响：** DMS 的 `scripts/gtk.sh` 只在用户可写目录（`~/.local/share/themes/`、`~/.themes/`，以及 `system_theme_roots` 返回的其他用户目录）中查找 `adw-gtk3`，并在 GTK3 的样式表中原地注入 Matugen 色表（`is_user_theme_dir()` 显式排除只读路径，注释说明以 `^/usr` 判定会把 Nix store 路径误判为用户副本）。Home Manager 安装的 `adw-gtk3` 位于只读 Nix store，因而 DMS 无法就地修补；其 GTK3 补丁步骤以退出码 2 结束，随后不会调用将 `gtk-theme` 切换为 `adw-gtk3`/`adw-gtk3-dark` 的刷新逻辑，传统 GTK 应用会停留在浅色主题。
 - **当前处理：** Home Manager 激活时仅在主题不存在时，将 Nix 包的两个变体复制到 `~/.local/share/themes/` 并授予用户写权限。之后目录完全由 DMS 管理；不使用 `home.file`，避免创建 DMS 无法修改的 store symlink。
 - **上游：** [DMS GTK helper](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/scripts/gtk.sh)，[DMS GTK 切换逻辑](https://github.com/AvengeMedia/DankMaterialShell/blob/master/quickshell/Common/Theme.qml)。
@@ -198,7 +198,7 @@
 
 ### Niri 下 `xdg-desktop-portal` 的深浅色状态同步
 
-- **位置：** `modules/home/defaults/theme.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。
+- **位置：** `modules/desktop/dms-with-niri/xdg-portals.nix` 的 `xdg.portal.config` 与 `xdg.dataFile`。
 - **影响：** DMS 会通过 dconf 写入 `org.gnome.desktop.interface color-scheme`，但 `xdg-desktop-portal 1.22` 可同时加载 GTK、GNOME 和 KDE 的 `Settings` 后端，导致门户向 QQ、Telegram、Zen 等应用报告与 DMS 相反的深浅色状态。
 - **当前处理：** 在通用和 Niri 门户配置中将 `org.freedesktop.impl.portal.Settings` 固定为 GTK；同时从用户优先级的 GNOME/KDE portal 定义中去除该接口，仅保留 GTK 作为 Settings 提供方。原定义直接由当前 Nix 包读取，避免手工复制后随上游接口列表漂移。
 - **上游：** xdg-desktop-portal [#2033](https://github.com/flatpak/xdg-desktop-portal/issues/2033)，修复 PR [#2048](https://github.com/flatpak/xdg-desktop-portal/pull/2048)；相关 DMS/Niri 报告 [#2140](https://github.com/AvengeMedia/DankMaterialShell/issues/2140)。
@@ -211,7 +211,7 @@
 
 ### Fcitx5 Plasma 候选窗的 DMS 深浅色同步
 
-- **位置：** `modules/desktop/dms-with-niri/default.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
+- **位置：** `modules/desktop/dms-with-niri/fcitx-theme-sync.nix` 的 `fcitx5-dms-theme-sync` 用户 service 与 path unit。
 - **影响：** Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，而不读取 DMS 发布的门户深浅色或强调色；在 Niri 会话中它会回退到白色 `breeze-light` 和固定蓝色高亮。服务监听 DMS 写入的 `DankMatugen.colors`，根据同一文件的窗口背景亮度选择 `breeze-light` 或 `breeze-dark` 色表来组装私有主题；资源同时写入 Plasma 和 Fcitx 生成器的标准查找路径，并从该次色表读取选择前景/背景色来重着色候选项，最后调用 Fcitx `Controller1.Restart`。该接口与系统托盘的“重启”相同，会重新创建缓存 `NormalColor` 的 Classic UI，同时保留原实例的插件环境与输入法列表。这样不会因 DMS 先写色表、后更新 dconf 而将浅色调色板配上深色背景，也不必手动重启输入法。
 - **范围：** 只使用已由 `fcitx5-configtool` 引入的 `libplasma`、`kconfig` 与 `kcolorscheme` 库，以及只用于重着色候选项 PNG 的 ImageMagick；不会安装或启动 Plasma Shell、KWin 或其他 KDE 桌面服务。同步 service 不直接由 `graphical-session.target` 启动，而仅由 path unit 在 DMS 写入色表后触发；DMS 本身必须在该 target 之后启动，若同时把同步 service 作为 target 成员并声明 `After=dms.service`，systemd 会形成排序循环并丢弃 DMS 的启动任务。
 - **移除条件：** DMS 提供原生 Fcitx5 模板，或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
@@ -219,7 +219,7 @@
 
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
-- **位置：** `modules/system/packages.nix` 的 `pulseaudio`、`wine64-symlink` 与 `WINEDLLOVERRIDES`，以及 `modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。
+- **位置：** `modules/system/packages.nix` 的 `pulseaudio`；`modules/optional/wine.nix` 的 `wine64-symlink`、`WINEDLLOVERRIDES` 与 `QT_PLUGIN_PATH`；`modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。
 - **影响：** 禁用 `winealsa.drv`，改由 PipeWire 的 PulseAudio 兼容层处理音频，以避免 `winecfg` 枚举音频设备时卡死；同时伪造 `wine64`，满足 WoW64 模式下的 `winetricks` 查找。
 - **相关提交：** `89f35ae`（`fix: add pulseaudio and disable winealsa to prevent winecfg audio tab freeze`）；`6201ec7`（`fix: add wine64 symlink for winetricks WoW64 compatibility`）。
 - **移除条件：** 当前 Wine 在 PipeWire 下运行 `winecfg` 不再卡死，且 WoW64 的 `winetricks` 可直接找到实际的 `wine64` 可执行文件。

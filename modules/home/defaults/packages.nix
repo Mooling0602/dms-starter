@@ -1,5 +1,7 @@
 { lib, pkgs, ... }:
 
+# Home-manager module, has been imported by default.
+
 {
   home.packages = with pkgs; [
     python3
@@ -41,12 +43,6 @@
     nodejs
     bun
     pnpm
-
-    # KDE connect
-    kdePackages.kdeconnect-kde
-
-    # virtual display mode utility
-    wlr-randr
 
     # misc
     file
@@ -92,15 +88,10 @@
     pciutils
     usbutils
     libinput
-
-    xwayland-satellite
     xrdb
 
     gpu-screen-recorder
     wl-clipboard
-    grim
-    slurp
-    satty
   ];
 
   home.file.".local/share/jdks/jdk8".source = pkgs.jdk8;

@@ -1,3 +1,5 @@
+# Home-manager module, has been imported by default.
+#
 # Fix wine audio driver error.
 
 {

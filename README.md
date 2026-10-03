@@ -17,18 +17,28 @@ A template with desktop modification sets.
 # hosts/<hostname>/default.nix
 { config, hostname, ... }:
 
+let
+  # 本机使用的桌面模块名，对应 ./desktop/<desktop>/。
+  # 必须是 let 绑定：imports 求值早于 config，写成 config.my.desktop 会无限递归。
+  desktop = "dms-with-niri";
+in
+
 {
   # ── 设备身份（本机唯一改动点）────────────────────────────────
   my.username = "user";
   my.hostname = hostname;   # 目录名由 flake.nix 注入
+  my.desktop = desktop;
   # ───────────────────────────────────────────────────────────
 
-  imports = [ /* ... */ ];
+  imports = [
+    /* ... */
+    ./desktop/${desktop}/default.nix
+  ];
   networking.hostName = config.my.hostname;
 }
 ```
 
-多个设备共用本仓库时，各自只改自己 `hosts/<hostname>/default.nix` 的顶部两行，不会互相冲突或覆盖。
+多个设备共用本仓库时，各自只改自己 `hosts/<hostname>/default.nix` 顶部的几行，不会互相冲突或覆盖。
 
 约定的目录名需与身份一致：
 
@@ -37,9 +47,25 @@ A template with desktop modification sets.
 - `assets/<username>/` - 个人资源（头像等）
 - `user_profiles/<username>/` - 运行时配置快照（见「运行时配置备份」）
 
-`modules/home/default.nix` 会从 `modules/home/<username>/` 导入 `git.nix`、`packages.nix`、`avatar.nix`、`utils.nix` 四个文件（均非必需），以及 `hosts/<hostname>/users/<username>.nix`。
+`modules/home/default.nix` 会从 `modules/home/<username>/` 导入 `default.nix`、`git.nix`、`packages.nix`、`avatar.nix`（均非必需），以及 `hosts/<hostname>/users/<username>.nix`。桌面无关的通用模块来自 `modules/home/defaults/`，可按需在 `modules/home/<username>/` 中引用的共享模块放在 `modules/optional/`（如 `screen-recorder.nix`、`kde-connect.nix`）。
 
 新增设备只需新建一个 `hosts/<hostname>/default.nix`，**无需改动 `flake.nix`**（注意 git flake 只打包已跟踪文件，新目录要先 `git add`）。
+
+## 桌面模块
+
+桌面相关配置分三层，新增或切换桌面时按此对应：
+
+```text
+hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导入哪个桌面
+└── hosts/<hostname>/desktop/<name>/  # 主机专属的桌面追加配置
+    └── modules/desktop/<name>/       # 桌面实现（系统层 + Home Manager 层）
+```
+
+- **切换桌面**：只改 `hosts/<hostname>/default.nix` 顶部的 `let desktop = "..."`，它同时决定 `my.desktop` 的值与 `imports` 的路径。
+- **一致性校验**：`modules/system/config.nix` 断言 `my.desktop` 与实际加载的桌面实现一致。若 `hosts/<hostname>/desktop/<name>/default.nix` 忘了导入 `modules/desktop/<name>/system.nix`，求值阶段就会报错并指出缺失文件。
+- `my.desktopLayer` 由桌面实现自报家门，仅用于上述断言，无需手工维护。
+
+> `imports` 的求值早于 `config`，因此**不能**写成 `imports = [ ./desktop/${config.my.desktop}/... ]`（会无限递归）；必须使用 `let` 绑定的局部变量。
 
 ## 新机器部署
 

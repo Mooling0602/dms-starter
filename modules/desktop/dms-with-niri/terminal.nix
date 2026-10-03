@@ -1,5 +1,7 @@
 { ... }:
 
+# Home-manager module, has been imported in dms-with-niri.
+#
 # Terminal theming for the DMS/niri desktop session only.
 #
 # Every file referenced here is generated at runtime by DMS matugen from the
@@ -14,6 +16,7 @@
 # preference live in modules/home/defaults/terminal.nix. Home Manager merges
 # both sides, so the settings below are added to those rather than replacing
 # them.
+
 {
   programs.alacritty.settings.general.import = [ "~/.config/alacritty/dank-theme.toml" ];
 

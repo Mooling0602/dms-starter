@@ -34,9 +34,6 @@
     gsettings-desktop-schemas
     glib
 
-    # KDE file chooser portal
-    kdePackages.xdg-desktop-portal-kde
-
     accountsservice
     mission-center
   ];

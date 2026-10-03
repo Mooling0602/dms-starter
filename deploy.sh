@@ -8,9 +8,11 @@
 # 流程：
 #   1. 以 hosts/*/hardware-configuration.nix 是否存在判定新机器
 #   2. 采集用户名与主机名（直接回车取已有 host 目录中的当前值）
-#   3. 创建 assets/<username>、modules/home/<username>、hosts/<hostname>、user_profiles/<username>
+#   3. 创建 assets/<username>、modules/home/<username>、hosts/<hostname>、
+#      hosts/<hostname>/desktop/<desktop>、user_profiles/<username>
 #   4. flake.nix 无需改动：主机由 hosts/ 目录枚举，身份写在 hosts/<hostname>/default.nix
 #   5. 生成硬件配置到 hosts/<hostname>/，并据此写出该机器的 default.nix
+#      与 hosts/<hostname>/desktop/<desktop>/default.nix（桌面分层，见 README「桌面模块」）
 #   6. 设置登录密码（已有机器上改为先询问是否重设）
 #   7. 暂存本次新增内容后，询问并执行一次 sudo nixos-rebuild switch --flake .#<hostname>
 #
@@ -47,6 +49,15 @@ flake_value() {
   host_dir="$(existing_host_dir)"
   [ -n "$host_dir" ] || return 0
   sed -n "s/^[[:space:]]*my\.$key = \"\([^\"]*\)\";.*$/\1/p" "$host_dir/default.nix" | head -n1
+}
+
+# 读取已存在主机使用的桌面模块名（hosts/<host>/default.nix 顶部的 let 绑定）。
+# 旧结构（imports 里直接写 modules/desktop/<name>/system.nix）读不到，返回空。
+flake_desktop() {
+  local host_dir
+  host_dir="$(existing_host_dir)"
+  [ -n "$host_dir" ] || return 0
+  sed -n 's/^[[:space:]]*desktop = "\([^"]*\)";.*$/\1/p' "$host_dir/default.nix" | head -n1
 }
 
 # 主机名即 hosts/<host>/ 的目录名（flake.nix 用目录名注入 hostname）
@@ -196,10 +207,12 @@ fi
 
 DEFAULT_USERNAME="$(flake_value username)"
 DEFAULT_HOSTNAME="$(existing_hostname)"
+DEFAULT_DESKTOP="$(flake_desktop)"
 [ -n "$DEFAULT_USERNAME" ] || die "无法从 hosts/*/default.nix 读取 my.username 默认值。"
 [ -n "$DEFAULT_HOSTNAME" ] || die "无法从 hosts/*/ 的目录名确定主机名默认值。"
+DEFAULT_DESKTOP="${DEFAULT_DESKTOP:-dms-with-niri}"
 
-# -------------------------------------------- 2. 用户名与主机名（1.1.1/1.1.2）
+# --------------------------------- 2. 用户名、主机名与桌面模块（1.1.1/1.1.2）
 
 step "设置用户名与主机名"
 USERNAME="$(ask '用户名' "$DEFAULT_USERNAME")"
@@ -210,10 +223,34 @@ HOSTNAME="$(ask '主机名' "$DEFAULT_HOSTNAME")"
 [[ "$HOSTNAME" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]*$ ]] ||
   die "主机名不合法：$HOSTNAME（仅允许字母、数字与短横线）"
 
+# 桌面模块名必须是仓库里真实存在的目录，否则生成的 imports 会指向不存在的
+# 路径，重建时在求值阶段报 "path does not exist in Git repository"。
+# 名字写错只需重问，不必中断整个部署流程。
+step "选择桌面模块"
+while :; do
+  DESKTOP="$(ask '桌面模块名' "$DEFAULT_DESKTOP")"
+  if [[ ! "$DESKTOP" =~ ^[a-z0-9][a-z0-9_-]*$ ]]; then
+    echo "桌面模块名不合法：$DESKTOP（仅允许小写字母、数字、下划线与短横线）" >&2
+    continue
+  fi
+  if [ ! -f "modules/desktop/$DESKTOP/system.nix" ]; then
+    echo "modules/desktop/$DESKTOP/system.nix 不存在。可选：$(
+      ls -1d modules/desktop/*/ 2>/dev/null |
+        while read -r d; do [ -f "$d/system.nix" ] && basename "$d"; done | tr '\n' ' '
+    )" >&2
+    continue
+  fi
+  break
+done
+echo "已选择 desktop = \"$DESKTOP\"（实现来自 modules/desktop/$DESKTOP/）"
+
 # ---------------------------------------------------- 3. 创建目录（1.1.3）
 
 step "创建目录"
 mkdir -p "assets/$USERNAME" "user_profiles/$USERNAME" "hosts/$HOSTNAME"
+# 主机专属的桌面配置目录；my.desktopLayer 的一致性由 modules/system/config.nix
+# 的断言保证，此处只需保证 default.nix 存在且导入对应实现。
+mkdir -p "hosts/$HOSTNAME/desktop/$DESKTOP"
 
 # 个人模块目录：模块本身由用户自行编写（旧版 modules/home/user 模板已于
 # a3328c3 移除，不再复制）。这里只保证目录存在，home/default.nix 通过
@@ -273,14 +310,25 @@ else
   STATE_VERSION="$(nixos-version 2>/dev/null | cut -d. -f1-2 || true)"
   STATE_VERSION="${STATE_VERSION:-25.11}"
 
+  # 桌面名用 let 绑定而非 config.my.desktop：imports 的求值早于 config，
+  # 引用 config 会触发 infinite recursion。同一个 let 值同时喂给 my.desktop
+  # 与下面的 import 路径，两者不会脱节（另有一致性断言兜底）。
+  # 注意 ./desktop/\${desktop}/ 里的 \${} 必须转义，否则会被本脚本的
+  # heredoc 提前展开成空串。
   cat > "$HOST_MODULE" << NIXEOF
 { config, hostname, ... }:
+
+let
+  # 本机使用的桌面模块名，对应 ./desktop/<desktop>/。
+  desktop = "$DESKTOP";
+in
 
 {
   # ── 设备身份（本机唯一改动点）────────────────────────────────
   # flake.nix 只枚举 hosts/ 目录名并注入 hostname，其余设备改自己的目录。
   my.username = "$USERNAME";
   my.hostname = hostname;
+  my.desktop = desktop;
   # ───────────────────────────────────────────────────────────
 
   imports = [
@@ -289,12 +337,13 @@ else
     ../../modules/system/i18n.nix
     ../../modules/system/fonts.nix
     ../../modules/system/networking.nix
+    ../../modules/system/keyring.nix
     ../../modules/system/nix.nix
     ../../modules/system/packages.nix
     ../../modules/system/services.nix
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
-    ../../modules/desktop/dms-with-niri/system.nix
+    ./desktop/\${desktop}/default.nix
   ];
 
 $BOOT_LOADER_LINES
@@ -306,6 +355,25 @@ $BOOT_LOADER_LINES
 NIXEOF
 
   echo "已生成 $HOST_MODULE。"
+
+  # 主机专属的桌面层：导入 modules/desktop/<name>/ 的实现。它必须导入对应
+  # 实现模块，否则 my.desktopLayer 无人赋值，一致性断言会在求值阶段报错。
+  DESKTOP_MODULE="hosts/$HOSTNAME/desktop/$DESKTOP/default.nix"
+  if [ -e "$DESKTOP_MODULE" ]; then
+    echo "$DESKTOP_MODULE 已存在，保留原文件不覆盖。"
+  else
+    cat > "$DESKTOP_MODULE" << NIXEOF
+# No host specific configurations needed here at present.
+
+{
+  imports = [
+    ../../../../modules/desktop/$DESKTOP/system.nix
+  ];
+}
+NIXEOF
+    echo "已生成 $DESKTOP_MODULE。"
+  fi
+
   if [ -n "$GRUB_DEVICES" ]; then
     echo "GRUB 安装设备：$GRUB_DEVICES（如与实际引导顺序不符，请修改 $HOST_MODULE）"
   fi

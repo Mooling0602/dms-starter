@@ -1,5 +1,7 @@
 { pkgs, ... }:
 
+# system module, can be imported in host/<hostname> (or any other place?)
+
 {
   # Refers to https://wiki.nixos.org/wiki/OBS_Studio
   programs.obs-studio = {

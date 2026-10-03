@@ -9,3 +9,4 @@ reasonix.toml
 .codex/
 .dsh-vision-toolkit/
 *.todo
+.*.nix

@@ -1,3 +1,5 @@
+# Home-manager user space module, using by user mooling.
+#
 # 请根据实际情况修改，这是木泠的私人配置，不可直接使用。
 
 {

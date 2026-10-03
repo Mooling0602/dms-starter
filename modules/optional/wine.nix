@@ -1,5 +1,7 @@
 { pkgs, ... }:
 
+# system module, can be imported in host/<hostname> (or any other place?)
+
 {
   environment.systemPackages = with pkgs; [
     wineWow64Packages.full

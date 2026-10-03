@@ -1,6 +1,7 @@
 { pkgs, ... }:
 
 # Require a x86_64 host machine, better with a dedicated graphics card
+# system module, can be imported in host/<hostname>
 
 {
   programs.steam = {

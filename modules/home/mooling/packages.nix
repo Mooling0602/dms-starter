@@ -1,5 +1,7 @@
 { pkgs, ... }:
 
+# Home-manager user space module, using by user mooling.
+
 {
   home.packages = with pkgs; [
     btop # System monitor
