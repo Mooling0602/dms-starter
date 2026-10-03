@@ -10,3 +10,5 @@ reasonix.toml
 .dsh-vision-toolkit/
 *.todo
 .*.nix
+./*.patch
+!patches/*
