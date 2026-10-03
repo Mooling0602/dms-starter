@@ -248,8 +248,8 @@ echo "已选择 desktop = \"$DESKTOP\"（实现来自 modules/desktop/$DESKTOP/�
 
 step "创建目录"
 mkdir -p "assets/$USERNAME" "user_profiles/$USERNAME" "hosts/$HOSTNAME"
-# 主机专属的桌面配置目录；my.desktopLayer 的一致性由 modules/system/config.nix
-# 的断言保证，此处只需保证 default.nix 存在且导入对应实现。
+# 主机专属的桌面配置目录；一致性由断言保证，此处只需保证 default.nix
+# 存在且导入对应实现。
 mkdir -p "hosts/$HOSTNAME/desktop/$DESKTOP"
 
 # 个人模块目录：模块本身由用户自行编写（旧版 modules/home/user 模板已于
@@ -357,7 +357,8 @@ NIXEOF
   echo "已生成 $HOST_MODULE。"
 
   # 主机专属的桌面层：导入 modules/desktop/<name>/ 的实现。它必须导入对应
-  # 实现模块，否则 my.desktopLayer 无人赋值，一致性断言会在求值阶段报错。
+  # 实现模块：实现模块才是断言 `my.desktop == 自身目录名` 的主体，漏导入时
+  # 该断言不存在，只剩 modules/system/config.nix 的兜底断言在求值阶段报错。
   DESKTOP_MODULE="hosts/$HOSTNAME/desktop/$DESKTOP/default.nix"
   if [ -e "$DESKTOP_MODULE" ]; then
     echo "$DESKTOP_MODULE 已存在，保留原文件不覆盖。"

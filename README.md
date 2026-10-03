@@ -47,7 +47,9 @@ in
 - `assets/<username>/` - 个人资源（头像等）
 - `user_profiles/<username>/` - 运行时配置快照（见「运行时配置备份」）
 
-`modules/home/default.nix` 会从 `modules/home/<username>/` 导入 `default.nix`、`git.nix`、`packages.nix`、`avatar.nix`（均非必需），以及 `hosts/<hostname>/users/<username>.nix`。桌面无关的通用模块来自 `modules/home/defaults/`，可按需在 `modules/home/<username>/` 中引用的共享模块放在 `modules/optional/`（如 `screen-recorder.nix`、`kde-connect.nix`）。
+`modules/home/default.nix` 只负责**桌面无关**的用户配置：从 `modules/home/<username>/` 导入 `default.nix`、`git.nix`、`packages.nix`、`avatar.nix`（均非必需），加上 `hosts/<hostname>/users/<username>.nix` 与 `modules/home/defaults/` 下的通用模块。可按需在 `modules/home/<username>/` 中引用的共享模块放在 `modules/optional/`（如 `screen-recorder.nix`、`kde-connect.nix`）。
+
+桌面专属的 Home Manager 配置**不在这里**：由当前桌面层通过 `home-manager.sharedModules` 挂载（见下节），因此未选中的桌面不会污染用户环境。
 
 新增设备只需新建一个 `hosts/<hostname>/default.nix`，**无需改动 `flake.nix`**（注意 git flake 只打包已跟踪文件，新目录要先 `git add`）。
 
@@ -62,8 +64,16 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导
 ```
 
 - **切换桌面**：只改 `hosts/<hostname>/default.nix` 顶部的 `let desktop = "..."`，它同时决定 `my.desktop` 的值与 `imports` 的路径。
-- **一致性校验**：`modules/system/config.nix` 断言 `my.desktop` 与实际加载的桌面实现一致。若 `hosts/<hostname>/desktop/<name>/default.nix` 忘了导入 `modules/desktop/<name>/system.nix`，求值阶段就会报错并指出缺失文件。
-- `my.desktopLayer` 由桌面实现自报家门，仅用于上述断言，无需手工维护。
+- **一致性校验（由实现模块直接断言）**：`modules/desktop/<name>/system.nix` 断言 `my.desktop` 等于 `baseNameOf ./.`，即「声明要用的桌面」必须等于「本实现实际所在的目录名」。桌面名无需手工维护，重命名实现目录后断言自动跟随；声明与实际不符（例如声明 `kde-plasma` 却导入了 `dms-with-niri` 的实现）会在求值阶段报错。
+- **兜底校验**：`modules/system/config.nix` 断言至少有一个实现被加载。若 `hosts/<hostname>/desktop/<name>/default.nix` 忘了导入 `modules/desktop/<name>/system.nix`（或路径写错被 `optionalImports` 静默跳过），此时实现模块不存在、它自己的断言也不会执行，只能由这条兜底。
+
+### 桌面专属的 Home Manager 配置
+
+桌面实现层（`modules/desktop/<name>/system.nix`）通过 `home-manager.sharedModules` 把自己专属的 Home Manager 模块挂进用户环境，例如 `dms-with-niri` 会挂上 `./default.nix`（`dms-with-niri` 的 HM 层）以及上游 `inputs.dms` / `inputs.danksearch` / `inputs.dankcalendar` 的模块。
+
+**这是刻意的设计约束**：`flake.nix` 的 `home-manager.users.<name>.imports` 只放桌面无关的模块（`./modules/home`、`nvchad`、`codex-desktop`）。任何 DMS 生态的模块若写在那里，切换桌面后仍会生效——曾经因此出现过「切到 KDE 后 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 依旧存在」的问题。同理，桌面专属的 `home.activation` 步骤（如 `restoreDesktopConfig`）也必须放在桌面层内。
+
+系统层模块通过 `specialArgs` 拿到 `inputs`，因此可以直接引用自己桌面所需的 input，无需在 `flake.nix` 里为它额外加 overlay 或 `extraSpecialArgs`。
 
 > `imports` 的求值早于 `config`，因此**不能**写成 `imports = [ ./desktop/${config.my.desktop}/... ]`（会无限递归）；必须使用 `let` 绑定的局部变量。
 
@@ -179,7 +189,7 @@ sudo howdy remove mooling
 - `snapshot.sh` 直接覆盖仓库快照中有变化的文件，不做二次确认。
 - `apply.sh` 默认在已有 DMS/Niri 配置时要求二次确认；`-f` 或 `--force` 可跳过确认。
 - 两者位于各用户的 `user_profiles/<username>/desktop-config/` 下，`scripts/backup.sh` 负责按用户分发调用。
-- `modules/home/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。
+- `modules/desktop/dms-with-niri/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。它随 DMS 桌面层加载，切到其他桌面时该激活步骤不会执行。
 - 当前 DMS 快照只保留 `settings.json` 和插件 `.meta`，不提交 `plugin_settings.json`、浏览器 CSS、插件仓库缓存等易变或可能含设备标识的文件。
 
 ## 参考

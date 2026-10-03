@@ -39,7 +39,9 @@
 
 7. **用户名和主机名参数化（身份下沉到主机目录）** - `flake.nix` 只枚举 `hosts/` 下的主机目录（目录名即主机名）并通过 `specialArgs` 注入 `hostname`，`nixosConfigurations` 由 `lib.genAttrs` 生成；设备身份写在各自 `hosts/<host>/default.nix` 顶部的 `my.username` / `my.hostname`，多设备共用仓库时不会互相冲突。`modules/system/users.nix`、`hosts/*/nix-builder.nix`、`modules/home/default.nix` 均通过 `${hostname}`（specialArgs）或 `${config.my.username}`（系统模块）引用，`flake.nix` 内不得出现具体用户名或主机名字符串。
 
-8. **桌面模块分三层，切换靠 `let` 绑定** - `hosts/<host>/default.nix` 顶部的 `let desktop = "<name>";` 同时决定 `my.desktop` 的值与 `imports` 中 `./desktop/${desktop}/default.nix` 的路径；该目录再导入 `modules/desktop/<name>/` 下的实现（系统层 `system.nix` + Home Manager 层 `default.nix`）。**必须用 `let` 而非 `config.my.desktop`**：`imports` 求值早于 `config`，引用 `config` 会导致无限递归。`modules/system/config.nix` 断言 `my.desktop` 与实际加载的实现一致（实现模块自报 `my.desktopLayer`），声明与实际不符时在求值阶段即报错。
+8. **桌面模块分三层，切换靠 `let` 绑定** - `hosts/<host>/default.nix` 顶部的 `let desktop = "<name>";` 同时决定 `my.desktop` 的值与 `imports` 中 `./desktop/${desktop}/default.nix` 的路径；该目录再导入 `modules/desktop/<name>/` 下的实现（系统层 `system.nix` + Home Manager 层 `default.nix`）。**必须用 `let` 而非 `config.my.desktop`**：`imports` 求值早于 `config`，引用 `config` 会导致无限递归。一致性校验由**实现模块自己直接断言**：`modules/desktop/<name>/system.nix` 断言 `config.my.desktop == baseNameOf ./.`（即实现所在目录名），两侧来源独立（一处是 host 文件手写的 `let` 绑定，一处是文件实际所在目录），因此在任何主机上都通用，且重命名实现目录后自动跟随、无需手工同步。另由 `modules/system/config.nix` 用 `my.desktopImplementationLoaded` 兜底断言「至少加载了一个实现」，覆盖漏导入实现时连实现侧断言都不存在的情况。
+
+9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载** - 桌面无关的 HM 模块才放在 `flake.nix` 的 `home-manager.users.<name>.imports` 里。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `flake.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `flake.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
 ## Niri 配置文件管理
 

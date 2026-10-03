@@ -87,7 +87,10 @@
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames (hostname: nixpkgs.lib.nixosSystem {
         # 注入目录名，hosts/<host>/default.nix 直接用它填 my.hostname。
-        specialArgs = { inherit hostname; };
+        # inputs 一并注入：桌面实现层（modules/desktop/<name>/system.nix）需要它
+        # 把自己专属的 Home Manager 模块挂进用户环境，这样 flake.nix 里就不必
+        # 出现任何按桌面名判断的分支。
+        specialArgs = { inherit hostname inputs; };
         modules = [
           ./hosts/${hostname}
           home-manager.nixosModules.home-manager
@@ -99,7 +102,7 @@
               ];
             }
           )
-          ({ pkgs, config, ... }:
+          ({ config, ... }:
           {
             # my.username / my.hostname 由 ./hosts/${hostname}/default.nix 提供。
             nixpkgs.overlays = [
@@ -165,7 +168,6 @@
                 ];
               })
               (final: prev: {
-                dmsPackage = inputs.dms.packages.${final.stdenv.hostPlatform.system}.default;
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
                 pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
@@ -234,15 +236,16 @@
             home-manager.users.${config.my.username} =
               { ... }:
               {
+                # 这里只放桌面无关的模块。DMS 生态的 Home Manager 模块
+                # （dank-material-shell / dsearch / dank-calendar）由当前桌面层
+                # 自己导入，见 modules/desktop/dms-with-niri/default.nix——
+                # 否则切到 KDE 后 dms-shell、dsearch、dankcalendar 乃至
+                # fcitx5-dms-theme-sync 仍会进入用户环境。
                 imports = [
                   ./modules/home
-                  inputs.dms.homeModules.dank-material-shell
-                  inputs.danksearch.homeModules.dsearch
-                  inputs.dankcalendar.homeModules.dank-calendar
                   inputs.nix4nvchad.homeManagerModules.default
                   inputs.codex-desktop.homeManagerModules.default
                 ];
-                programs.dsearch.enable = true;
                 # api-key-model-visibility：在模型选择器中显示 API-key 提供商
                 # （见 ~/.codex/config.toml 的 model_providers，如 B.AI 的 GLM）返回的模型
                 programs.codexDesktopLinux = {
@@ -253,7 +256,6 @@
             home-manager.extraSpecialArgs = inputs // {
               inherit hostname;
               username = config.my.username;
-              dmsPackage = pkgs.dmsPackage;
             };
           })
         ];

@@ -1,7 +1,14 @@
 { lib, pkgs, username, ... }:
 
+# Home-manager module, has been imported in dms-with-niri.
+#
+# DMS / Niri 的运行时配置不进行声明式管理（见 AGENTS.md 关键设计决策 1），
+# 这里只在配置整体丢失时从 user_profiles/ 的快照恢复。因此本模块只在
+# dms-with-niri 桌面下有意义，随该桌面层一起加载。
+
 let
-  sourceRoot = ../..;
+  # modules/desktop/dms-with-niri/ → 仓库根
+  sourceRoot = ../../..;
 in
 {
   home.activation.restoreDesktopConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
