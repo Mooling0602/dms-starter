@@ -171,6 +171,33 @@
 
 ## 配置例外与兼容层
 
+### Chrome 在 KDE 下改用 libsecret 密钥后端
+
+- **位置：** `modules/home/mooling/packages.nix` 的 `google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; }`。
+- **影响：** Chrome/Chromium 在 Linux 上**按桌面环境自动挑选加密后端**。`FreedesktopSecretKeyProvider::GetKey()` 用 `--password-store` 的值分支，未给定时才调 `base::nix::GetDesktopEnvironment()`：`KDE`（配合 `KDE_SESSION_VERSION=6`）走 `org.kde.kwalletd6` 的 `Chrome Keys/Chrome Safe Storage`，而 niri 不匹配任何枚举、落进 `DESKTOP_ENVIRONMENT_OTHER`，走 `org.freedesktop.secrets`（gnome-keyring）的 `Chrome Safe Storage`（`freedesktop_secret_key_provider.cc:206-247`、`base/nix/xdg_util.cc:94-149`）。
+
+  两个后端**各自独立随机生成 16 字节密钥**（读不到就在各自的库里新造一把），但派生算法与数据前缀完全相同（PBKDF2-HMAC-SHA1 迭代 1 次、salt `saltysalt`、AES-128-CBC、tag `v11`）。于是「换桌面」不会覆写数据，只是同一份 profile 去读另一把钥匙：令牌解不开（`token_service_table.cc` 报 `Failed to decrypt token for service AccountId-…`），Chrome 要求重新登录；切回原桌面又能解开，因为失败路径只返回 `std::nullopt`、不写回。本机实测 47 个 cookie 由 KWallet 那把解开、340 条 `Login Data` 与 `AccountId-…` 令牌由 gnome-keyring 那把解开，两把互不可解。
+
+  钉死 `gnome-libsecret` 后两个桌面共用同一把钥匙。前提在该仓库已具备：`modules/system/keyring.nix` 在所有桌面层下都 `services.gnome.gnome-keyring.enable = true`，并把 `org.freedesktop.impl.portal.Secret` 指向 gnome-keyring。
+- **为何不用其他值：** `basic` 会让 `v11` 数据（含全部已存密码）**永久不可解**，不可用；`kwallet6` 反向固定也可行，但那样 niri 一侧必须自行保证 KWallet 可达。另外 `gnome` / `gnome-keyring` 这两个值**当前代码已不再识别**（会打印 `Unknown password store:` 后回退自动探测），必须写 `gnome-libsecret`。
+- **上游：** Chromium 按设计如此，非缺陷：[`docs/linux/password_storage.md`](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/password_storage.md)（"Chromium chooses which store to use automatically, based on your desktop environment."）；下游同类报告 [brave#12088](https://github.com/brave/brave-browser/issues/12088)（`wontfix`）、[KDE bug 489493](https://bugs.kde.org/show_bug.cgi?id=489493)（与本文症状一致）。上游正在推进 portal 后端（`kDbusSecretPortal` 已默认开启）以取代这两个后端，但 `kSecretPortalKeyProviderUseForEncryption` 至今仍默认关闭，portal 密钥只用于解密、不参与加密，**因此不能靠它绕过本问题**。
+- **移除条件：** 上游让 Chromium 在 Linux 上不再按桌面环境切换后端（例如 portal 后端全面接管并统一密钥来源），或 nixpkgs 的原生 `google-chrome` 包装已自带等效的固定参数。
+- **复查方法：** 在 KDE 会话下确认 Chrome 实际走的是 libsecret。临时 profile 复现（不改动真实 profile）：
+
+  ```fish
+  # 应输出 tokens=1 / fails=0；去掉 --password-store 则退化为 tokens=0 / fails=1
+  env -u DESKTOP_SESSION -u KDE_FULL_SESSION -u KDE_SESSION_VERSION XDG_CURRENT_DESKTOP=KDE \
+    google-chrome --user-data-dir=/tmp/probe --no-first-run \
+    --enable-logging=stderr --v=1 --headless=new about:blank 2>&1 \
+    | grep -E 'number of tokens loaded|Failed to decrypt token'
+  ```
+
+  注意 `GetDesktopEnvironment()` 会读 `DESKTOP_SESSION`、`KDE_FULL_SESSION`、`KDE_SESSION_VERSION` 与 `GNOME_DESKTOP_SESSION_ID`，只改 `XDG_CURRENT_DESKTOP` 复现不出 KDE 分支——必须像上面那样先清掉它们。确认包装器已注入参数：
+
+  ```fish
+  grep -o -- '--password-store=[a-z0-9-]*' (readlink -f (command -v google-chrome))
+  ```
+
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
 
 - **位置：** `flake.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
