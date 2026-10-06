@@ -1,7 +1,8 @@
 { ... }:
 
 {
-  # 主机专属：smartd 依赖物理磁盘的 SMART 能力，虚拟机等设备不应默认启用。
+  # Host specific: smartd needs real SMART capable disks, so virtual machines
+  # and other incompatible devices should not enable it by default.
   services.smartd = {
     enable = true;
     autodetect = true;
@@ -18,8 +19,9 @@
     defaults.monitored = "-a -s (S/../.././02|L/../../7/04) -W 2,65,75";
   };
 
-  # `wall` 不能关：NixOS smartd 模块只有在 mail/wall/x11 至少启用其一，才会
-  # 生成 `-m <nomailer> -M exec`，关闭全部会连带丢掉 systembus-notify。
+  # `wall` must stay enabled: the NixOS smartd module emits the
+  # `-m <nomailer> -M exec` hook only when mail, wall or x11 is enabled, so
+  # disabling all three would silently drop systembus-notify too.
   systemd.services.smartd.serviceConfig.StateDirectory = "smartmontools";
   services.smartd.extraOptions = [
     "--savestates=/var/lib/smartmontools/smartd."

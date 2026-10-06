@@ -4,9 +4,10 @@ let
   optionalImports = import ../../utils/optional_import.nix;
 in
 {
-  # 桌面相关模块不在这里导入：Home Manager 层的桌面实现由当前桌面层通过
-  # home-manager.sharedModules 挂进来（见 modules/desktop/<name>/system.nix）。
-  # 这里只保留与桌面无关的通用配置。
+  # Desktop-specific modules are not imported here: the active desktop layer
+  # pulls in its Home Manager implementation via home-manager.sharedModules
+  # (see modules/desktop/<name>/system.nix). Only desktop-independent
+  # configuration lives here.
   imports = optionalImports [
     ./defaults/packages.nix
     ./defaults/theme.nix

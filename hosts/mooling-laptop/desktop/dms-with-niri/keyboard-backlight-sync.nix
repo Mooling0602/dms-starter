@@ -2,16 +2,18 @@
 
 # system module for host mooling-laptop
 #
-# Firebat T5K 的 DMS 键盘 RGB 同步。
+# DMS keyboard RGB sync for the Firebat T5K.
 #
-# DMS 在 ~/.local/share/color-schemes/DankMatugen.colors 写入动态调色板；这里监听
-# 该文件，把 Colors:Selection/BackgroundNormal 写进内核 LED 接口
-# rgb:kbd_backlight/multi_intensity。只更新 RGB，不碰亮度（用户的键盘背光档位是
-# 独立的），也不依赖 TUXEDO Control Center。
+# DMS writes a dynamic palette to
+# ~/.local/share/color-schemes/DankMatugen.colors. This watches that file and
+# writes Colors:Selection/BackgroundNormal into the kernel LED interface at
+# rgb:kbd_backlight/multi_intensity. It updates RGB only, leaving brightness
+# alone because the keyboard backlight level is a separate user setting, and it
+# does not depend on TUXEDO Control Center.
 #
-# 硬件相关：依赖 tuxedo-drivers 暴露的 Clevo 键盘协议与 tuxedo_keyboard/clevo_acpi
-# 内核模块，两者在 hosts/<host>/default.nix 中启用。详见 MAINTENANCE.md
-# 「Firebat T5K 的 DMS 键盘 RGB 同步」。
+# Hardware specific: relies on the Clevo keyboard protocol exposed by
+# tuxedo-drivers and the tuxedo_keyboard/clevo_acpi kernel modules, both enabled
+# in hosts/<host>/default.nix. See MAINTENANCE.md.
 
 let
   dmsKeyboardBacklightSync = pkgs.writeShellScript "dms-keyboard-backlight-sync" ''

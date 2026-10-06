@@ -13,17 +13,19 @@
         ];
         "org.freedesktop.impl.portal.FileChooser" = [ "kde" ];
         "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        # ScreenCast/Screenshot/RemoteDesktop 必须走 gnome 后端：
-        # kde 后端依赖 KWin DBus 接口，niri 会话下不存在；
-        # niri 实现 org.gnome.Mutter.ScreenCast，与 gnome portal 配套（niri NixOS 模块已自动安装）。
+        # ScreenCast/Screenshot/RemoteDesktop must use the gnome backend: the
+        # kde backend needs KWin DBus interfaces, which do not exist in a niri
+        # session. niri implements org.gnome.Mutter.ScreenCast, matching the
+        # gnome portal (installed automatically by the niri NixOS module).
         "org.freedesktop.impl.portal.ScreenCast" = [ "gnome" ];
         "org.freedesktop.impl.portal.Screenshot" = [ "gnome" ];
         "org.freedesktop.impl.portal.RemoteDesktop" = [ "gnome" ];
-        # 键鼠共享（Deskflow / Synergy 3 / Input Leap 作为 server）需要 InputCapture
-        # 后端，niri 自身未实现（niri#823 仍 open），由 nix-packages 的
-        # niri-input-portal 提供。Clipboard 必须一并路由：剪贴板门户会挂到
-        # InputCapture 建立的会话上，落到别的后端会让客户端陷入 create/destroy
-        # 死循环（详见 MAINTENANCE.md）。
+        # Keyboard/mouse sharing (Deskflow / Synergy 3 / Input Leap as the
+        # server) needs an InputCapture backend, which niri itself does not
+        # implement (niri#823 is still open); nix-packages' niri-input-portal
+        # provides it. Clipboard must be routed along: the clipboard portal
+        # attaches to the session created by InputCapture, and another backend
+        # would trap clients in a create/destroy loop (see MAINTENANCE.md).
         "org.freedesktop.impl.portal.InputCapture" = [ "niri-input" ];
         "org.freedesktop.impl.portal.Clipboard" = [ "niri-input" ];
       };
@@ -48,11 +50,13 @@
     ];
   };
 
-  # InputCapture 后端的 D-Bus 激活单元。包内的 service 文件引用了
-  # SystemdService=niri-input-portal.service，因此必须有同名单元存在；这里显式
-  # 声明以去掉上游的 ConditionEnvironment=WAYLAND_DISPLAY（条件不成立时 systemd
-  # 会静默跳过该单元，D-Bus 只报服务名不可激活）。单元由 D-Bus 按需启动，因此
-  # 不 enable，也不挂到任何 target 上。
+  # D-Bus activation unit for the InputCapture backend. The service file in the
+  # package references SystemdService=niri-input-portal.service, so a unit of
+  # that name must exist; it is declared explicitly here to drop the upstream
+  # ConditionEnvironment=WAYLAND_DISPLAY (when the condition is false systemd
+  # silently skips the unit and D-Bus only reports the name as not activatable).
+  # D-Bus starts the unit on demand, so it is not enabled and not attached to
+  # any target.
   systemd.user.services.niri-input-portal = {
     Unit = {
       Description = "InputCapture portal backend for niri";

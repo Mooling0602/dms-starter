@@ -5,9 +5,10 @@
 let
   optionalImports = import ../../../utils/optional_import.nix;
 
-  # 本实现的桌面名，从本文件实际所在的目录名推导（modules/desktop/<name>/）。
-  # 不手写字符串，因此目录被重命名时断言会自动跟着变，不会和目录名漂移。
-  # 用裸 baseNameOf：它在 Nix prelude 中（与 builtins.baseNameOf 等价）。
+  # This implementation's desktop name, derived from this file's own directory
+  # (modules/desktop/<name>/). Not hardcoded, so the assertion follows a rename
+  # instead of drifting from the directory name. Bare baseNameOf is used because
+  # it is in the Nix prelude (equivalent to builtins.baseNameOf).
   desktopName = baseNameOf ./.;
 in
 {
@@ -15,14 +16,16 @@ in
     ./keyring.nix
   ];
 
-  # 供 modules/system/config.nix 的兜底断言使用：只有本模块存在时才会置位。
-  # 「桌面层导入了、imports 里却漏掉实现」时它保持 false，由那边报错。
+  # Used by the fallback assertion in modules/system/config.nix: only set when
+  # this module is present. Stays false when the desktop layer is imported but
+  # the implementation is missing from `imports`, and that side reports it.
   my.desktopImplementationLoaded = true;
 
-  # 本模块直接断言自己就是 my.desktop 声明的那个桌面。对比的两侧来自独立
-  # 来源——my.desktop 是 hosts/<host>/default.nix 顶部手写的 let 绑定，
-  # desktopName 是本文件实际所在的目录名——所以「声明了 A、实际加载了 B」
-  # 这种半对半错会在求值阶段被捕获（曾经在 kde-plasma 上发生过）。
+  # This module asserts that it is the desktop declared by my.desktop. The two
+  # sides come from independent sources: my.desktop is the let binding written
+  # by hand at the top of hosts/<host>/default.nix, desktopName is this file's
+  # own directory name. The half-wrong case (declared A, loaded B) is therefore
+  # caught at evaluation time (this did happen on kde-plasma).
   assertions = [
     {
       assertion = config.my.desktop == desktopName;

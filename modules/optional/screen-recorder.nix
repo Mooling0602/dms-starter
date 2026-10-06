@@ -12,14 +12,16 @@
     wlr-randr
   ];
 
-  # 选区录屏开关脚本（gpu-screen-recorder + slurp）。
-  # 由 ~/.config/niri/config.kdl 的 Mod+Alt+G 绑定调用：
-  # 首次按下 slurp 选区并开始录制，再次按下 SIGINT 停止并落盘。
-  # 不声明式管理 niri 配置本身（见 AGENTS.md 关键设计决策 1）。
+  # Region-recording toggle script (gpu-screen-recorder + slurp).
+  # Invoked from the Mod+Alt+G binding in ~/.config/niri/config.kdl:
+  # the first press selects a region with slurp and starts recording, the next
+  # sends SIGINT to stop and flush the file.
+  # niri's own config is intentionally not managed declaratively (see key
+  # design decision 1 in AGENTS.md).
   home.file.".local/bin/region-record" = {
     text = ''
       #!/usr/bin/env bash
-      # 选区录屏开关：Win+Alt+G
+      # Region recording toggle: Win+Alt+G
       set -euo pipefail
       PIDFILE="/run/user/$UID/region-record.pid"
       DIR="$HOME/Videos/ScreenrnRecords"
@@ -33,7 +35,7 @@
       fi
       rm -f "$PIDFILE"
 
-      # slurp 输出 "X,Y WxH" → gpu-screen-recorder 的 "WxH+X+Y"
+      # slurp prints "X,Y WxH" -> gpu-screen-recorder wants "WxH+X+Y"
       GEOM="$(slurp)" || exit 0
       [[ -n "$GEOM" ]] || exit 0
       REGION="$(printf '%s\n' "$GEOM" | awk -F'[, x+]+' '{print $3"x"$4"+"$1"+"$2}')"

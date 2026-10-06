@@ -70,8 +70,9 @@
 
     # system call monitoring
     strace
-    # ltrace 0.7.91 的 demangle 测试在 GCC 16 下触发 -Wvolatile，而测试框架
-    # 把任何编译器输出都当作编译失败；见 MAINTENANCE.md。
+    # ltrace 0.7.91's demangle test trips -Wvolatile under GCC 16, and the test
+    # framework treats any compiler output as a build failure; see
+    # MAINTENANCE.md.
     (ltrace.overrideAttrs (old: {
       postPatch = (old.postPatch or "") + ''
         sed -i 's/^volatile int Fv_Vi/int Fv_Vi/' testsuite/ltrace.minor/demangle-lib.cpp

@@ -18,31 +18,35 @@
     kdePackages.discover # KDE software store (Flatpak)
     kdePackages.systemsettings # KDE System Settings
     kdePackages.ark # Zipped file explorer
-    kdePackages.ksshaskpass # Used by https://github.com/Mooling0602/mooling-skills/blob/main/request_sudo.md
+    # Used by Mooling0602/mooling-skills (request_sudo.md).
+    kdePackages.ksshaskpass
     kdePackages.plasma-browser-integration # Seems useless, but just keep it
     kdePackages.gwenview # KDE Image viewer
     kdePackages.filelight # KDE storage size analyzer
 
-    qq # 腾讯QQ
-    # QQ 的 Wayland 修复启动器，从应用菜单的「QQ（Wayland修复版）」进入；
-    # 原生 qq 入口保留作对照。包由 flake.nix 的 overlay 提供。
+    qq # Tencent QQ
+    # Wayland-fixed QQ launcher, reachable as "QQ (Wayland fix)" in the app
+    # menu; the plain qq entry stays for comparison. The package comes from an
+    # overlay in flake.nix.
     linuxqq-wayland-fix
-    wechat # 微信
+    wechat # WeChat
     telegram-desktop # Chat social media
     discord # Gaming social media
     element-desktop # Chat client in Matrix protocol
     # Best browser from Google.
-    # Chrome 在 Linux 上按 XDG_CURRENT_DESKTOP 自动挑选密钥后端：KDE 走
-    # KWallet 的「Chrome Keys/Chrome Safe Storage」，其他（niri 落进
-    # DESKTOP_ENVIRONMENT_OTHER）走 libsecret 的「Chrome Safe Storage」。
-    # 两个后端各自独立随机生成密钥，且都用同一个 v11 前缀，因此换桌面后
-    # 同一份 profile 会去读另一把钥匙，账户令牌解不开、要求重新登录。
-    # 钉死 libsecret 后两个桌面共用同一把钥匙（gnome-keyring 由
-    # modules/system/keyring.nix 在所有桌面下启动）。见 MAINTENANCE.md。
+    # On Linux Chrome picks its keyring backend from XDG_CURRENT_DESKTOP: KDE
+    # goes to KWallet's "Chrome Keys/Chrome Safe Storage", everything else
+    # (niri falls into DESKTOP_ENVIRONMENT_OTHER) goes to libsecret's "Chrome
+    # Safe Storage". The two backends generate independent random keys yet both
+    # use the v11 prefix, so after switching desktops the same profile reads
+    # the other key, cannot decrypt account tokens and asks for a re-login.
+    # Pinning libsecret makes both desktops share one key (gnome-keyring is
+    # started on every desktop by modules/system/keyring.nix). See
+    # MAINTENANCE.md.
     (google-chrome.override {
       commandLineArgs = "--password-store=gnome-libsecret";
     })
-    bilibili # 哔哩哔哩视频平台
+    bilibili # Bilibili video platform
     haruna # video player
     axolotl-launcher-bin # Minecraft Launcher
     pebble-mail # Email client

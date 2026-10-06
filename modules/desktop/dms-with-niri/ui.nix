@@ -39,8 +39,9 @@
   # value below is authoritative because settings.ini loads too late.
   gtk = {
     enable = true;
-    # Chrome/Electron 的 UI 字体经 GTK/portal 读取 font-name；不设置时
-    # 默认 "Adwaita Sans"，fontconfig 泛匹配落到 Noto Sans CJK KR。
+    # Chrome/Electron read font-name through GTK/portal. Without this setting
+    # the default "Adwaita Sans" makes fontconfig's generic match land on
+    # Noto Sans CJK KR.
     font = {
       package = pkgs.sarasa-gothic;
       name = "Sarasa UI SC";

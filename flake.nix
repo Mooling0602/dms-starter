@@ -56,13 +56,13 @@
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # ChatGPT Community（codex-desktop）：OpenAI 官方 Linux ChatGPT 桌面应用的
-    # 社区重打包（签名校验后的官方 .deb），经 homeManagerModules 集成。
+    # ChatGPT Community (codex-desktop): community repack of the official
+    # Linux .deb, integrated through homeManagerModules.
     codex-desktop = {
       url = "github:ilysenko/codex-desktop-linux";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # QQ 在 Wayland 下的屏幕共享 / 截图 / 剪贴板修复（上游自带 flake 与 NixOS 模块）。
+    # QQ Wayland fixes: screen sharing, screenshots and clipboard.
     linuxqq-wayland-fix = {
       url = "github:SHORiN-KiWATA/linuxqq-wayland-fix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -77,8 +77,9 @@
       ...
     }:
     let
-      # 只枚举 hosts/ 下的主机目录：目录名即主机名，设备身份由各主机自己的
-      # hosts/<host>/default.nix 提供。新增设备只需新建目录，不必改本文件。
+      # Enumerate only directories under hosts/: the directory name is the
+      # hostname, and device identity lives in each hosts/<host>/default.nix.
+      # Adding a device means adding a directory, not editing this file.
       entries = builtins.readDir ./hosts;
       hostNames = builtins.filter (
         name: entries.${name} == "directory" && builtins.pathExists ./hosts/${name}/default.nix
@@ -86,10 +87,10 @@
     in
     {
       nixosConfigurations = nixpkgs.lib.genAttrs hostNames (hostname: nixpkgs.lib.nixosSystem {
-        # 注入目录名，hosts/<host>/default.nix 直接用它填 my.hostname。
-        # inputs 一并注入：桌面实现层（modules/desktop/<name>/system.nix）需要它
-        # 把自己专属的 Home Manager 模块挂进用户环境，这样 flake.nix 里就不必
-        # 出现任何按桌面名判断的分支。
+        # Inject the directory name; hosts/<host>/default.nix uses it as
+        # my.hostname. inputs is injected too, so desktop implementations
+        # (modules/desktop/<name>/system.nix) can mount their own Home Manager
+        # modules without any desktop-specific branch in this file.
         specialArgs = { inherit hostname inputs; };
         modules = [
           ./hosts/${hostname}
@@ -104,7 +105,7 @@
           )
           ({ config, ... }:
           {
-            # my.username / my.hostname 由 ./hosts/${hostname}/default.nix 提供。
+            # my.username / my.hostname come from ./hosts/${hostname}/default.nix.
             nixpkgs.overlays = [
               inputs.aagl.overlays.default
               (final: prev: {
@@ -127,7 +128,7 @@
                 };
               })
               (final: prev: {
-                # 跟随 niri 输入锁定的 unstable 构建，比 nixpkgs 收录的版本更新。
+                # Newer than the nixpkgs build; tracks the revision pinned by niri.
                 xwayland-satellite = inputs.niri.packages.${final.stdenv.hostPlatform.system}.xwayland-satellite-unstable;
               })
               (final: prev: {
@@ -136,12 +137,16 @@
                     click-threading = python-prev.click-threading.overridePythonAttrs (oldAttrs: {
                       disabledTestPaths = (oldAttrs.disabledTestPaths or [ ]) ++ [ "docs/conf.py" ];
                     });
-                    # dlib 20.0.1 有两处回归，均在此覆盖，上游适配后移除（见 MAINTENANCE.md）：
-                    #  1) num_available_cpu_cores() 移到模块顶层，nixpkgs 自带 build-cores.patch
-                    #     按旧位置书写导致 Hunk 失配 -- 用匹配新源码的补丁替换。
-                    #  2) CMakeBuild 不再注册 --set 为 distutils option，nixpkgs 默认 preConfigure
-                    #     用 "--set" 传 CMake flags 会报 "option --set not recognized"；
-                    #     dlib 20.0.1 改为读取 DLIB_* 环境变量，故据其重写 preConfigure。
+                    # dlib 20.0.1 has two regressions, both overridden here.
+                    # Remove once upstream catches up (see MAINTENANCE.md):
+                    #  1) num_available_cpu_cores() moved to module scope, so
+                    #     nixpkgs' build-cores.patch no longer applies; replaced
+                    #     with a patch matching the new layout.
+                    #  2) CMakeBuild no longer accepts --set as a distutils
+                    #     option, so nixpkgs' default preConfigure fails with
+                    #     "option --set not recognized". dlib 20.0.1 reads
+                    #     DLIB_* environment variables instead, hence the
+                    #     preConfigure rewrite below.
                     dlib = python-prev.dlib.overrideAttrs (oldAttrs: {
                       patches = [
                         ./patches/dlib-build-cores.patch
@@ -152,11 +157,12 @@
                             keyval=''${flag#-D}
                             key=''${keyval%%=*}
                             val=''${keyval#*=}
-                            key=''${key%:*}   # 去掉 CMake 类型后缀（-DVAR:TYPE=VALUE -> VAR）
-                            # dlib 20.0.1 仅从以 DLIB_ 开头的环境变量读取 CMake 选项，
-                            # 且把变量名原样作为 CMake 变量（不剥前缀）。只导出本就
-                            # 以 DLIB_ 开头的 flag（如 DLIB_USE_CUDA）；BUILD_SHARED_LIBS、
-                            # USE_SSE/AVX 等其余项由 dlib 默认决定。
+                            # Strip the CMake type suffix: -DVAR:TYPE=VALUE yields VAR.
+                            key=''${key%:*}
+                            # dlib 20.0.1 reads CMake options only from variables
+                            # prefixed DLIB_, using the name verbatim. Export just
+                            # those flags (e.g. DLIB_USE_CUDA); BUILD_SHARED_LIBS
+                            # and USE_SSE/AVX keep dlib's own defaults.
                             if [[ "$key" == DLIB_* ]]; then
                               export "$key=$val"
                             fi
@@ -171,7 +177,8 @@
                 codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
                 pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
                 reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
-                # Mooling0602/nix-packages 中 dsh 的包名是 deepseek-harness（产出的二进制为 dsh）。
+                # The package is named deepseek-harness in Mooling0602/nix-packages;
+                # the binary it produces is dsh.
                 dsh = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.deepseek-harness-git;
                 dsh-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.deepseek-harness-desktop;
                 reasonix-desktop = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.reasonix-desktop;
@@ -184,11 +191,11 @@
                 niri-input-portal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.niri-input-portal;
                 startlive = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.startlive;
                 zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
-                # QQ 的 Wayland 修复启动器（屏幕共享 / 截图 / 剪贴板）。只经
-                # modules/home/mooling/packages.nix 装进用户环境，不导入上游的
-                # nixosModules——那个模块会把修复包与 pkgs.qq 一并塞进
-                # environment.systemPackages。qqPackage 显式指向同一个 pkgs.qq，
-                # 让启动器写死 QQ 路径，--doctor 也能自检 QQ 内部实现。
+                # QQ Wayland fix launcher, installed into the user environment
+                # by modules/home/mooling/packages.nix. Upstream's nixosModules
+                # is not imported: it would also add the package and pkgs.qq to
+                # environment.systemPackages. qqPackage pins the launcher to the
+                # same pkgs.qq so its --doctor check works.
                 linuxqq-wayland-fix = inputs.linuxqq-wayland-fix.packages.${final.stdenv.hostPlatform.system}.default.override {
                   qqPackage = final.qq;
                 };
@@ -244,18 +251,19 @@
             home-manager.users.${config.my.username} =
               { ... }:
               {
-                # 这里只放桌面无关的模块。DMS 生态的 Home Manager 模块
-                # （dank-material-shell / dsearch / dank-calendar）由当前桌面层
-                # 自己导入，见 modules/desktop/dms-with-niri/default.nix——
-                # 否则切到 KDE 后 dms-shell、dsearch、dankcalendar 乃至
-                # fcitx5-dms-theme-sync 仍会进入用户环境。
+                # Only desktop-independent modules belong here. DMS Home Manager
+                # modules (dank-material-shell / dsearch / dank-calendar) are
+                # imported by the active desktop layer, see
+                # modules/desktop/dms-with-niri/default.nix; importing them here
+                # would leave dms-shell, dsearch, dankcalendar and
+                # fcitx5-dms-theme-sync active under KDE too.
                 imports = [
                   ./modules/home
                   inputs.nix4nvchad.homeManagerModules.default
                   inputs.codex-desktop.homeManagerModules.default
                 ];
-                # api-key-model-visibility：在模型选择器中显示 API-key 提供商
-                # （见 ~/.codex/config.toml 的 model_providers，如 B.AI 的 GLM）返回的模型
+                # api-key-model-visibility lists models from API key providers
+                # in the model picker (see model_providers in ~/.codex/config.toml).
                 programs.codexDesktopLinux = {
                   enable = true;
                   linuxFeatures = [ "api-key-model-visibility" ];

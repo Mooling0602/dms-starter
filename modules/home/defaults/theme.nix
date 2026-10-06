@@ -12,7 +12,8 @@
     "org/gnome/desktop/interface" = {
       cursor-theme = "breeze_cursors";
       cursor-size = 24;
-      # Wayland 下 Chrome/GTK4 经 xdg-desktop-portal(Settings→gtk) 读此值
+      # On Wayland, Chrome/GTK4 read this via xdg-desktop-portal
+      # (Settings -> gtk).
       font-name = "Sarasa UI SC 11";
     };
   };
@@ -25,11 +26,12 @@
       monospace = [ "Maple Mono NF CN" ];
     };
 
-    # system-ui 是现代网站最常用的首选 family，fontconfig 不认识它，
-    # 会泛匹配到 ~/.local/share/fonts/win-fonts 里的位图 "System" (cvgasys.fon)，
-    # 导致 Chrome 中 system-ui 页面字体失控。将其别名到 sans-serif 通用族，
-    # 交由 defaultFonts 的更纱黑体接管。priority 51 确保先于
-    # 52-hm-default-fonts.conf 加载。
+    # system-ui is the most common first family on modern websites, but
+    # fontconfig does not know it and fuzzy-matches the bitmap "System"
+    # (cvgasys.fon) under ~/.local/share/fonts/win-fonts, wrecking system-ui
+    # fonts in Chrome. Alias it to the generic sans-serif family so the
+    # defaultFonts Sarasa stack takes over. Priority 51 loads it before
+    # 52-hm-default-fonts.conf.
     configFile.system-ui-alias = {
       enable = true;
       priority = 51;

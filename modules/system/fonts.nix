@@ -7,6 +7,6 @@
     maple-mono.NF-CN
   ];
 
-  # 让 fontconfig 对系统级字体生效
+  # Make fontconfig use the system-level fonts
   fonts.fontconfig.enable = true;
 }

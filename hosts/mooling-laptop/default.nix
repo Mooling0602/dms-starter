@@ -1,20 +1,20 @@
 { config, pkgs, hostname, ... }:
 
 let
-  # 本机使用的桌面模块名，对应 ./desktop/<desktop>/。
-  # 必须是 let 绑定：imports 求值早于 config，写成 config.my.desktop 会无限递归。
+  # Desktop module in use, matching ./desktop/<desktop>/.
+  # Must be a let binding: imports evaluate before config, so referring to
+  # config.my.desktop here would recurse infinitely.
   desktop = "dms-with-niri";
   # desktop = "kde-plasma";
 in
 
 {
-  # ── 设备身份（本机唯一改动点）────────────────────────────────
-  # flake.nix 只枚举主机目录并注入目录名；用户名与主机名在这里声明，
-  # 其他设备改自己的 hosts/<host>/default.nix，不会再和本机冲突。
+  # Device identity, the only part that differs per host. flake.nix enumerates
+  # host directories and injects the directory name; username and hostname are
+  # declared here so other devices never conflict with this one.
   my.username = "mooling";
   my.hostname = hostname;
   my.desktop = desktop;
-  # ───────────────────────────────────────────────────────────
 
   imports = [
     ./hardware-configuration.nix
@@ -38,7 +38,8 @@ in
     ../../modules/system/virtualisation.nix
     ../../modules/system/obs.nix
     ./desktop/${desktop}/default.nix
-    # 切换桌面：只改上面 let 里的 desktop，同时把 <host>/desktop/<新桌面>/ 准备好。
+    # Switching desktop: change the let binding above and prepare
+    # <host>/desktop/<new desktop>/.
   ];
 
   boot.loader = {

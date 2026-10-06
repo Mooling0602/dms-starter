@@ -7,20 +7,23 @@
 # system module for the setup of desktop module dms-with-niri
 
 let
-  # 本实现的桌面名，从本文件实际所在的目录名推导（modules/desktop/<name>/）。
-  # 不手写字符串，因此目录被重命名时断言会自动跟着变，不会和目录名漂移。
-  # 用裸 baseNameOf：它在 Nix prelude 中（与 builtins.baseNameOf 等价）。
+  # This implementation's desktop name, derived from this file's own directory
+  # (modules/desktop/<name>/). Not hardcoded, so the assertion follows a rename
+  # instead of drifting from the directory name. Bare baseNameOf is used because
+  # it is in the Nix prelude (equivalent to builtins.baseNameOf).
   desktopName = baseNameOf ./.;
 in
 {
-  # 供 modules/system/config.nix 的兜底断言使用：只有本模块存在时才会置位。
-  # 「桌面层导入了、imports 里却漏掉实现」时它保持 false，由那边报错。
+  # Used by the fallback assertion in modules/system/config.nix: only set when
+  # this module is present. Stays false when the desktop layer is imported but
+  # the implementation is missing from `imports`, and that side reports it.
   my.desktopImplementationLoaded = true;
 
-  # 本模块直接断言自己就是 my.desktop 声明的那个桌面。放在实现模块而非
-  # hosts/<host>/desktop/<name>/ 那一层：只有实现模块才通用地知道「实际加载
-  # 的是哪个桌面」，这样「层导入了、但忘了导入实现」以外的半对半错
-  # （声明 A 却导入了 B 的实现）才能在任何主机上被捕获。
+  # This module asserts that it is the desktop declared by my.desktop. Placing
+  # it in the implementation rather than in hosts/<host>/desktop/<name>/ means
+  # only the implementation knows generically which desktop is actually loaded,
+  # so the half-wrong case (declared A but imported B) is caught on any host,
+  # not just the missing-import case.
   assertions = [
     {
       assertion = config.my.desktop == desktopName;
@@ -36,11 +39,13 @@ in
     }
   ];
 
-  # 本桌面专属的 Home Manager 模块由这一层自己挂载：只有选中 dms-with-niri 时，
-  # dms-shell、dsearch、dank-calendar 才会进入用户环境。桌面无关的 HM 配置仍在
-  # modules/home/，由 flake.nix 无条件导入。
-  # 之前这些模块写死在 flake.nix 的 home-manager.users.<name>.imports 里，
-  # 导致切到 kde-plasma 后它们仍然生效（残留 dms.service、dsearch.service 等）。
+  # This desktop's own Home Manager modules are mounted here, so dms-shell,
+  # dsearch and dank-calendar enter the user environment only when dms-with-niri
+  # is selected. Desktop-independent HM config stays in modules/home/ and is
+  # imported unconditionally by flake.nix.
+  # These used to be hardcoded in flake.nix's home-manager.users.<name>.imports,
+  # so they stayed active after switching to kde-plasma (leftover dms.service,
+  # dsearch.service, ...).
   home-manager.sharedModules = [
     ./default.nix
     inputs.dms.homeModules.dank-material-shell
@@ -67,15 +72,18 @@ in
   # DMS uses a dedicated PAM service for the lock screen. Follow the howdy
   # module instead of forcing face auth on: with `services.howdy` disabled the
   # lock screen keeps its plain password stack (pam_unix + pam_deny).
-  # Keep this assignment unconditional - it is the only thing that registers
+  # Keep this assignment unconditional: it is the only thing that registers
   # /etc/pam.d/dankshell, and DMS only falls back to its own
   # ~/.local/state/pam/dankshell when that file is absent (#2789).
   security.pam.services.dankshell.howdy.enable = config.services.howdy.enable;
 
-  # gpu-screen-recorder 的 KMS 捕获经 pkexec 提权（org.freedesktop.policykit.exec），
-  # 默认每次录屏都弹密码。放行 wheel 组本地会话成员对该程序的免密执行：
-  # program 匹配 nix store 路径片段 "-gpu-screen-recorder-"，规避版本号漂移。
-  # gpu-screen-recorder 即使没有在当前环境下激活，应该也没有影响。
+  # gpu-screen-recorder's KMS capture escalates via pkexec
+  # (org.freedesktop.policykit.exec), which normally prompts for a password on
+  # every recording. Allow wheel-group members in local sessions to run it
+  # without a password. The program match uses the nix store path fragment
+  # "-gpu-screen-recorder-" to avoid version drift. Having the rule when
+  # gpu-screen-recorder is not active in the current environment should be
+  # harmless.
   security.polkit.extraConfig = ''
     polkit.addRule(function(action, subject) {
         if (action.id == "org.freedesktop.policykit.exec" &&

@@ -1,7 +1,8 @@
 { lib, ... }:
 
 {
-  networking.firewall.enable = false; # For normal users, firewall is not so useful and causes many errors
+  # For a normal user the firewall is not very useful and causes many errors.
+  networking.firewall.enable = false;
 
   networking.networkmanager.enable = true; # You need Internet!
 

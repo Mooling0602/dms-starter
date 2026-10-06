@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 # Home-manager module, should be imported in user space
-# If using KDE Plasma, this module is not needed and not recommended, as KDE Connect is already integrated into Plasma.
+# Not needed under KDE Plasma, which integrates KDE Connect already.
 
 {
   home.packages = with pkgs; [

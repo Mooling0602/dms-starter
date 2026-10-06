@@ -2,17 +2,20 @@
 
 # Home-manager module, has been imported in dms-with-niri.
 #
-# Fcitx5 Plasma 候选窗的 DMS 深浅色同步。
+# DMS light/dark sync for the Fcitx5 Plasma candidate window.
 #
-# Fcitx5 的实验性 `plasma` Classic UI 主题跟随 Plasma Shell 的 SVG 主题，不读取
-# DMS 发布的门户深浅色，因此在 niri 会话里会回退到白色 breeze-light 和固定蓝色
-# 高亮。这里改成从 DMS 自己写的 DankMatugen.colors 推导主题。
+# Fcitx5's experimental `plasma` Classic UI theme follows the Plasma Shell SVG
+# theme and ignores the DMS-published portal colors, so in a niri session it
+# falls back to white breeze-light with a fixed blue highlight. Derive the theme
+# from DankMatugen.colors, which DMS writes itself.
 #
-# 同步 service 不直接挂在 graphical-session.target 上，只由 path unit 在 DMS 写入
-# 色表后触发；否则与 `After = dms.service` 会形成排序循环，systemd 会丢弃 DMS 的
-# 启动任务。详见 MAINTENANCE.md「Fcitx5 Plasma 候选窗的 DMS 深浅色同步」。
+# The sync service is not attached to graphical-session.target; only a path unit
+# triggers it after DMS writes the color scheme. Attaching it, together with
+# `After = dms.service`, would form an ordering cycle and make systemd drop DMS
+# startup. See MAINTENANCE.md.
 #
-# 桌面无关的 Fcitx 配置（输入法、waylandFrontend 等）不在这里。
+# Desktop-independent Fcitx config (input methods, waylandFrontend, ...) is not
+# here.
 
 let
   fcitxDmsThemeSync = pkgs.writeShellScript "fcitx5-dms-theme-sync" ''
@@ -88,10 +91,11 @@ let
       -e "s/^HighlightColor=.*/HighlightColor=$selection_foreground/" \
       -e "s/^HighlightBackgroundColor=.*/HighlightBackgroundColor=$selection_background/" \
       "$dms_theme/theme.conf"
-    # fcitx5 5.1.23 起支持高分辨率资源：生成器按 SupportedScale 额外写出
-    # highlight@2x.png 等 @Nx 变体，classicui 再按实际缩放取用
-    # （findScaledImage 用 ceil(显示缩放)，本机 1.5 → 取 @2x）。
-    # 必须逐个变体重着色，否则高分屏下会回落到生成器原始的 breeze 蓝。
+    # Since fcitx5 5.1.23 the generator also writes high-resolution resources:
+    # @Nx variants such as highlight@2x.png per SupportedScale, and classicui
+    # picks one by actual scale (findScaledImage uses ceil(display scale); 1.5
+    # here -> @2x). Each variant must be recolored individually, otherwise
+    # HiDPI falls back to the generator's original breeze blue.
     for highlight_image in "$dms_theme"/highlight*.png; do
       [ -e "$highlight_image" ] || continue
       ${pkgs.imagemagick}/bin/mogrify \

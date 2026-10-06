@@ -21,8 +21,9 @@ in
 
   programs.dank-material-shell = {
     enable = true;
-    # 直接用本桌面自己的 flake input，flake.nix 不再需要 dmsPackage overlay，
-    # 也不必把它经 extraSpecialArgs 透传到所有用户的 Home Manager 模块。
+    # Use this desktop's own flake input; flake.nix no longer needs a dmsPackage
+    # overlay or to thread it through extraSpecialArgs to every user's
+    # Home Manager modules.
     package = dms.packages.${pkgs.stdenv.hostPlatform.system}.default;
     enableDynamicTheming = true;
     enableSystemMonitoring = true;
@@ -34,7 +35,7 @@ in
     systemd.enable = true;
   };
 
-  # 原先写死在 flake.nix 的 home-manager.users.<name> 里；随 dsearch 的 HM 模块
-  # 一起下沉到本层，这样未选中本桌面时不会启用。
+  # Moved down from the hardcoded home-manager.users.<name> in flake.nix so it
+  # stays inactive when this desktop is not selected.
   programs.dsearch.enable = true;
 }

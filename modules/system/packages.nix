@@ -9,7 +9,7 @@
 
   programs.firefox.enable = true; # Basic browser default used by many Linux distros
 
-  # 排除 GNOME 文件管理器，使用 KDE/Dolphin
+  # Exclude the GNOME file manager; KDE/Dolphin is used instead.
   environment.gnome.excludePackages = with pkgs; [
     nautilus
   ];
@@ -43,9 +43,8 @@
     "${pkgs.kdePackages.plasma-workspace}/etc/xdg/menus/plasma-applications.menu";
 
 
-  # Keep the schemas required by both GTK's own settings and GNOME desktop
-  # settings. Overriding this with only gsettings-desktop-schemas hides
-  # org.gtk.Settings.FileChooser from GTK applications.
+  # Keep both schema sets: overriding this with only gsettings-desktop-schemas
+  # hides org.gtk.Settings.FileChooser from GTK applications.
   environment.sessionVariables.GSETTINGS_SCHEMA_DIR = lib.concatStringsSep ":" [
     "${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}/glib-2.0/schemas"
     "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}/glib-2.0/schemas"
