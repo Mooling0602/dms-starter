@@ -21,6 +21,7 @@ in
     ./gpu.nix
     # ./nix-builder.nix
     ./clash-verge-fix.nix
+    ./smartd.nix
     ../../modules/optional/howdy.nix
     ../../modules/optional/obs.nix
     ../../modules/optional/gaming.nix
