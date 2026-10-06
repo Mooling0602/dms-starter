@@ -14,8 +14,8 @@
 
 - **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/desktop/dms-with-niri/xdg-portals.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
 - **影响：** niri 未实现 `org.freedesktop.impl.portal.InputCapture`，而 `xdg-desktop-portal-gnome` 只在 niri 提供 `org.gnome.Mutter.InputCapture` 时才发布该接口，因此 Deskflow、Synergy 3、Input Leap 等在 niri 下作为 server 共享键鼠时会以 `failed to initialize input capture session` 失败。nixpkgs 未收录该后端，故自行打包并跟踪上游 `main`（上游无 tag 与 release）。
-- **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input` - `Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
-- **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码 - 客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
+- **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input`；`Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
+- **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码：客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
 - **上游：** [Qingswe/niri-input-portal](https://github.com/Qingswe/niri-input-portal)；缺口跟踪：niri [#823](https://github.com/YaLTeR/niri/issues/823)（自 2024-11 起 open）、[#1966](https://github.com/YaLTeR/niri/pull/1966)（未合并）。region 必须在 `ei_device.done` 之前下发的旁证是 mutter 的 `483601844b4c72fc34b1818a59fef7879cdb5238`（"backends/eis-client: Do not add device before adding EIS regions"）。
 - **移除条件：** 分两层。补丁层：上游自行下发 `ei_device.region` 后即可删掉 `fix-eis-device-region.patch` 与 `package.nix` 中的 `patches` 一行，包本身继续保留。整包层：niri 自行实现 InputCapture 门户（#823 关闭，或 #1966 及后续工作合并），或该后端被 nixpkgs 收录；此时再移除 overlay 条目、`extraPortals` 中的包、两条门户路由与 systemd 单元。
 - **复查方法：** 重建并重启 `xdg-desktop-portal` 后读取门户能力值，接入后应为 `u 3`（keyboard | pointer），未接入时为 `u 0`：
@@ -70,7 +70,7 @@
 ### `ltrace` 的 `demangle` 测试在 GCC 16 下编译失败
 
 - **位置：** `modules/home/defaults/packages.nix` 的 `ltrace` 覆盖。
-- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1082427.b4fd65b198c5` 后，工具链默认编译器升到 GCC 16.2.0。`testsuite/ltrace.minor/demangle-lib.cpp` 里的 `volatile int Fv_Vi(void)` 触发 GCC 16 新增的 `-Wvolatile` 警告，而 ltrace 的测试框架（`testsuite/lib/ltrace.exp` 中 `if { $result != "" ... }`）只判断编译器输出是否为空 - 任何输出（含 warning）都算 "compile failed"。测试程序因此未生成，`make check` 报 15 个 unexpected failures 并以退出码 2 结束。
+- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1082427.b4fd65b198c5` 后，工具链默认编译器升到 GCC 16.2.0。`testsuite/ltrace.minor/demangle-lib.cpp` 里的 `volatile int Fv_Vi(void)` 触发 GCC 16 新增的 `-Wvolatile` 警告，而 ltrace 的测试框架（`testsuite/lib/ltrace.exp` 中 `if { $result != "" ... }`）只判断编译器输出是否为空：任何输出（含 warning）都算 "compile failed"。测试程序因此未生成，`make check` 报 15 个 unexpected failures 并以退出码 2 结束。
 - **附带影响：** 上游 Hydra 构建同一派生（`049gzs92…` → 输出 `0l6dxxqz…-ltrace-0.7.91`）同样失败（[build 347357345](https://hydra.nixos.org/build/347357345)，`buildstatus` 为 failed），该输出因此没有任何二进制缓存；本机重建时必然回落为本地构建并复现同一失败。
 - **当前处理：** 按上游 MR !112 的思路，在 `postPatch` 中删除 `demangle-lib.cpp` 与 `demangle.cpp` 里 `Fv_Vi` 的 `volatile` 限定符（该限定符不参与 Itanium 符号名，不影响测试校验的 `Fv_Vi()` 名称）。测试套件得以保留并全部通过：244 expected passes / 0 unexpected failures。
 - **上游：** ltrace MR https://gitlab.com/cespedes/ltrace/-/merge_requests/112 （2026-09-30 提交，尚未合并）；nixpkgs 的 ltrace 定义尚未收录该修复：https://github.com/NixOS/nixpkgs/blob/nixos-unstable/pkgs/by-name/lt/ltrace/package.nix
@@ -170,7 +170,7 @@
     | grep -E 'number of tokens loaded|Failed to decrypt token'
   ```
 
-  注意 `GetDesktopEnvironment()` 会读 `DESKTOP_SESSION`、`KDE_FULL_SESSION`、`KDE_SESSION_VERSION` 与 `GNOME_DESKTOP_SESSION_ID`，只改 `XDG_CURRENT_DESKTOP` 复现不出 KDE 分支——必须像上面那样先清掉它们。确认包装器已注入参数：
+  注意 `GetDesktopEnvironment()` 会读 `DESKTOP_SESSION`、`KDE_FULL_SESSION`、`KDE_SESSION_VERSION` 与 `GNOME_DESKTOP_SESSION_ID`，只改 `XDG_CURRENT_DESKTOP` 复现不出 KDE 分支，必须像上面那样先清掉它们。确认包装器已注入参数：
 
   ```fish
   grep -o -- '--password-store=[a-z0-9-]*' (readlink -f (command -v google-chrome))

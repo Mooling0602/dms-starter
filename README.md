@@ -1,8 +1,8 @@
 # NixOS Configuration: dms-starter
 
-A template with desktop modification sets.
+简体中文 | [English](README_en_US.md)
 
-模块化的 NixOS Flake 系统配置，支持多用户、多设备和可选的桌面模块功能进行自由组合。
+一份可自由组合桌面模块的 NixOS Flake 配置模板，支持多用户、多设备和可选桌面模块的灵活组合。
 
 ## 支持的桌面模块
 
@@ -24,11 +24,10 @@ let
 in
 
 {
-  # ── 设备身份（本机唯一改动点）────────────────────────────────
+  # 设备身份（本机唯一改动点）
   my.username = "user";
   my.hostname = hostname;   # 目录名由 flake.nix 注入
   my.desktop = desktop;
-  # ───────────────────────────────────────────────────────────
 
   imports = [
     /* ... */
@@ -42,10 +41,10 @@ in
 
 约定的目录名需与身份一致：
 
-- `hosts/<hostname>/` - 机器专属配置
-- `modules/home/<username>/` - 个人模块，按需自行编写；缺失的文件由 `utils/optional_import.nix` 跳过并给出求值警告（旧版曾提供 `modules/home/user/` 模板，已于 `a3328c3` 移除）
-- `assets/<username>/` - 个人资源（头像等）
-- `user_profiles/<username>/` - 运行时配置快照（见「运行时配置备份」）
+- `hosts/<hostname>/`：机器专属配置
+- `modules/home/<username>/`：个人模块，按需自行编写；缺失的文件由 `utils/optional_import.nix` 跳过并给出求值警告（旧版曾提供 `modules/home/user/` 模板，已于 `a3328c3` 移除）
+- `assets/<username>/`：个人资源（头像等）
+- `user_profiles/<username>/`：运行时配置快照（见「运行时配置备份」）
 
 `modules/home/default.nix` 只负责**桌面无关**的用户配置：从 `modules/home/<username>/` 导入 `default.nix`、`git.nix`、`packages.nix`、`avatar.nix`（均非必需），加上 `hosts/<hostname>/users/<username>.nix` 与 `modules/home/defaults/` 下的通用模块。可按需在 `modules/home/<username>/` 中引用的共享模块放在 `modules/optional/`（如 `screen-recorder.nix`、`kde-connect.nix`）。
 
@@ -71,7 +70,7 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导
 
 桌面实现层（`modules/desktop/<name>/system.nix`）通过 `home-manager.sharedModules` 把自己专属的 Home Manager 模块挂进用户环境，例如 `dms-with-niri` 会挂上 `./default.nix`（`dms-with-niri` 的 HM 层）以及上游 `inputs.dms` / `inputs.danksearch` / `inputs.dankcalendar` 的模块。
 
-**这是刻意的设计约束**：`flake.nix` 的 `home-manager.users.<name>.imports` 只放桌面无关的模块（`./modules/home`、`nvchad`、`codex-desktop`）。任何 DMS 生态的模块若写在那里，切换桌面后仍会生效——曾经因此出现过「切到 KDE 后 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 依旧存在」的问题。同理，桌面专属的 `home.activation` 步骤（如 `restoreDesktopConfig`）也必须放在桌面层内。
+**这是刻意的设计约束**：`flake.nix` 的 `home-manager.users.<name>.imports` 只放桌面无关的模块（`./modules/home`、`nvchad`、`codex-desktop`）。任何 DMS 生态的模块若写在那里，切换桌面后仍会生效，曾经因此出现过「切到 KDE 后 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 依旧存在」的问题。同理，桌面专属的 `home.activation` 步骤（如 `restoreDesktopConfig`）也必须放在桌面层内。
 
 系统层模块通过 `specialArgs` 拿到 `inputs`，因此可以直接引用自己桌面所需的 input，无需在 `flake.nix` 里为它额外加 overlay 或 `extraSpecialArgs`。
 
@@ -125,9 +124,9 @@ sudo nix-store --optimise
 
 配置中已启用以下自动策略（见 `modules/system/nix.nix` 和 `hosts/*/default.nix`）：
 
-- **`nix.settings.auto-optimise-store = true`** - 每次构建时自动硬链接优化
-- **`nix.gc.automatic = true`，`dates = "weekly"` + `--delete-older-than 1d`** - 每周自动垃圾回收，删除 1 天前的世代
-- **`boot.loader.systemd-boot.configurationLimit = 10`** - 最多保留 10 个 boot 启动项
+- **`nix.settings.auto-optimise-store = true`**：每次构建时自动硬链接优化
+- **`nix.gc.automatic = true`，`dates = "weekly"` + `--delete-older-than 1d`**：每周自动垃圾回收，删除 1 天前的世代
+- **`boot.loader.systemd-boot.configurationLimit = 10`**：最多保留 10 个 boot 启动项
 
 ### 手动清理旧世代（只保留最新 N 个）
 
