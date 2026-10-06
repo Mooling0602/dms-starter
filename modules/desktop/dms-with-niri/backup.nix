@@ -8,8 +8,17 @@
 # dms-with-niri desktop and is loaded together with that desktop layer.
 
 let
-  # modules/desktop/dms-with-niri/ -> repo root
-  sourceRoot = ../../..;
+  # Only the backup scripts and this user's snapshot are needed at runtime.
+  # Filtering them out of the repo tree keeps the docs, modules and wallpapers
+  # from entering the store path, so changing an unrelated file no longer
+  # invalidates the Home Manager closure.
+  sourceRoot = lib.fileset.toSource {
+    root = ../../..;
+    fileset = lib.fileset.unions [
+      ../../../scripts
+      (lib.fileset.maybeMissing ../../../user_profiles/${username}/desktop-config)
+    ];
+  };
 in
 {
   home.activation.restoreDesktopConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
