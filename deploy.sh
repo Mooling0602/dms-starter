@@ -131,7 +131,8 @@ detect_grub_devices() {
     src="$(findmnt -no SOURCE --target "$target" 2>/dev/null || true)"
     [ -n "$src" ] || continue
     # lsblk -s 逆序回溯父设备，会跳过 part/lvm/crypt/raid 直到物理磁盘
-    disks="$(lsblk -sno NAME,TYPE "$src" 2>/dev/null | awk '$2 == "disk" { printf "/dev/%s ", $1 }')"
+    # -l 关闭树形缩进（否则会出现 └─ 前缀导致 /dev/└─sda 这类非法设备名）
+    disks="$(lsblk -sno NAME,TYPE -l "$src" 2>/dev/null | awk '$2 == "disk" { printf "/dev/%s ", $1 }')"
     [ -n "$disks" ] || continue
     printf '%s' "${disks% }"
     return 0
@@ -275,13 +276,23 @@ echo "flake.nix 未包含硬编码身份，符合预期。"
 # ------------------------------------- 5. 生成硬件配置与主机配置（1.1.5）
 
 step "生成硬件配置到 hosts/$HOSTNAME/"
-sudo nixos-generate-config --root / --dir "hosts/$HOSTNAME"
+sudo nixos-generate-config --dir "hosts/$HOSTNAME"
 
 HARDWARE_CONFIG="hosts/$HOSTNAME/hardware-configuration.nix"
 GENERATED_CONFIG="hosts/$HOSTNAME/configuration.nix"
 HOST_MODULE="hosts/$HOSTNAME/default.nix"
 
 [ -f "$HARDWARE_CONFIG" ] || die "未生成 $HARDWARE_CONFIG，请检查 nixos-generate-config 的输出。"
+
+# envfs 会把 /bin、/usr/bin 以 FUSE 形式挂载，nixos-generate-config 会误判为
+# fileSystems."/bin" 的 bind mount 写入硬件配置，导致评估时产生无用挂载
+# 且上游已在 nixos-generate-config 中提示 warning，这里直接清理
+for _fs in "/bin" "/usr/bin"; do
+  if grep -q "fileSystems\.\"$_fs\"" "$HARDWARE_CONFIG"; then
+    sed -i "\|fileSystems\.\"$_fs\"|,\|^[[:space:]]*};|d" "$HARDWARE_CONFIG"
+    echo "已清理 $HARDWARE_CONFIG 中伪文件系统 $_fs 的条目（envfs）" >&2
+  fi
+done
 
 # 生成的 configuration.nix 只用于取机器相关的引导器设置；hostName、stateVersion、
 # users 等由本仓库模块提供，因此不保留该文件。
