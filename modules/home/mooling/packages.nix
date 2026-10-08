@@ -24,6 +24,8 @@
     kdePackages.gwenview # KDE Image viewer
     kdePackages.filelight # KDE storage size analyzer
 
+    wpsoffice-cn # WPS Office, Linux Personal edition
+
     qq # Tencent QQ
     # Wayland-fixed QQ launcher, reachable as "QQ (Wayland fix)" in the app
     # menu; the plain qq entry stays for comparison. The package comes from an
