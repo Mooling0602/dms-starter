@@ -42,7 +42,7 @@ in
   # This desktop's own Home Manager modules are mounted here, so dms-shell,
   # dsearch and dank-calendar enter the user environment only when dms-with-niri
   # is selected. Desktop-independent HM config stays in modules/home/ and is
-  # imported unconditionally by flake.nix.
+  # imported unconditionally by modules/core.nix.
   # These used to be hardcoded in flake.nix's home-manager.users.<name>.imports,
   # so they stayed active after switching to kde-plasma (leftover dms.service,
   # dsearch.service, ...).

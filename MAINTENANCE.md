@@ -4,7 +4,7 @@
 
 ## 审查范围
 
-- 检查 `flake.nix` 的所有输入、`nixpkgs.overlays`、`overrideAttrs`、`fetchpatch`、不安全包许可，以及被注释禁用的模块或服务。
+- 检查 `flake.nix` 的所有输入、`overlays/` 下的全部覆盖（`overrideAttrs`、`fetchpatch`）、不安全包许可，以及被注释禁用的模块或服务。
 - 任何 fork 只要用于替代原本由 Nixpkgs、其他 flake 或上游仓库提供的包，就必须在本文档记录；fork 可以属于任意个人或组织，并不限定为本人的仓库。
 - 长期维护的独立配置或包源不因其所有者而自动列入；只有存在明确的上游回归、移除或重新启用条件时才需要记录。
 
@@ -12,7 +12,7 @@
 
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
 
-- **位置：** `flake.nix` 的 `nix-packages` overlay 条目；`modules/desktop/dms-with-niri/xdg-portals.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
+- **位置：** `overlays/custom-packages.nix` 的 `nix-packages` 条目；`modules/desktop/dms-with-niri/xdg-portals.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由 DMS/Niri 运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。
 - **影响：** niri 未实现 `org.freedesktop.impl.portal.InputCapture`，而 `xdg-desktop-portal-gnome` 只在 niri 提供 `org.gnome.Mutter.InputCapture` 时才发布该接口，因此 Deskflow、Synergy 3、Input Leap 等在 niri 下作为 server 共享键鼠时会以 `failed to initialize input capture session` 失败。nixpkgs 未收录该后端，故自行打包并跟踪上游 `main`（上游无 tag 与 release）。
 - **当前处理：** 包经 `nix-packages` 输入进入 `pkgs`；门户路由在 `common` 与 `niri` 两个 section 中把 `InputCapture` 与 `Clipboard` 指向 `niri-input`；`Clipboard` 必须一并路由，否则剪贴板门户会挂到未创建该会话的后端上，客户端随后陷入 create/destroy 死循环。D-Bus 激活单元在 Home Manager 中显式声明，以去掉上游的 `ConditionEnvironment=WAYLAND_DISPLAY`（条件不成立时 systemd 会静默跳过该单元，D-Bus 只报服务名不可激活）。niri 侧的 `Mod+Shift+Space allow-inhibiting=false` 绑定调用 `niri-input-portal --release`：捕获期间指针被锁、键盘被独占，而 niri 会先于客户端处理自己的绑定，因此这是唯一可靠的逃生出口；`dms setup` 重新生成 `config.kdl` 后需要重新添加该绑定。
 - **本地补丁：** `fix-eis-device-region.patch` 让后端下发 `ei_device.region`。上游从不下发，而这是 libei 客户端唯一能确定"本机屏幕"尺寸的信息：缺失时 Deskflow 保持 1×1 的屏幕模型，每次捕获激活的光标位置都被压到 `(0, 0)`，该点先满足上边缘判定，于是下边缘与右边缘成为死代码：客户端配在本机下方或右侧时指针切不过去，配在上方反而能用。补丁在 `ConnectToEIS` 时取一次输出布局并集，在创建每个 device 的回调里、`ei_device.done` 之前下发；顺序是硬要求，libei 只在构建 device 时读取 region，协议中没有 region 事件，晚发等同于没发。
@@ -36,7 +36,7 @@
 
 ### `dlib` 的 `build-cores.patch` 失配（Python 3.14 / dlib 20.0.1）
 
-- **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。
+- **位置：** `overlays/python-fixes.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。
 - **影响：** nixpkgs 输入更新后 dlib 升级到 20.0.1，`python3.14-dlib` 构建失败，连带依赖它的 `face-recognition`、`howdy`、`pam.d` 及整个 `nixos-system-*` 闭包全部失败。两处独立的 20.0.1 上游回归：
   1. `setup.py` 把 `num_available_cpu_cores()` 从 `class CMakeBuild` 内部移到模块顶层，nixpkgs 自带 `build-cores.patch`（按旧行号 `-170,23` 书写）在 `patchPhase` 报 `Hunk #1 FAILED`。
   2. `CMakeBuild` 不再把 `--set` 注册为 distutils 的 `user_options`，而 `get_extra_cmake_options()` 只在 `build_extension` 运行时（distutils 已解析完命令行之后）才手工清理 `sys.argv`；因此 nixpkgs 默认 `preConfigure` 通过 `--set` 传递 CMake flags 时会报 `error: option --set not recognized`。
@@ -53,7 +53,7 @@
 
 ### `click-threading` 的 Python 3.14 测试收集失败
 
-- **位置：** `flake.nix` 的 `pythonPackagesExtensions` 覆盖。
+- **位置：** `overlays/python-fixes.nix` 的 `pythonPackagesExtensions` 覆盖。
 - **影响：** `click-threading 0.5.0` 的 pytest 会将 `docs/conf.py` 作为 doctest 模块收集；该文件导入 Python 3.14 已移除的 `pkg_resources`，导致构建失败，并阻断依赖它的 `vdirsyncer`、`khal` 及 Home Manager 系统闭包。
 - **当前处理：** 只将 `docs/conf.py` 加入 `disabledTestPaths`，其余测试与 `pythonImportsCheck` 仍会执行。
 - **相关提交：** `30fa899`（`fix: disable pytest of module "docs/conf.py" for python package click-threading`）。
@@ -115,7 +115,7 @@
 
 ### `qt6ct-kde` 的 KColorScheme 支持
 
-- **位置：** `flake.nix` 的 `nixpkgs.overlays`，由 `modules/home/defaults/theme.nix`（安装 qt6ct 本体）、`modules/desktop/dms-with-niri/ui.nix`（`platformTheme.name` 与 `QT_QPA_PLATFORMTHEME_QT6`）和 `modules/optional/wine.nix`（`QT_PLUGIN_PATH`）共同使用。
+- **位置：** `overlays/qt6ct-kde.nix`，由 `modules/home/defaults/theme.nix`（安装 qt6ct 本体）、`modules/desktop/dms-with-niri/ui.nix`（`platformTheme.name` 与 `QT_QPA_PLATFORMTHEME_QT6`）和 `modules/optional/wine.nix`（`QT_PLUGIN_PATH`）共同使用。
 - **目的：** 为 `qt6ct` 加入 `kconfig`、`kcolorscheme`、`kiconthemes` 构建依赖，并应用 Arch AUR `qt6ct-kde` 的 shenanigans 补丁，使 Qt 配色方案能够使用 KDE 的 `KColorScheme` 支持。DMS 生成的 `DankMatugen.colors` 依赖该能力；覆盖必须位于全局，否则 Niri 实际加载的原生 Qt6ct 平台插件会回退为浅色。
 - **相关提交：** `d4c18f6`（`fix: use qt6ct-kde patch instead of vanilla qt6ct`）。
 - **补丁来源：** 固定为 AUR `qt6ct-kde` 提交 [`8c1003e`](https://aur.archlinux.org/cgit/aur.git/plain/qt6ct-shenanigans.patch?h=qt6ct-kde&id=8c1003e13b7e7545e717273e0716f095f195bd13)。原 URL 指向可变分支头，2026-08-18 上游更新补丁后触发固定输出哈希不匹配；更新后的补丁仍针对 `qt6ct 0.11`，保留 KColorScheme、KConfig 和 KIconThemes 集成。
@@ -130,7 +130,7 @@
 
 ### `obs-studio` 的 NVENC/QSV 硬件编码修复
 
-- **位置：** `flake.nix` 的 `nixpkgs.overlays`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
+- **位置：** `overlays/obs-nvenc-qsv.nix`（`obs-studio` `overrideAttrs` 追加 `postFixup`）。
 - **包管理方式：** OBS 本体与插件由 Home Manager 的 `programs.obs-studio` 模块管理（`modules/optional/obs.nix`，按 [NixOS Wiki](https://wiki.nixos.org/wiki/OBS_Studio) 推荐结构）；模块未指定 `package`，经 `useGlobalPkgs` 自动拾取本 overlay 的产物，故此覆盖对模块安装的 OBS 同样生效。
 - **影响：** OBS 31+ 用独立子进程 `bin/obs-nvenc-test` 探测 NVENC 能力，但 Nixpkgs 只对 `lib/*.so` 执行 `addDriverRunpath`，测试进程的 RUNPATH 不含 `/run/opengl-driver/lib`，无法 dlopen `libnvidia-encode.so.1`，日志报 `Test process failed: nvenc_lib`，UI 中 NVENC 编码器全部消失。同时 `obs-qsv11` 依赖的 oneVPL 分发器找不到 GPU 运行时（`libmfx-gen`），选 QuickSync 编码器时报 `Failed to initialize MFX (MFX_ERR_NOT_FOUND)`。
 - **当前处理：**
@@ -197,7 +197,7 @@
 
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
 
-- **位置：** `flake.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
+- **位置：** `overlays/tuxedo-firebat.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
 - **影响：** Firebat T5K 与 Clevo 键盘协议兼容，但上游 `tuxedo-drivers` 的 DMI 安全门默认只接受 TUXEDO 机型；覆盖仅加入 `Firebat Computer` + `T5K Series` 的精确匹配。默认亮度行为保持由驱动/硬件决定，不声明式强制关闭。
 - **上游：** https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
 - **移除条件：** 上游兼容性表原生接受该 DMI 组合；移除前验证 `tuxedo_keyboard`、`clevo_acpi` 和 `/sys/class/leds/rgb:kbd_backlight` 在干净启动后可用。
@@ -258,7 +258,7 @@
 
 ### Home Manager 冲突备份后缀
 
-- **位置：** `flake.nix` 的 `home-manager.backupFileExtension = "backup"`。
+- **位置：** `modules/core.nix` 的 `home-manager.backupFileExtension = "backup"`。
 - **影响：** 激活时会将与 Home Manager 目标文件冲突的既有文件重命名为 `.backup`；原用于处理由 DMS/Niri 运行时管理的 `config.kdl` 冲突。
 - **相关提交：** `64177f6`（`fix: add home-manager.backupFileExtension to resolve config.kdl conflicts`）；`a383c84`（`fix!: stop declaratively managing DMS and NvChad runtime config`）移除了最初的配置冲突来源。运行时 Niri/DMS 配置已不再由 Home Manager 声明式管理，因此需重新确认该后缀是否仍有必要。
 - **移除条件：** 不存在其他需要保留的 Home Manager 目标文件冲突，且移除该选项后的 Home Manager 激活成功。

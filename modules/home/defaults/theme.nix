@@ -64,7 +64,7 @@
     # Icon theme
     tela-icon-theme
 
-    # Qt theming and some kde utils; qt6ct is patched globally in flake.nix.
+    # Qt theming and some kde utils; qt6ct is patched globally in overlays/qt6ct-kde.nix.
     qt6Packages.qt6ct
     libsForQt5.qt5ct
     kdePackages.breeze

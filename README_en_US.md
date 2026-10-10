@@ -43,6 +43,7 @@ When several devices share this repository, each one only edits the few lines at
 The agreed directory names must match the identity:
 
 - `hosts/<hostname>/`: machine-specific configuration
+- `overlays/`: nixpkgs overrides, one topic per file, aggregated and mounted globally by `modules/core.nix`
 - `modules/home/<username>/`: personal modules, written as needed; missing files are skipped by `utils/optional_import.nix` with an evaluation warning (an older version shipped a `modules/home/user/` template, removed in `a3328c3`)
 - `assets/<username>/`: personal assets (avatars and the like)
 - `user_profiles/<username>/`: runtime configuration snapshots (see "Runtime configuration backup")
@@ -71,9 +72,9 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; decides w
 
 The desktop implementation layer (`modules/desktop/<name>/system.nix`) mounts its own Home Manager modules into the user environment through `home-manager.sharedModules`. For example, `dms-with-niri` mounts `./default.nix` (the HM layer of `dms-with-niri`) plus the upstream `inputs.dms`, `inputs.danksearch`, and `inputs.dankcalendar` modules.
 
-**This is a deliberate design constraint**: `home-manager.users.<name>.imports` in `flake.nix` only holds desktop-agnostic modules (`./modules/home`, `nvchad`, `codex-desktop`). Any DMS ecosystem module written there would still take effect after switching desktops, which previously caused the problem that `dms.service`, `dsearch.service`, and `fcitx5-dms-theme-sync` remained after switching to KDE. By the same reasoning, desktop-specific `home.activation` steps (such as `restoreDesktopConfig`) must also live inside the desktop layer.
+**This is a deliberate design constraint**: `home-manager.users.<name>.imports` in the global wiring module `modules/core.nix` only holds desktop-agnostic modules (`./modules/home`, `nvchad`, `codex-desktop`). Any DMS ecosystem module written there would still take effect after switching desktops, which previously caused the problem that `dms.service`, `dsearch.service`, and `fcitx5-dms-theme-sync` remained after switching to KDE. By the same reasoning, desktop-specific `home.activation` steps (such as `restoreDesktopConfig`) must also live inside the desktop layer.
 
-System-layer modules receive `inputs` through `specialArgs`, so they can reference the inputs their own desktop needs directly, with no extra overlay or `extraSpecialArgs` for that desktop in `flake.nix`.
+System-layer modules receive `inputs` through `specialArgs`, so they can reference the inputs their own desktop needs directly, with no extra overlay or `extraSpecialArgs` for that desktop in the global wiring layer (`flake.nix` / `modules/core.nix`).
 
 > `imports` evaluates before `config`, so it must **not** be written as `imports = [ ./desktop/${config.my.desktop}/... ]` (that would recurse infinitely); a local variable bound with `let` is required.
 

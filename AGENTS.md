@@ -47,7 +47,7 @@
 
 8. **桌面模块分三层，切换靠 `let` 绑定**：`hosts/<host>/default.nix` 顶部的 `let desktop = "<name>";` 同时决定 `my.desktop` 的值与 `imports` 中 `./desktop/${desktop}/default.nix` 的路径；该目录再导入 `modules/desktop/<name>/` 下的实现（系统层 `system.nix` + Home Manager 层 `default.nix`）。**必须用 `let` 而非 `config.my.desktop`**：`imports` 求值早于 `config`，引用 `config` 会导致无限递归。一致性校验由**实现模块自己直接断言**：`modules/desktop/<name>/system.nix` 断言 `config.my.desktop == baseNameOf ./.`（即实现所在目录名），两侧来源独立（一处是 host 文件手写的 `let` 绑定，一处是文件实际所在目录），因此在任何主机上都通用，且重命名实现目录后自动跟随、无需手工同步。另由 `modules/system/config.nix` 用 `my.desktopImplementationLoaded` 兜底断言「至少加载了一个实现」，覆盖漏导入实现时连实现侧断言都不存在的情况。
 
-9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在 `flake.nix` 的 `home-manager.users.<name>.imports` 里。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `flake.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `flake.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
+9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 里（原位于 `flake.nix`，分拆后接线由 `modules/core.nix` 承接）。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `modules/core.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `modules/core.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
 ## Niri 配置文件管理
 

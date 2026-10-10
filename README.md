@@ -42,6 +42,7 @@ in
 约定的目录名需与身份一致：
 
 - `hosts/<hostname>/`：机器专属配置
+- `overlays/`：nixpkgs 覆盖，一个文件一个主题，由 `modules/core.nix` 汇总并全局挂载
 - `modules/home/<username>/`：个人模块，按需自行编写；缺失的文件由 `utils/optional_import.nix` 跳过并给出求值警告（旧版曾提供 `modules/home/user/` 模板，已于 `a3328c3` 移除）
 - `assets/<username>/`：个人资源（头像等）
 - `user_profiles/<username>/`：运行时配置快照（见「运行时配置备份」）
@@ -70,9 +71,9 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导
 
 桌面实现层（`modules/desktop/<name>/system.nix`）通过 `home-manager.sharedModules` 把自己专属的 Home Manager 模块挂进用户环境，例如 `dms-with-niri` 会挂上 `./default.nix`（`dms-with-niri` 的 HM 层）以及上游 `inputs.dms` / `inputs.danksearch` / `inputs.dankcalendar` 的模块。
 
-**这是刻意的设计约束**：`flake.nix` 的 `home-manager.users.<name>.imports` 只放桌面无关的模块（`./modules/home`、`nvchad`、`codex-desktop`）。任何 DMS 生态的模块若写在那里，切换桌面后仍会生效，曾经因此出现过「切到 KDE 后 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 依旧存在」的问题。同理，桌面专属的 `home.activation` 步骤（如 `restoreDesktopConfig`）也必须放在桌面层内。
+**这是刻意的设计约束**：全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 只放桌面无关的模块（`./modules/home`、`nvchad`、`codex-desktop`）。任何 DMS 生态的模块若写在那里，切换桌面后仍会生效，曾经因此出现过「切到 KDE 后 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 依旧存在」的问题。同理，桌面专属的 `home.activation` 步骤（如 `restoreDesktopConfig`）也必须放在桌面层内。
 
-系统层模块通过 `specialArgs` 拿到 `inputs`，因此可以直接引用自己桌面所需的 input，无需在 `flake.nix` 里为它额外加 overlay 或 `extraSpecialArgs`。
+系统层模块通过 `specialArgs` 拿到 `inputs`，因此可以直接引用自己桌面所需的 input，无需在全局接线层（`flake.nix` / `modules/core.nix`）为它额外加 overlay 或 `extraSpecialArgs`。
 
 > `imports` 的求值早于 `config`，因此**不能**写成 `imports = [ ./desktop/${config.my.desktop}/... ]`（会无限递归）；必须使用 `let` 绑定的局部变量。
 

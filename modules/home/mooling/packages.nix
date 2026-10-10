@@ -28,8 +28,8 @@
 
     qq # Tencent QQ
     # Wayland-fixed QQ launcher, reachable as "QQ (Wayland fix)" in the app
-    # menu; the plain qq entry stays for comparison. The package comes from an
-    # overlay in flake.nix.
+    # menu; the plain qq entry stays for comparison. The package comes from
+    # overlays/custom-packages.nix.
     linuxqq-wayland-fix
     wechat # WeChat
     telegram-desktop # Chat social media
