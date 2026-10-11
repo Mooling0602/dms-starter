@@ -15,6 +15,12 @@
     xz
     unzip
     p7zip
+    # Ark's kerfuffle CLI plugins only register a format when their helper
+    # binary is on PATH. CliUnarchiver reads RAR and LHA through unar and
+    # lsar, but nixpkgs builds that plugin without wrapping ark with them,
+    # so opening a .rar fails with the missing-plugin error. unrar (unfree)
+    # would drive CliRar instead; unar is free and also covers LHA.
+    unar
 
     # utils
     ripgrep
