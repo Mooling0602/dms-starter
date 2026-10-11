@@ -24,6 +24,10 @@
     kdePackages.gwenview # KDE Image viewer
     kdePackages.filelight # KDE storage size analyzer
 
+    # Font viewer and installer. Copies fonts into ~/.local/share/fonts, so
+    # runtime-added ones stay out of the Nix store.
+    font-manager
+
     wpsoffice-cn # WPS Office, Linux Personal edition
 
     qq # Tencent QQ
