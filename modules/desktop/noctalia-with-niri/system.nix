@@ -47,6 +47,16 @@ in
 
   programs.niri.enable = true;
 
+  # niri accepts -c/--config and the NIRI_CONFIG variable, so this desktop reads
+  # its own declarative config instead of the default ~/.config/niri/config.kdl
+  # that dms-with-niri owns and rewrites at runtime. Neither desktop can read or
+  # overwrite the other's niri config, and the shared runtime directory keeps
+  # working for the shell that owns it. The unit itself ships with the niri
+  # package; this only adds a drop-in. Runs without the variable (niri validate,
+  # a nested compositor) keep using the default path, so pass -c there.
+  systemd.user.services.niri.environment.NIRI_CONFIG =
+    "/home/${config.my.username}/.config/niri-noctalia/config.kdl";
+
   # Noctalia plays freedesktop notification sounds through the sound theme.
   # Upstream's NixOS module (programs.noctalia) sets this as well, but the shell
   # itself is installed and supervised by the Home Manager layer instead of by

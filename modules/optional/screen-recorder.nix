@@ -13,11 +13,12 @@
   ];
 
   # Region-recording toggle script (gpu-screen-recorder + slurp).
-  # Invoked from the Mod+Alt+G binding in ~/.config/niri/config.kdl:
-  # the first press selects a region with slurp and starts recording, the next
+  # Invoked from the Mod+Alt+G binding of the active desktop: dms-with-niri keeps
+  # it in the runtime ~/.config/niri/config.kdl (see key design decision 1 in
+  # AGENTS.md), noctalia-with-niri declares it in
+  # modules/desktop/noctalia-with-niri/niri-config.kdl.
+  # The first press selects a region with slurp and starts recording, the next
   # sends SIGINT to stop and flush the file.
-  # niri's own config is intentionally not managed declaratively (see key
-  # design decision 1 in AGENTS.md).
   home.file.".local/bin/region-record" = {
     text = ''
       #!/usr/bin/env bash
