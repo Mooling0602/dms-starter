@@ -34,6 +34,29 @@
 
 ## 临时构建绕过
 
+### VTK 9.5 的 pegtl 模块改名门控写反
+
+- **位置：** `overlays/vtk-pegtl-gate.nix` 的 `vtk_9_5` 覆盖（`postPatch`）。
+- **影响：** nixpkgs 输入更新到 `nixos-26.11pre1089111.6510408d147d` 后，整个 `nixos-system-*` 闭包无法构建。该 rev 含上游提交 `a1a2b117f5`（PR #571724），它把 `VTK::pegtl` 模块改名为 `VTK::vtkpegtl`（避开 openusd ≥ 26.05 经 `VTK::IOUSD` 导出的同名 CMake target），但 `pkgs/development/libraries/vtk/generic.nix` 中两处门控方向不一致：`postPatch` 用 `lib.versionOlder version "9.6"` 触发改名，而 `VTK_MODULE_USE_EXTERNAL_VTK_${if lib.versionAtLeast version "9.6" then "vtkpegtl" else "pegtl"}` 仍按旧名拼 flag。在 `vtk 9.5.2` 上模块被改名为 `VTK::vtkpegtl`，外部依赖开关却仍是 `VTK_MODULE_USE_EXTERNAL_VTK_pegtl=FALSE`，导致改名后的模块匹配不上该 flag、转而查找系统 PEGTL，而派生中根本没有 pegtl 路径，configure 以 `Could not find the PEGTL external dependency` 失败。
+- **传播路径：** `vtk` → `opencv-4.13.0`（经 `opencv4Full`）→ `python3.14-face-recognition` → `howdy` → `system-path`、`pam.d`、`etc`、`activate`、`system-units` 等 23 个派生连锁失败。
+- **当前处理：** 覆盖 `vtk_9_5`，把 `postPatch` 的门控改为 `prev.lib.versionAtLeast oldAttrs.version "9.6"`，与 `generic.nix` 中 flag 所在分支一致（9.5.x 不做改名）。只改 `vtk_9_5` 即可：`all-packages.nix` 中 `vtk` 是 `vtk_9_5` 的别名，下游 `opencv` 经 `opencv4Full` 同样取自该属性，实测覆盖后 `vtk` 与 `opencv` 的派生同步变化。修补后 VTK 输出为 `/nix/store/xb92f3v6a3f92xcxv6vba3i6mbnqnbmm-vtk-9.5.2`，在 `cache.nixos.org` 返回 `200`，因此不会触发本地 VTK 编译。
+- **上游：** 修复为 NixOS/nixpkgs 提交 [`00718d4899`](https://github.com/NixOS/nixpkgs/commit/00718d4899)（"vtk: apply the pegtl module rename to 9.6, not 9.5"，PR [#572295](https://github.com/NixOS/nixpkgs/pull/572295)，2026-10-10 合并），仅改 `versionOlder` 为 `versionAtLeast`。引入缺陷的提交为 [`a1a2b117f5`](https://github.com/NixOS/nixpkgs/commit/a1a2b117f5)（PR [#571724](https://github.com/NixOS/nixpkgs/pull/571724)）。
+- **移除条件：** `flake.lock` 中的 `nixpkgs` 前进到包含 `00718d4899` 的 rev。该输入为 `tarball` 类型，锁定在 `nixpkgs_2` 节点（`flake.lock` 内另有 github 类型的 `nixpkgs` 与 `nixpkgs-stable` 节点，均非本仓库使用）；`channels.nixos.org/nixos-unstable/git-revision` 目前仍指向 `6510408d147d`，故 `nix flake update` 在 channel 推进前无效。
+- **复查方法：** 直接检查当前配置所用 nixpkgs 中的门控方向：
+
+  ```fish
+  set nixpkgs (nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).nixosConfigurations.mooling-laptop.pkgs.path')
+  grep -n 'postPatch = lib.optionalString' $nixpkgs/pkgs/development/libraries/vtk/generic.nix
+  ```
+
+  输出含 `versionOlder version "9.6"` 表示修复尚未到位，含 `versionAtLeast version "9.6"` 则可移除。确认后删除 `overlays/vtk-pegtl-gate.nix` 与 `overlays/default.nix` 中的对应条目，再运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
+  ```
+
+  构建成功即完成移除。
+
 ### `dlib` 的 `build-cores.patch` 失配（Python 3.14 / dlib 20.0.1）
 
 - **位置：** `overlays/python-fixes.nix` 的 `pythonPackagesExtensions` 覆盖 + `patches/dlib-build-cores.patch`。

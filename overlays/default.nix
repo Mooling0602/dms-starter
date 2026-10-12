@@ -12,4 +12,5 @@
   (import ./custom-packages.nix { inherit inputs; })
   (import ./tuxedo-firebat.nix)
   (import ./obs-nvenc-qsv.nix)
+  (import ./vtk-pegtl-gate.nix)
 ]
