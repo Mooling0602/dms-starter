@@ -14,6 +14,12 @@ let
   desktopName = baseNameOf ./.;
 in
 {
+  imports = [
+    # Login screen: wlroots compositor workarounds for this GPU plus the escape
+    # hatch. See the file header and MAINTENANCE.md.
+    ./greeter.nix
+  ];
+
   # Used by the fallback assertion in modules/system/config.nix: only set when
   # this module is present. Stays false when the desktop layer is imported but
   # the implementation is missing from `imports`, and that side reports it.

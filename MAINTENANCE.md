@@ -286,3 +286,13 @@
 - **相关提交：** `64177f6`（`fix: add home-manager.backupFileExtension to resolve config.kdl conflicts`）；`a383c84`（`fix!: stop declaratively managing DMS and NvChad runtime config`）移除了最初的配置冲突来源。运行时 Niri/DMS 配置已不再由 Home Manager 声明式管理，因此需重新确认该后缀是否仍有必要。
 - **移除条件：** 不存在其他需要保留的 Home Manager 目标文件冲突，且移除该选项后的 Home Manager 激活成功。
 - **复查方法：** 临时移除该选项后执行常规 `nixos-rebuild switch`；若激活报出文件冲突，先确认该目标文件是否应由 Home Manager 接管，再决定是否保留该后缀。
+
+### noctalia-greeter 的 wlroots 合成器在 VMware vmwgfx 上崩溃
+
+- **位置：** `modules/desktop/noctalia-with-niri/greeter.nix` 对 `services.greetd.settings.default_session.command` 的覆盖，以及同一文件里的 `systemd.services."getty@tty2".enable`。
+- **影响：** noctalia-greeter 自带 `noctalia-greeter-compositor`（wlroots 0.20.2）。在 VMware 的 vmwgfx + SVGA3D 上，它渲染出第一帧后即报 `[backend/drm/fb.c:107] drmCloseBufferHandle failed: Invalid argument` 与 `[types/wlr_linux_dmabuf_v1.c:223] Failed to close buffer handle for plane 0: Invalid argument`，随后 Wayland socket 消失；greeter 侧报 `Wayland flush failed while requesting next frame` → `failed to initialize greeter`，并按其设计**故意挂住进程**（`holding process so greetd does not respawn`）。表现是开机日志滚完后黑屏，且 greetd 不会重试。会话侧不受影响：niri 基于 smithay 而非 wlroots，同一 GPU 上正常工作（世代 28 与 27 的对照可证）。
+- **证据（2026-10-12 世代 28 的启动，`journalctl -b -2`）：** 该次启动到达 `graphical.target`，greetd 正常以 `greeter` 用户启动会话，DRM 后端与 `Virtual-1` 输出均就绪并呈现了首帧，之后才出现上述 dmabuf / plane 错误。
+- **当前处理：** 在 greetd 启动 greeter 会话时导出三个 wlroots 开关，绕开出事的三条路径：`WLR_SCENE_DISABLE_DIRECT_SCANOUT=1`（不把客户端缓冲直接送上 plane 0）、`WLR_DRM_NO_MODIFIERS=1`、`WLR_NO_HARDWARE_CURSORS=1`；并设 `WLR_LOG=info` 便于复现时取证。三个名字均已在 `libwlroots-0.20.2/lib/libwlroots-0.20.so` 中核对存在，非猜测。另外默认只在 tty1 起 getty（tty1 归 greetd），黑屏时没有控制台可用，因此补上 `getty@tty2`，配合已启用的 SSH 作为逃生通道。
+- **上游：** [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter)（自带合成器，1.6.0）、wlroots 0.20.2。上游 issue 中未见 VMware 报告，同类症状只有 [#149 Compositor aborts when an external display is connected but reports no modes at boot](https://github.com/noctalia-dev/noctalia-greeter/issues/149)（合成器 abort 这一类）。
+- **移除条件：** noctalia-greeter 或 wlroots 在 vmwgfx 上不再崩溃（启动日志不再出现上述两条错误且 greeter 正常进入登录界面），即可删掉 `greeter.nix` 里的四个 `export`；若上游给出等价开关或修复，按上游写法替换。`getty@tty2` 可在黑屏风险消失后一并移除。
+- **复查方法：** 重启后 `journalctl -b | grep -E "drmCloseBufferHandle|Failed to close buffer handle|noctalia-greeter"`，应看到 greeter 正常启动、无上述两条错误。若仍黑屏：Ctrl+Alt+F2 登录 tty2，先看 `journalctl -b -u greetd`，再直接 `niri-session` 进入桌面（不经过 greeter）；仍不行则在 GRUB 选世代 27。
