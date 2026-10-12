@@ -49,7 +49,7 @@
 
 9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 里（原位于 `flake.nix`，分拆后接线由 `modules/core.nix` 承接）。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `modules/core.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `modules/core.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
-10. **Noctalia 桌面层同样不声明式管理运行配置**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.noctalia-greeter`），不新增 flake input。`programs.noctalia.settings` 保持为空，`gtk.enable` 与 `qt.enable` 也不启用：Noctalia 的模板要向 `~/.config/noctalia/`、`~/.config/gtk-{3,4}.0/`、`~/.config/qt{5,6}ct/colors/`、`~/.config/niri/config.kdl` 等文件写入，并在模板停用时撤回自己插入的 include，而 Home Manager 的 `xdg.configFile` 是只读符号链接（原因同决策 1）。终端配色仍由 `modules/desktop/noctalia-with-niri/terminal.nix` 声明 include 指向模板生成的文件。
+10. **Noctalia 桌面层：外观声明式，niri 配置按会话隔离**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.noctalia-greeter`），不新增 flake input。外观（头像、壁纸、配色与应用配色模板）由 `programs.noctalia.settings` 声明进 `~/.config/noctalia/config.toml`：Noctalia 先读该目录的 `*.toml`、最后读界面写入的 `settings.toml`，因此声明默认值不会挡住在图形界面里修改，这与决策 1 的「DMS 拥有运行配置」并不冲突。niri 侧不再共用 DMS 的 `~/.config/niri/config.kdl`：本层声明 `~/.config/niri-noctalia/config.kdl`，并用 `systemd.user.services.niri` 的 drop-in 把 `NIRI_CONFIG` 指过去。`gtk.enable` 与 `qt.enable` 仍不启用，因为模板渲染出的应用配色文件必须保持可写。细节见「noctalia-with-niri 桌面层」。
 
 ## Niri 配置文件管理
 
@@ -68,21 +68,34 @@
 - 登录器：`services.displayManager.noctalia-greeter`（nixpkgs 1.6.0），切换到该层后不再依赖 DMS 生态；`greeter` 用户由 greetd 模块创建，不需要 `dms-greeter` 那样的额外组。
 - 两者都不新增 flake input。没有采用上游 flake 的 cachix 缓存：官方说明 `inputs.nixpkgs.follows` 会改变推导哈希、导致缓存失效，而缓存命中正是选 nixpkgs 版本的理由。
 
-### 运行时不托管的文件
+### 配置分层与外观
 
-Noctalia 的模板会往下列文件写入，并在模板停用时撤回自己插入的 include，所以它们必须保持可写，不能由 Home Manager 用 `xdg.configFile` 占为只读符号链接（原因同决策 1）：
+Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入的 `settings.toml` 最后读并覆盖。所以 `programs.noctalia.settings`（Home Manager 生成只读的 `config.toml`）既能声明默认外观，也不会挡住图形设置菜单（这一条与最初「保持为空」的判断相反，已按上游文档更正）。
 
-- `~/.config/noctalia/config.toml`（因此 `programs.noctalia.settings` 保持为空）
-- Noctalia 模板渲染出的应用配色：`~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、`~/.config/{alacritty/themes,kitty/themes,ghostty/themes}/noctalia*` 等
-- `~/.config/niri/config.kdl`（Noctalia 的 niri 模板只追加一行 `include "noctalia.kdl"`）
+声明内容集中在 `modules/desktop/noctalia-with-niri/default.nix`：
 
-`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，图形界面里就选不了 Noctalia 的配色。终端配色仍按既有约定由 `terminal.nix` 声明 include 指向模板生成的文件。
+- 头像：`shell.avatar_path = "~/.face"`，即 `modules/home/mooling/avatar.nix` 安装的文件。Noctalia 会同时更新 AccountsService 的 `IconFile`，`noctalia-greeter` 因此复用同一张头像。
+- 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张），默认取深色那张，与 `theme.mode = "dark"` 对齐。
+- 配色：`source = "wallpaper"` 加 `wallpaper_scheme = "m3-content"`，沿用 DMS 时期由壁纸生成调色板的方式；想固定调色板就改成 `source = "builtin"` 与调色板名。
+- 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。
+- **故意不启用 `niri` 模板**：它除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色。本层已用绝对路径 include 渲染结果，代价仅是 niri 自身的 focus-ring 与边框颜色保持默认。
+
+仍由运行时可写、不由 Home Manager 占用的文件：模板渲染出的 `~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、终端的 `noctalia*` 主题文件，以及 DMS 拥有的 `~/.config/niri/`。`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，界面里就选不了 Noctalia 配色。
 
 ### 会话与切换
 
-- shell 由 `programs.noctalia.systemd.enable` 的用户服务拉起，target 是 `graphical-session.target`（niri 会话会启动它），不需要 niri 的 `spawn-at-startup`，也就不必为此把 niri 配置改成声明式。
+- shell 由 `programs.noctalia.systemd.enable` 的用户服务拉起，target 是 `graphical-session.target`（niri 会话会启动它），所以不需要 niri 的 `spawn-at-startup`：niri 配置之所以声明式，是为了配置隔离，不是因为启动 shell。
 - 锁屏走 PAM 的 `login` 服务，没有独立的 PAM service 可挂钩。`modules/optional/howdy.nix` 出于解锁 GNOME Keyring 的考虑在 `login` 上禁用了 Howdy，因此 Noctalia 的锁屏一律要求密码；恢复人脸认证会连带影响 greeter。
-- 切换前要手工写进运行时 `config.kdl` 的内容（Noctalia 没有自动化这一步）：文档列出的快捷键（`noctalia msg panel-toggle launcher` 等）、设置窗口的浮动 `window-rule`、以及 `debug { honor-xdg-activation-with-invalid-serial }`；同时删掉现有的 `include "dms/*.kdl"` 那一组行。
+
+### niri 配置隔离
+
+两个桌面模块此前共用 `~/.config/niri/config.kdl`，切桌面会互相留下 include 与键位。现在按会话隔离：
+
+- niri 支持 `-c/--config` 与 `NIRI_CONFIG` 环境变量。本层在 `system.nix` 里给 `systemd.user.services.niri` 加 drop-in（`environment.NIRI_CONFIG`），指向 `~/.config/niri-noctalia/config.kdl`；`dms-with-niri` 完全不设该变量，继续读默认路径。一次会话只读一个配置，两个桌面互不读写。
+- 本层配置是声明式的：`modules/desktop/noctalia-with-niri/niri-config.kdl`（真实 KDL，便于 review 与 `niri validate`）。`niri.nix` 在构建期用一个 `runCommand` 把 include 注释掉后跑 `niri validate`，语法错误在构建阶段就暴露。占位符 `@REGION_RECORD@` 与 `@NIRI_INPUT_PORTAL@` 在构建时替换为实际路径，文件本身不含用户名或主机名。
+- 主机专属设置走 `include "host.kdl"`：放在配置最后，因此覆盖共享默认值。`hosts/vmware/desktop/noctalia-with-niri/niri-host.kdl` 给出 `Virtual-1` 的 mode/scale，同目录的 `niri-host.nix` 通过 `home-manager.sharedModules` 用 `lib.mkForce` 覆盖层里那份空默认文件（host 桌面目录是作为系统模块导入的，不能直接设 HM 选项）。相对 include 按软链所在目录解析（已实测），所以 HM 安装到 store 不影响它。
+- Noctalia 的配色文件由上游固定写在 `~/.config/niri/noctalia.kdl`，本层用 `include "~/.config/niri/noctalia.kdl"` 引用。niri 把读不到的 include 当致命错误，所以 `home.activation.noctaliaNiriThemeStub` 在文件不存在时先放一个空占位，之后交给 shell 渲染。
+- 手动命令与嵌套运行的 niri 不经过该单元，默认仍读 `~/.config/niri/config.kdl`，需要时自行加 `-c`。切换后可用 `journalctl --user -u niri | grep "loaded config"` 与 `systemctl --user show niri.service -p Environment` 确认读到的是哪个文件。
 
 ### 从 DMS 层移植时的取舍
 
