@@ -86,6 +86,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 - shell 由 `programs.noctalia.systemd.enable` 的用户服务拉起，target 是 `graphical-session.target`（niri 会话会启动它），所以不需要 niri 的 `spawn-at-startup`：niri 配置之所以声明式，是为了配置隔离，不是因为启动 shell。
 - 锁屏走 PAM 的 `login` 服务，没有独立的 PAM service 可挂钩。`modules/optional/howdy.nix` 出于解锁 GNOME Keyring 的考虑在 `login` 上禁用了 Howdy，因此 Noctalia 的锁屏一律要求密码；恢复人脸认证会连带影响 greeter。
+- **登录器在这台 VM 上会崩**：noctalia-greeter 自带的 wlroots 合成器在 VMware vmwgfx 上呈出第一帧后即死，表现是黑屏且 greetd 不重试。`greeter.nix` 用三个已核实的 wlroots 开关绕过该路径，并额外在 tty2 起 getty 作为逃生通道（默认只有 tty1，而 tty1 归 greetd）。证据、上游情况与移除条件见 `MAINTENANCE.md`。
 
 ### niri 配置隔离
 
