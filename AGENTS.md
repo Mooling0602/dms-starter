@@ -49,12 +49,65 @@
 
 9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 里（原位于 `flake.nix`，分拆后接线由 `modules/core.nix` 承接）。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `modules/core.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `modules/core.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
+10. **Noctalia 桌面层同样不声明式管理运行配置**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.noctalia-greeter`），不新增 flake input。`programs.noctalia.settings` 保持为空，`gtk.enable` 与 `qt.enable` 也不启用：Noctalia 的模板要向 `~/.config/noctalia/`、`~/.config/gtk-{3,4}.0/`、`~/.config/qt{5,6}ct/colors/`、`~/.config/niri/config.kdl` 等文件写入，并在模板停用时撤回自己插入的 include，而 Home Manager 的 `xdg.configFile` 是只读符号链接（原因同决策 1）。终端配色仍由 `modules/desktop/noctalia-with-niri/terminal.nix` 声明 include 指向模板生成的文件。
+
 ## Niri 配置文件管理
 
 - `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl` 是普通可写文件，由 DMS/Niri 在运行时管理
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查
 - 需要重新生成时：`echo -e "1\n1-3\n1\ny" | DMS_PRIVESC=sudo dms setup`
 - 需要版本化时，从 `~/.config/niri/` 和 `~/.config/DankMaterialShell/` 更新快照，再用 `git diff` 审查并提交
+
+## noctalia-with-niri 桌面层
+
+`modules/desktop/noctalia-with-niri/` 是与 `dms-with-niri` 并列的备用桌面层，已就绪但尚未在任何主机上启用。`hosts/vmware/desktop/noctalia-with-niri/default.nix` 已经放好，启用只需改 `hosts/<host>/default.nix` 顶部的 `let desktop`。
+
+### 组成与来源
+
+- shell：锁定 nixpkgs 里的 `noctalia` 5.2.1（C++ 写的 v5，不是 Quickshell 的 v4 `noctalia-shell`），cache.nixos.org 已缓存，不需要本地编译。
+- 登录器：`services.displayManager.noctalia-greeter`（nixpkgs 1.6.0），切换到该层后不再依赖 DMS 生态；`greeter` 用户由 greetd 模块创建，不需要 `dms-greeter` 那样的额外组。
+- 两者都不新增 flake input。没有采用上游 flake 的 cachix 缓存：官方说明 `inputs.nixpkgs.follows` 会改变推导哈希、导致缓存失效，而缓存命中正是选 nixpkgs 版本的理由。
+
+### 运行时不托管的文件
+
+Noctalia 的模板会往下列文件写入，并在模板停用时撤回自己插入的 include，所以它们必须保持可写，不能由 Home Manager 用 `xdg.configFile` 占为只读符号链接（原因同决策 1）：
+
+- `~/.config/noctalia/config.toml`（因此 `programs.noctalia.settings` 保持为空）
+- Noctalia 模板渲染出的应用配色：`~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、`~/.config/{alacritty/themes,kitty/themes,ghostty/themes}/noctalia*` 等
+- `~/.config/niri/config.kdl`（Noctalia 的 niri 模板只追加一行 `include "noctalia.kdl"`）
+
+`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，图形界面里就选不了 Noctalia 的配色。终端配色仍按既有约定由 `terminal.nix` 声明 include 指向模板生成的文件。
+
+### 会话与切换
+
+- shell 由 `programs.noctalia.systemd.enable` 的用户服务拉起，target 是 `graphical-session.target`（niri 会话会启动它），不需要 niri 的 `spawn-at-startup`，也就不必为此把 niri 配置改成声明式。
+- 锁屏走 PAM 的 `login` 服务，没有独立的 PAM service 可挂钩。`modules/optional/howdy.nix` 出于解锁 GNOME Keyring 的考虑在 `login` 上禁用了 Howdy，因此 Noctalia 的锁屏一律要求密码；恢复人脸认证会连带影响 greeter。
+- 切换前要手工写进运行时 `config.kdl` 的内容（Noctalia 没有自动化这一步）：文档列出的快捷键（`noctalia msg panel-toggle launcher` 等）、设置窗口的浮动 `window-rule`、以及 `debug { honor-xdg-activation-with-invalid-serial }`；同时删掉现有的 `include "dms/*.kdl"` 那一组行。
+
+### 从 DMS 层移植时的取舍
+
+| DMS 层的部分 | 在 noctalia 层的处置 |
+|---|---|
+| `packages.nix` 的 `xwayland-satellite` | 保留。niri 自身会 spawn 它（二进制内含该集成），与 shell 无关。 |
+| `xdg-portals.nix` 的门户路由、Settings 提供方剔除、`niri-input-portal` 单元 | 保留。全部属于 niri/KDE/GNOME 层；`MAINTENANCE.md` 对应两条目的「位置」已补上本层路径。 |
+| `terminal.nix` 引用 matugen 生成的配色 | 改写：alacritty 用 `themes/noctalia.toml`、kitty 用 `include themes/noctalia.conf`、ghostty 用 `theme = noctalia`。 |
+| `ui.nix` 的 Qt 会话变量 | 保留，取值与 DMS 层一致；但不再启用 `qt.enable`。 |
+| `ui.nix` 的可写 `adw-gtk3` 副本 | 只保留 `adw-gtk3` 包本身。Noctalia 仅导入 `noctalia.css` 并切换 gtk-theme，不像 DMS 那样原地改样式表；store 中的主题经 `XDG_DATA_DIRS`（含 `/etc/profiles/per-user/<user>/share`）即可被发现，`MAINTENANCE.md` 那条仍只属于 DMS。 |
+| `fcitx-theme-sync.nix` | 未移植，见下方缺口。 |
+| `backup.nix` 的 DMS/Niri 快照自动恢复 | 未移植，见下方缺口。 |
+| `security.pam.services.dankshell` 与 Howdy 联动 | 不需要。Noctalia 走 PAM 的 `login` 服务，理由见上。 |
+| `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 换成 `noctalia-greeter`；`greeter` 用户由 greetd 模块创建，不再需要额外组。 |
+| `system.nix` 的 gpu-screen-recorder polkit 规则 | 未移植，见下方缺口。 |
+
+### 尚未处理的缺口
+
+- **gpu-screen-recorder 的免密码 polkit 规则**只在 `dms-with-niri` 的 `system.nix` 里。运行时 niri 快捷键调用的 `/home/mooling/.local/bin/region-record` 使用 gpu-screen-recorder，切到 noctalia 后录屏会每次索要密码。该规则与 shell 无关，宜移到共享的系统模块，而不是在新层复制一份。
+- **`fcitx-theme-sync.nix`** 读 DMS 自己的 `~/.local/share/color-schemes/DankMatugen.colors`，而 Noctalia 没有 fcitx5 模板。若要恢复候选窗跟随深浅色，可先启用 `kcolorscheme` 模板（输出 `~/.local/share/color-schemes/noctalia.colors`），再让同步脚本改读该文件。
+- **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照；niri 部分仍可用 `scripts/backup.sh` 手工恢复。
+
+### 切换后待确认
+
+Noctalia 自带 polkit 认证代理，niri-flake 也会拉起 `niri-flake-polkit`（`wantedBy = [ "niri.service" ]`），两者只有一个能持有 `org.freedesktop.PolicyKit1.AuthenticationAgent`。切换后用 `systemctl --user status niri-flake-polkit` 确认；若它反复重启，就在本层 `system.nix` 里停用该单元。
 
 ## 已修复的关键问题
 
