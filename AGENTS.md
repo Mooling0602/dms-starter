@@ -60,7 +60,7 @@
 
 ## noctalia-with-niri 桌面层
 
-`modules/desktop/noctalia-with-niri/` 是与 `dms-with-niri` 并列的备用桌面层，已就绪但尚未在任何主机上启用。`hosts/vmware/desktop/noctalia-with-niri/default.nix` 已经放好，启用只需改 `hosts/<host>/default.nix` 顶部的 `let desktop`。
+`modules/desktop/noctalia-with-niri/` 是与 `dms-with-niri` 并列的桌面层，目前已在 `hosts/vmware` 上启用（其它主机切换只需改 `hosts/<host>/default.nix` 顶部的 `let desktop`，并在 `hosts/<host>/desktop/noctalia-with-niri/` 准备同名目录）。
 
 ### 组成与来源
 
