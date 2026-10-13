@@ -119,9 +119,10 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 - **`fcitx-theme-sync.nix`** 读 DMS 自己的 `~/.local/share/color-schemes/DankMatugen.colors`，而 Noctalia 没有 fcitx5 模板。若要恢复候选窗跟随深浅色，可先启用 `kcolorscheme` 模板（输出 `~/.local/share/color-schemes/noctalia.colors`），再让同步脚本改读该文件。
 - **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照；niri 部分仍可用 `scripts/backup.sh` 手工恢复。
 
-### 切换后待确认
+### 认证代理与会话核对
 
-Noctalia 自带 polkit 认证代理，niri-flake 也会拉起 `niri-flake-polkit`（`wantedBy = [ "niri.service" ]`），两者只有一个能持有 `org.freedesktop.PolicyKit1.AuthenticationAgent`。切换后用 `systemctl --user status niri-flake-polkit` 确认；若它反复重启，就在本层 `system.nix` 里停用该单元。
+- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。必须开启的原因有两条：本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理；以及这个 nixpkgs 把 setuid 的 `pkexec` 改成可选（`security.polkit.enablePkexecWrapper` 默认 `false`，`/run/wrappers/bin/` 里只有 `sudo`），会话代理因而是唯一的授权途径。核对命令：`busctl --system call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 应返回一个 `:1.x` 名字；`noctalia config export | grep polkit` 应包含 `polkit_agent = true`。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
+- 登录后可用三条命令核对本次会话：`journalctl --user -u niri | grep "loaded config"` 应为 `~/.config/niri-noctalia/config.kdl`；`systemctl --user show niri.service -p Environment` 应含 `NIRI_CONFIG`；`systemctl --user status noctalia.service` 应为 active。
 
 ## 已修复的关键问题
 
@@ -133,6 +134,7 @@ Noctalia 自带 polkit 认证代理，niri-flake 也会拉起 `niri-flake-polkit
 | Qt 标题栏风格 | `QT_WAYLAND_DECORATION=ssd` 与 `QT_WAYLAND_DISABLE_WINDOWDECORATION=1`，让 niri 提供 SSD |
 | Dolphin 右键"打开方式"无应用 | `applications.menu` symlink |
 | Greeter 不跟随桌面主题 | `services.displayManager.dms-greeter.configHome = "/home/${config.my.username}"` |
+| 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`）；该 nixpkgs 的 setuid `pkexec` 是可选功能且默认关闭 |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
