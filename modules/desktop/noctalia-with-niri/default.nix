@@ -67,11 +67,12 @@ in
         # gtk3/gtk4 write gtk-{3,4}.0/noctalia.css and import it from gtk.css,
         # qt writes the two qt{5,6}ct color schemes, kcolorscheme the KDE one.
         #
-        # The niri template is deliberately not enabled: besides rendering
-        # noctalia.kdl it appends an include to the dms-with-niri owned
-        # ~/.config/niri/config.kdl. This desktop already includes the rendered
-        # file by absolute path, so only niri's own focus-ring and border colors
-        # stay at their defaults.
+        # The built-in niri template is deliberately not enabled: besides
+        # rendering the palette it appends `include "noctalia.kdl"` to
+        # ~/.config/niri/config.kdl, which belongs to dms-with-niri, and it can
+        # only write to that same directory. "niri-colors" below is the
+        # equivalent user template with both paths redirected into this
+        # desktop's own config directory.
         templates = {
           enable_builtin_templates = true;
           builtin_ids = [
@@ -83,8 +84,24 @@ in
             "qt"
             "kcolorscheme"
           ];
+
+          # niri-palette.kdl is the payload of the built-in niri template minus
+          # the hook that writes into the other desktop's config. A relative
+          # input resolves against the directory of the config file itself, so
+          # the file is installed next to config.toml by the xdg.configFile
+          # entry below; the output is the file that niri-config.kdl includes
+          # optionally. No hooks, so nothing outside this desktop's own
+          # directories is touched.
+          user.niri-colors = {
+            input_path = "niri-palette.kdl";
+            output_path = "$XDG_CONFIG_HOME/niri-noctalia/noctalia.kdl";
+          };
         };
       };
     };
   };
+
+  # Read-only: only the template engine reads it. Noctalia watches that
+  # directory for *.toml changes, so a .kdl file there causes no restarts.
+  xdg.configFile."noctalia/niri-palette.kdl".source = ./niri-palette.kdl;
 }
