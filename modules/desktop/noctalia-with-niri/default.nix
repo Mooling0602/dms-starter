@@ -33,6 +33,16 @@ in
       # publishes it through AccountsService, so noctalia-greeter picks it up.
       shell.avatar_path = "~/.face";
 
+      # Noctalia registers its polkit authentication agent only when this key is
+      # set; upstream default is false, and nothing else answers privileged
+      # prompts on this host. niri-flake's Home Manager module (which would
+      # start niri-flake-polkit) is not imported by this layer, and this nixpkgs
+      # makes the setuid pkexec wrapper opt in via
+      # security.polkit.enablePkexecWrapper, which defaults to false. The
+      # settings menu stays in charge: it writes settings.toml, and that file is
+      # read last, so its value wins over this one.
+      shell.polkit_agent = true;
+
       # Both wallpapers from modules/home/defaults/theme.nix live here, so the
       # picker offers the light/dark pair; the dark one is the default because
       # the theme below is pinned to dark.

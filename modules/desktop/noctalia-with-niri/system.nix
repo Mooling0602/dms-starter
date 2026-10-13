@@ -80,9 +80,11 @@ in
   # there again would hand the greeter face authentication as well, which
   # cannot unlock the GNOME keyring.
   #
-  # Noctalia ships its own polkit authentication agent. niri-flake additionally
-  # starts polkit-kde-agent (systemd.user.services.niri-flake-polkit), and only
-  # one process can own org.freedesktop.PolicyKit1.AuthenticationAgent. Check
-  # which one holds the name after switching, then disable the redundant unit
-  # here if the KDE agent only restarts.
+  # Privileged prompts are answered by Noctalia's own polkit authentication
+  # agent, enabled in default.nix (upstream default is off). Nothing competes
+  # for org.freedesktop.PolicyKit1.AuthenticationAgent on this host: this layer
+  # does not import niri-flake's Home Manager module, so no niri-flake-polkit
+  # unit exists, and this nixpkgs keeps the setuid pkexec wrapper opt in
+  # (security.polkit.enablePkexecWrapper, default false), which leaves the
+  # session agent as the only way to authorize an action.
 }
