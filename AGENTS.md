@@ -55,6 +55,7 @@
 
 - `~/.config/niri/config.kdl` 和 `~/.config/niri/dms/*.kdl` 是普通可写文件，由 DMS/Niri 在运行时管理
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查
+- Noctalia 层的 niri 配置是声明式的，例外只有可写的 `~/.config/niri-noctalia/custom.kdl`，它单独往返于 `user_profiles/mooling/niri-noctalia/`，详见「niri 配置隔离」
 - 需要重新生成时：`echo -e "1\n1-3\n1\ny" | DMS_PRIVESC=sudo dms setup`
 - 需要版本化时，从 `~/.config/niri/` 和 `~/.config/DankMaterialShell/` 更新快照，再用 `git diff` 审查并提交
 
@@ -108,9 +109,13 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 - niri 支持 `-c/--config` 与 `NIRI_CONFIG` 环境变量。本层在 `system.nix` 里给 `systemd.user.services.niri` 加 drop-in（`environment.NIRI_CONFIG`），指向 `~/.config/niri-noctalia/config.kdl`；`dms-with-niri` 完全不设该变量，继续读默认路径。一次会话只读一个配置，两个桌面互不读写。
 - 本层配置是声明式的：`modules/desktop/noctalia-with-niri/niri-config.kdl`（真实 KDL，便于 review 与 `niri validate`）。`niri.nix` 在构建期把该配置与渲染后的配色一起放进一个临时目录跑 `niri validate`：相对 include 按 niri 收到的那条路径所在目录解析（已用软链实测：软链目录生效，而不是 store 里的真实文件所在目录），临时目录正是两者运行时的位置，所以校验的是真实的 include 行。配色用 `noctalia theme` 现场渲染，占位符写错或注释里混入花括号都会在构建阶段暴露。占位符 `@REGION_RECORD@` 与 `@NIRI_INPUT_PORTAL@` 在构建时替换为实际路径，文件本身不含用户名或主机名。
-- 主机专属设置走 `include "host.kdl"`：放在配置最后，因此覆盖共享默认值。`hosts/vmware/desktop/noctalia-with-niri/niri-host.kdl` 给出 `Virtual-1` 的 mode/scale，同目录的 `niri-host.nix` 通过 `home-manager.sharedModules` 用 `lib.mkForce` 覆盖层里那份空默认文件（host 桌面目录是作为系统模块导入的，不能直接设 HM 选项）。
+- 主机专属设置走 `include "host.kdl"`：放在共享默认值之后，因此覆盖共享默认值（其后还有一枚手工覆盖文件，见下条）。`hosts/vmware/desktop/noctalia-with-niri/niri-host.kdl` 给出 `Virtual-1` 的 mode/scale，同目录的 `niri-host.nix` 通过 `home-manager.sharedModules` 用 `lib.mkForce` 覆盖层里那份空默认文件（host 桌面目录是作为系统模块导入的，不能直接设 HM 选项）。
 - 配色走 `include "noctalia.kdl" optional=true`，指向本层目录下由自定义模板渲染的同名文件，不再碰 DMS 的 `~/.config/niri/`。`optional=true` 让文件尚未渲染时 niri 只警告、不致命；niri 也会持续监视这个缺失的可选 include，文件一旦出现就自动重载，因此不再需要 `home.activation` 写占位文件。构建期额外断言「两个文件都已就位时不得出现 `optional include not found`」，避免 include 名与模板 `output_path` 改歪后无声退回默认配色（可选 include 缺失只警告、退出码仍为 0）。
 - 需要注意：模板没有 `undo_hook` 之类的机制，Noctalia 不会删除 `~/.config/niri-noctalia/noctalia.kdl`。切回 `dms-with-niri` 时该文件会成为残留，但 DMS 不设 `NIRI_CONFIG`、读的是自己的 `~/.config/niri/config.kdl`，而配色文件里的 `layout { border { ... } }` 只改颜色、不会打开边框（niri 只在主配置里出现 `border` 时才启用边框），所以残留是惰性的；仍建议切换后手动删除。
+- **手工叠加修改走 `include "custom.kdl" optional=true`，放在两个 include 之后**：`~/.config/niri-noctalia/custom.kdl` 是唯一可写的 KDL，用来叠加声明层不打算覆盖的临时偏好。它**不能**放进 `xdg.configFile`（那会变成只读 store 符号链接），改为由 `niri.nix` 的 `home.activation.seedNiriCustomConfig` 在文件缺失时播种一份带注释的模板 `niri-custom-default.kdl`，之后不再改写，删掉即可恢复模板。构建期把这份模板一并 stage 进校验目录，所以模板自身的语法错误也会在构建阶段拦下。
+- 叠加能改到什么程度受 niri 的合并语义限制，写进 `custom.kdl` 前需要知道：`input`、`cursor`、`layout`、`debug` 等按属性级合并，可只写要改的项；但 `input` 下的 `touchpad`、`mouse`、`trackpoint`、`trackball` 与 `keyboard` 的 `xkb` 是**整块替换**，只写 `touchpad { tap }` 会丢掉该块其余设置。`binds`、`environment`、`screenshot-path` 整体替换，`window-rule`、`layer-rule` 按出现顺序追加并叠加，而 `output` 与 `workspace` 虽然也追加，运行时却取**第一条匹配**：同名 `output` 块不会覆盖 `host.kdl`，要改得直接改 host 文件。
+- 失败行为在启动与重载时不同：`custom.kdl` 缺失只警告、不致命；文件存在却语法错误则 `niri validate` 退出码为 1（`optional=true` 也挡不住），热重载会保留当前配置并弹出提示，但下次登录会退回 niri 内置默认配置，等于丢掉整个声明层。因此改动后应先 `niri validate -c ~/.config/niri-noctalia/config.kdl` 再重启会话。
+- `custom.kdl` 的备份往返：`./scripts/backup.sh niri-custom-snapshot mooling` 抓取到 `user_profiles/mooling/niri-noctalia/custom.kdl`，`niri-custom-apply` 覆盖回机器。恢复前会在临时目录里连同真实的 `config.kdl`、`host.kdl`、`noctalia.kdl` 一起跑 `niri validate`（文件用 `-L` 复制，否则符号链接会校验错路径），校验不过直接拒绝，避免写坏配置导致下次登录退回默认。
 - 手动命令与嵌套运行的 niri 不经过该单元，默认仍读 `~/.config/niri/config.kdl`，需要时自行加 `-c`。切换后可用 `journalctl --user -u niri | grep "loaded config"` 与 `systemctl --user show niri.service -p Environment` 确认读到的是哪个文件。
 
 ### 从 DMS 层移植时的取舍
@@ -130,7 +135,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 ### 尚未处理的缺口
 
-- **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照；niri 部分仍可用 `scripts/backup.sh` 手工恢复。
+- **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照，也没有与 `restoreDesktopConfig` 对应的自动恢复激活步骤（本层唯一可写的 KDL 是 `custom.kdl`，它由 `seedNiriCustomConfig` 播种、不参与自动恢复）。niri 侧的手工往返可用 `scripts/backup.sh niri-custom-snapshot` 与 `niri-custom-apply`；若将来要把 Noctalia 外观也纳入快照，需要新开一个与 `desktop-config` 并列的组件目录，不要去改 DMS 形态的那份。
 
 ### 认证代理与会话核对
 

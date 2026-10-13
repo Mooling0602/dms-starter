@@ -297,6 +297,17 @@
 
   钩子改到 `started` 的登录同步只能靠重启会话验证：`journalctl --user -u noctalia | grep -i hook` 不应出现 `hook '...' command failed`，`noctalia msg wallpaper-get` 应与当时 `theme-mode-get` 的结果对应。修复本条后 `[theme] mode` 残留值仍需人工清一次（见 AGENTS.md「深浅色自动切换」）。
 
+### 声明式 niri 配置里留一枚可写的 `custom.kdl`（Noctalia 层）
+
+- **位置：** `modules/desktop/noctalia-with-niri/niri-config.kdl` 末尾的 `include "custom.kdl" optional=true`；模板载荷是同目录的 `niri-custom-default.kdl`，播种逻辑在同目录 `niri.nix` 的 `home.activation.seedNiriCustomConfig`；备份往返是 `scripts/backup.sh` 的 `niri-custom-snapshot` 与 `niri-custom-apply`（脚本在 `user_profiles/mooling/niri-noctalia/`）。
+- **影响：** 本层 niri 配置是声明式的（见 AGENTS.md「niri 配置隔离」），`config.kdl`、`host.kdl` 与渲染出的 `noctalia.kdl` 都是 store 里的只读符号链接或运行时文件，没有地方临时叠加一项偏好（例如试一下新的 `gaps`、改一条 `binds`）。这正是决策 1 拒绝把 niri 配置整体纳入声明式管理的原因，只是本层为配置隔离又把它们收回了声明层，所以需要一个受控的出口。
+- **当前处理：** 新增 `custom.kdl`，约定它由用户手写、不归 Home Manager 管理，并以 `optional=true` 放在两个 include 之后，因此优先级最高、缺失也不致命。它**不能**写进 `xdg.configFile`：那会变成只读 store 符号链接，与「可写」的目的相反。Home Manager 只在文件缺失时从 `niri-custom-default.kdl` 播种一份带注释的模板，之后永不改写，删掉即可恢复模板。构建期把这份模板一并 stage 进 `niri validate` 的校验目录，因此模板自身或注释掉的示例写坏语法会在构建阶段暴露，而不是等到登录时。
+- **合并语义的限制（写 `custom.kdl` 前必读）：** niri 的 include 按位置原地展开、后者胜出，但各节的合并粒度并不一致。`input`、`cursor`、`layout`、`debug`、`blur`、`animations`、`gestures`、`overview` 是属性级合并，可以只写要改的项；而 `input` 下的 `touchpad`、`mouse`、`trackpoint`、`trackball` 与 `keyboard` 的 `xkb` 走的是整值替换，只写 `touchpad { tap }` 会丢掉该块其余设置。`binds`、`environment`、`screenshot-path`、`prefer-no-csd` 整体替换（`binds` 是删掉冲突键再新增，所以适合只改一两条）；`window-rule`、`layer-rule` 按顺序追加并叠加，但**无法取消**上游已设的属性。`output` 与 `workspace` 虽然也追加，运行时却取第一条名字匹配的块（`Outputs::find` 用 `iter().find()`），因此在 `custom.kdl` 里再写一个 `output "Virtual-1"` 会被静默忽略，改输出设置必须直接改 `hosts/<host>/desktop/noctalia-with-niri/niri-host.kdl`。
+- **启动与重载的失败行为不同：** `custom.kdl` 缺失只有一条 `WARN niri_config: optional include not found`，退出码仍为 0；文件存在却语法错误则 `niri validate` 退出码为 1，`optional=true` 挡不住解析失败。热重载遇到解析错误会保留当前配置并弹出提示，但**下次登录会退回 niri 内置默认配置**，等于丢掉整个声明层，所以这里的语法错误比缺文件严重得多。`scripts/backup.sh niri-custom-apply` 因此在覆盖前先校验：把快照放进临时目录，并与真实的 `config.kdl`、`host.kdl`、`noctalia.kdl` 一起跑 `niri validate`（用 `cp -L`，否则符号链接会让校验读到 store 里的错误路径），校验不过直接拒绝，不动现场文件。
+- **上游：** niri 的 [Include 文档](https://yalter.github.io/niri/Configuration:-Include.html)（`optional=true`、位置展开、后者覆盖前者）；合并粒度与「首个 output 块生效」来自 niri-config 源码的 `merge!` / `merge_clone!` 宏与 `Outputs::find`（`niri-config/src/lib.rs`、`macros.rs`、`output.rs`）。
+- **移除条件：** niri 提供官方的用户级覆盖机制（例如独立于主配置的 drop-in 目录，且各节均为属性级合并），或 Home Manager 的 niri 模块支持声明一个可写的本地覆盖文件，即可删除 include、播种激活步骤与模板副本。
+- **复查方法：** `nix build .#nixosConfigurations.vmware.config.system.build.toplevel` 应通过构建期的 `niri validate` 与「两个 include 均已就位时不得出现 `optional include not found`」断言；会话内 `ls -l ~/.config/niri-noctalia/custom.kdl` 应是普通可写文件（不是指向 store 的符号链接）；`niri validate -c ~/.config/niri-noctalia/config.kdl` 应为 `config is valid`；改一行后可观察 `journalctl --user -u niri | grep "loaded config"` 的 500 毫秒轮询热重载是否生效。手工验证 `output` 首块生效时，在 `custom.kdl` 里加一个同名 `output` 块，`niri validate` 仍然退出 0，这正是它静默失效的证据。
+
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
 - **位置：** `modules/system/packages.nix` 的 `pulseaudio`；`modules/optional/wine.nix` 的 `wine64-symlink`、`WINEDLLOVERRIDES` 与 `QT_PLUGIN_PATH`；`modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。
