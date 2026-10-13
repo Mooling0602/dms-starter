@@ -84,6 +84,7 @@ binds {
     Mod+Space { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+S { spawn-sh "noctalia msg panel-toggle control-center"; }
     Mod+Comma { spawn-sh "noctalia msg settings-toggle"; }
+    Mod+V { spawn-sh "noctalia msg panel-toggle clipboard"; }
     // Lock the session through Noctalia. The repository declares no lock daemon
     // of its own, so swaylock/gtklock/hyprlock are not options here.
     Mod+L { spawn-sh "noctalia msg session lock"; }
@@ -94,11 +95,11 @@ binds {
     XF86MonBrightnessUp { spawn-sh "noctalia msg brightness-up"; }
     XF86MonBrightnessDown { spawn-sh "noctalia msg brightness-down"; }
 
-    // Screenshots: Mod+Alt+C captures the focused monitor with niri's own
+    // Screenshots: Mod+Shift+V captures the focused monitor with niri's own
     // screenshot action, Mod+Shift+X pipes a region through satty for
     // annotation, and the region recording toggle lives in
     // modules/optional/screen-recorder.nix.
-    Mod+Alt+C { screenshot-screen; }
+    Mod+Shift+V { screenshot-screen; }
     Mod+Shift+X {
         spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --output-filename \"~/Pictures/Screenshots/annotated-%Y%m%d_%H%M%S.png\" --early-exit copy";
     }
@@ -202,7 +203,6 @@ binds {
     Mod+Shift+Right { move-column-right; }
     Mod+Shift+T { toggle-window-floating; }
     Mod+Shift+Up { move-window-up; }
-    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+Shift+WheelScrollDown { focus-column-right; }
     Mod+Shift+WheelScrollUp { focus-column-left; }
     Mod+W { toggle-column-tabbed-display; }
@@ -214,6 +214,9 @@ binds {
     // switches workspaces instead. Mod+Alt+arrows keeps the action reachable.
     Mod+Alt+Down { focus-window-down; }
     Mod+Alt+Up { focus-window-up; }
+    // Moved off Mod+Shift+V, which now captures the focused monitor. Niri's own
+    // default puts it on Mod+Shift+V, so this is the one deviation to remember.
+    Mod+Alt+V { switch-focus-between-floating-and-tiling; }
     Ctrl+Print { screenshot-screen; }
     Ctrl+XF86Launch1 { screenshot-screen; }
     Print { screenshot; }
