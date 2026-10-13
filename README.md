@@ -7,7 +7,7 @@
 ## 支持的桌面模块
 
 - [DankMaterialShell](https://danklinux.com/) 已完成，持续维护
-- [Noctalia](https://noctalia.dev/) v5 + niri 已完成，尚未在任何主机上启用
+- [Noctalia](https://noctalia.dev/) v5 + niri 已完成，目前在 `hosts/vmware` 上启用
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) 工作中，尚不推荐使用
 
 ## 设备身份：用户名与主机名
@@ -152,6 +152,7 @@ du -sh /nix/store                                             # nix store 大小
 ## 配置边界
 
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
+- Noctalia 会话的 niri 配置是声明式的，另留一个可写的 `~/.config/niri-noctalia/custom.kdl` 用来手写覆盖；窗口规则可以用 NiriMod 图形化编辑，它默认就写这个文件（Noctalia 自身没有该编辑器）。
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
 - 终端分两层：`modules/home/defaults/terminal.nix` 定义终端程序、字体与桌面无关的偏好；跟随桌面会话的配色放在各桌面模块内（如 `modules/desktop/dms-with-niri/terminal.nix` 引用 DMS matugen 生成的配色文件），由 Home Manager 自动合并。
