@@ -137,6 +137,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`） |
 | 免密录屏规则因缺 `pkexec` 而空转 | 共享系统模块 `modules/system/polkit.nix` 打开 `security.polkit.enablePkexecWrapper`，恢复 gsr 的提权链路（见 `MAINTENANCE.md`） |
 | fcitx5 候选窗不跟随 Noctalia 配色 | 本层移植 DMS 的同步脚本，数据源换成本层 `kcolorscheme` 模板的输出 `~/.local/share/color-schemes/noctalia.colors`（上游没有 fcitx5 模板） |
+| fcitx5 选中候选词文字对比度过低 | 两层的同步脚本此前把 `HighlightCandidateColor` 覆盖成选择前景色，而选中项背后是 30% alpha 的高亮位图，实测最低仅 `1.7:1`；改为复用生成器算好的 `NormalColor`，选中与未选中文字同色，四组配色实测最差 `5.2:1`（见 `MAINTENANCE.md`） |
 | niri 窗口边框与 focus-ring 不跟随 Noctalia 配色 | 不再依赖上游 `niri` 内置模板（它会写 DMS 独占的目录），本层复制其载荷为自定义模板 `niri-colors`，渲染到 `~/.config/niri-noctalia/noctalia.kdl` 并由本层配置可选 include |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
