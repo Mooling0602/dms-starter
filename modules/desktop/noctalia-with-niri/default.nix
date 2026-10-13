@@ -13,6 +13,7 @@ in
     ./ui.nix
     ./xdg-portals.nix
     ./packages.nix
+    ./fcitx-theme-sync.nix
   ];
 
   # Noctalia reads every ~/.config/noctalia/*.toml first and settings.toml last,

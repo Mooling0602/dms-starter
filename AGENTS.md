@@ -77,7 +77,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 - 头像：`shell.avatar_path = "~/.face"`，即 `modules/home/mooling/avatar.nix` 安装的文件。Noctalia 会同时更新 AccountsService 的 `IconFile`，其它读 AccountsService 的组件（如登录界面）可复用同一张头像。
 - 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张），默认取深色那张，与 `theme.mode = "dark"` 对齐。
 - 配色：`source = "wallpaper"` 加 `wallpaper_scheme = "m3-content"`，沿用 DMS 时期由壁纸生成调色板的方式；想固定调色板就改成 `source = "builtin"` 与调色板名。
-- 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。
+- 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。其中 `kcolorscheme` 的输出 `~/.local/share/color-schemes/noctalia.colors` 同时是 fcitx5 候选窗同步脚本的数据源（上游没有 fcitx5 模板，见下面的移植取舍表）。
 - **故意不启用 `niri` 模板**：它除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色。本层已用绝对路径 include 渲染结果，代价仅是 niri 自身的 focus-ring 与边框颜色保持默认。
 
 仍由运行时可写、不由 Home Manager 占用的文件：模板渲染出的 `~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、终端的 `noctalia*` 主题文件，以及 DMS 拥有的 `~/.config/niri/`。`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，界面里就选不了 Noctalia 配色。
@@ -107,7 +107,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | `terminal.nix` 引用 matugen 生成的配色 | 改写：alacritty 用 `themes/noctalia.toml`、kitty 用 `include themes/noctalia.conf`、ghostty 用 `theme = noctalia`。 |
 | `ui.nix` 的 Qt 会话变量 | 保留，取值与 DMS 层一致；但不再启用 `qt.enable`。 |
 | `ui.nix` 的可写 `adw-gtk3` 副本 | 只保留 `adw-gtk3` 包本身。Noctalia 仅导入 `noctalia.css` 并切换 gtk-theme，不像 DMS 那样原地改样式表；store 中的主题经 `XDG_DATA_DIRS`（含 `/etc/profiles/per-user/<user>/share`）即可被发现，`MAINTENANCE.md` 那条仍只属于 DMS。 |
-| `fcitx-theme-sync.nix` | 未移植，见下方缺口。 |
+| `fcitx-theme-sync.nix` | 移植：数据源改用 Noctalia 的 KColorScheme 模板输出（`~/.local/share/color-schemes/noctalia.colors`），生成的 fcitx 主题目录沿用 `classicui.conf` 里固定的 `dms-plasma` 名字，详见 `MAINTENANCE.md`。 |
 | `backup.nix` 的 DMS/Niri 快照自动恢复 | 未移植，见下方缺口。 |
 | `security.pam.services.dankshell` 与 Howdy 联动 | 不需要。Noctalia 走 PAM 的 `login` 服务，理由见上。 |
 | `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 保留：它是这台 VM 上唯一能用的登录器（跑在 niri 里），并用 `configHome` 复用 DankMaterialShell 外观；`noctalia-greeter` 不可用，原因见缺口与 `MAINTENANCE.md`。 |
@@ -115,7 +115,6 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 ### 尚未处理的缺口
 
-- **`fcitx-theme-sync.nix`** 读 DMS 自己的 `~/.local/share/color-schemes/DankMatugen.colors`，而 Noctalia 没有 fcitx5 模板。若要恢复候选窗跟随深浅色，可先启用 `kcolorscheme` 模板（输出 `~/.local/share/color-schemes/noctalia.colors`），再让同步脚本改读该文件。
 - **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照；niri 部分仍可用 `scripts/backup.sh` 手工恢复。
 
 ### 认证代理与会话核对
@@ -136,6 +135,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | Greeter 不跟随桌面主题 | `services.displayManager.dms-greeter.configHome = "/home/${config.my.username}"` |
 | 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`） |
 | 免密录屏规则因缺 `pkexec` 而空转 | 共享系统模块 `modules/system/polkit.nix` 打开 `security.polkit.enablePkexecWrapper`，恢复 gsr 的提权链路（见 `MAINTENANCE.md`） |
+| fcitx5 候选窗不跟随 Noctalia 配色 | 本层移植 DMS 的同步脚本，数据源换成本层 `kcolorscheme` 模板的输出 `~/.local/share/color-schemes/noctalia.colors`（上游没有 fcitx5 模板） |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
