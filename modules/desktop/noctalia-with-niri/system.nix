@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   ...
 }:
 
@@ -86,19 +85,4 @@ in
   # one process can own org.freedesktop.PolicyKit1.AuthenticationAgent. Check
   # which one holds the name after switching, then disable the redundant unit
   # here if the KDE agent only restarts.
-
-  # Noctalia's own greeter replaces dms-greeter, so switching desktops also
-  # leaves the DMS ecosystem behind at the login screen. It reuses the "greeter"
-  # user that the greetd module creates, and reads the desktop cursor theme
-  # declared in modules/home/defaults/theme.nix without owning it.
-  # passwordlessSyncUsers stays empty: the constrained appearance sync then
-  # asks for administrator authentication instead of being allowed silently.
-  services.displayManager.noctalia-greeter = {
-    enable = true;
-    cursorTheme = {
-      package = pkgs.kdePackages.breeze;
-      name = "breeze_cursors";
-    };
-    settings.cursor.size = 24;
-  };
 }

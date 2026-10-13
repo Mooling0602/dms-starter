@@ -49,7 +49,7 @@
 
 9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 里（原位于 `flake.nix`，分拆后接线由 `modules/core.nix` 承接）。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `modules/core.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `modules/core.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
-10. **Noctalia 桌面层：外观声明式，niri 配置按会话隔离**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.noctalia-greeter`），不新增 flake input。外观（头像、壁纸、配色与应用配色模板）由 `programs.noctalia.settings` 声明进 `~/.config/noctalia/config.toml`：Noctalia 先读该目录的 `*.toml`、最后读界面写入的 `settings.toml`，因此声明默认值不会挡住在图形界面里修改，这与决策 1 的「DMS 拥有运行配置」并不冲突。niri 侧不再共用 DMS 的 `~/.config/niri/config.kdl`：本层声明 `~/.config/niri-noctalia/config.kdl`，并用 `systemd.user.services.niri` 的 drop-in 把 `NIRI_CONFIG` 指过去。`gtk.enable` 与 `qt.enable` 仍不启用，因为模板渲染出的应用配色文件必须保持可写。细节见「noctalia-with-niri 桌面层」。
+10. **Noctalia 桌面层：外观声明式，niri 配置按会话隔离**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.dms-greeter`，后者因为它跑在 niri 里，而 `noctalia-greeter` 的 wlroots 合成器在这台 VM 上不可用），不新增 flake input。外观（头像、壁纸、配色与应用配色模板）由 `programs.noctalia.settings` 声明进 `~/.config/noctalia/config.toml`：Noctalia 先读该目录的 `*.toml`、最后读界面写入的 `settings.toml`，因此声明默认值不会挡住在图形界面里修改，这与决策 1 的「DMS 拥有运行配置」并不冲突。niri 侧不再共用 DMS 的 `~/.config/niri/config.kdl`：本层声明 `~/.config/niri-noctalia/config.kdl`，并用 `systemd.user.services.niri` 的 drop-in 把 `NIRI_CONFIG` 指过去。`gtk.enable` 与 `qt.enable` 仍不启用，因为模板渲染出的应用配色文件必须保持可写。细节见「noctalia-with-niri 桌面层」。
 
 ## Niri 配置文件管理
 
@@ -65,7 +65,7 @@
 ### 组成与来源
 
 - shell：锁定 nixpkgs 里的 `noctalia` 5.2.1（C++ 写的 v5，不是 Quickshell 的 v4 `noctalia-shell`），cache.nixos.org 已缓存，不需要本地编译。
-- 登录器：`services.displayManager.noctalia-greeter`（nixpkgs 1.6.0），切换到该层后不再依赖 DMS 生态；`greeter` 用户由 greetd 模块创建，不需要 `dms-greeter` 那样的额外组。
+- 登录器：`services.displayManager.dms-greeter`（nixpkgs 自带模块，界面跑在 niri 里，并用 `configHome` 复用 `~/.config/DankMaterialShell` 的既有外观）。原本计划用 `noctalia-greeter`，但它自带的 wlroots 合成器在这台 VM 的 vmwgfx 上不可用，两次绕过均失败，原因与证据见 `MAINTENANCE.md`。
 - 两者都不新增 flake input。没有采用上游 flake 的 cachix 缓存：官方说明 `inputs.nixpkgs.follows` 会改变推导哈希、导致缓存失效，而缓存命中正是选 nixpkgs 版本的理由。
 
 ### 配置分层与外观
@@ -74,7 +74,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 声明内容集中在 `modules/desktop/noctalia-with-niri/default.nix`：
 
-- 头像：`shell.avatar_path = "~/.face"`，即 `modules/home/mooling/avatar.nix` 安装的文件。Noctalia 会同时更新 AccountsService 的 `IconFile`，`noctalia-greeter` 因此复用同一张头像。
+- 头像：`shell.avatar_path = "~/.face"`，即 `modules/home/mooling/avatar.nix` 安装的文件。Noctalia 会同时更新 AccountsService 的 `IconFile`，其它读 AccountsService 的组件（如登录界面）可复用同一张头像。
 - 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张），默认取深色那张，与 `theme.mode = "dark"` 对齐。
 - 配色：`source = "wallpaper"` 加 `wallpaper_scheme = "m3-content"`，沿用 DMS 时期由壁纸生成调色板的方式；想固定调色板就改成 `source = "builtin"` 与调色板名。
 - 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。
@@ -86,7 +86,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 - shell 由 `programs.noctalia.systemd.enable` 的用户服务拉起，target 是 `graphical-session.target`（niri 会话会启动它），所以不需要 niri 的 `spawn-at-startup`：niri 配置之所以声明式，是为了配置隔离，不是因为启动 shell。
 - 锁屏走 PAM 的 `login` 服务，没有独立的 PAM service 可挂钩。`modules/optional/howdy.nix` 出于解锁 GNOME Keyring 的考虑在 `login` 上禁用了 Howdy，因此 Noctalia 的锁屏一律要求密码；恢复人脸认证会连带影响 greeter。
-- **登录器在这台 VM 上会崩**：noctalia-greeter 自带的 wlroots 合成器在 VMware vmwgfx 上无法处理 greeter 客户端的 dmabuf 缓冲（wlroots 对 GBM 已关闭的 GEM handle 重复 close，vmwgfx 返回 `EINVAL`），随后向客户端报协议错误，greeter 退出而 greetd 不重试，表现为黑屏。`greeter.nix` 让两侧都改走 CPU 与共享内存（`WLR_RENDERER=pixman` 加 `LIBGL_ALWAYS_SOFTWARE=1`），并启用 `getty@tty2` 作逃生通道：注意仅设 `enable` 不够，模板实例单元没有 `[Install]`，必须同时声明 `wantedBy = [ "getty.target" ]`。证据、上游情况与移除条件见 `MAINTENANCE.md`。
+- **登录器不能用 noctalia-greeter**：它自带的 wlroots 合成器无法在 VMware vmwgfx 上处理客户端 dmabuf 缓冲（对 GBM 已关闭的 GEM handle 重复 close，vmwgfx 返回 `EINVAL`），合成器随后向客户端报协议错误、greeter 退出而 greetd 不重试，表现为黑屏；两次绕过（扫描输出与修饰符开关、pixman 加软件 GL）都无效。现改用 `dms-greeter`（界面跑在 niri 里，niri 基于 smithay，在这台 GPU 上正常），并保留 `getty@tty2` 作逃生通道：模板实例单元必须同时声明 `wantedBy = [ "getty.target" ]`，只设 `enable` 不会启动。详见 `MAINTENANCE.md`。
 
 ### niri 配置隔离
 
@@ -110,7 +110,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | `fcitx-theme-sync.nix` | 未移植，见下方缺口。 |
 | `backup.nix` 的 DMS/Niri 快照自动恢复 | 未移植，见下方缺口。 |
 | `security.pam.services.dankshell` 与 Howdy 联动 | 不需要。Noctalia 走 PAM 的 `login` 服务，理由见上。 |
-| `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 换成 `noctalia-greeter`；`greeter` 用户由 greetd 模块创建，不再需要额外组。 |
+| `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 保留：它是这台 VM 上唯一能用的登录器（跑在 niri 里），并用 `configHome` 复用 DankMaterialShell 外观；`noctalia-greeter` 不可用，原因见缺口与 `MAINTENANCE.md`。 |
 | `system.nix` 的 gpu-screen-recorder polkit 规则 | 未移植，见下方缺口。 |
 
 ### 尚未处理的缺口
