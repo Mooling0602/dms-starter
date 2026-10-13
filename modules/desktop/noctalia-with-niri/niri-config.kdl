@@ -214,8 +214,7 @@ binds {
     Mod+Tab repeat=false { toggle-overview; }
 }
 
-// Rounded corners, and the Noctalia settings window kept at a fixed floating
-// size (upstream niri integration guide).
+// Rounded corners applied to every window (upstream niri integration guide).
 window-rule {
     geometry-corner-radius 20
     clip-to-geometry true
@@ -223,11 +222,17 @@ window-rule {
     draw-border-with-background false
 }
 
+// The settings panel is a regular toplevel, not a layer surface, and it asks for
+// a 1080x920 surface, which is taller than this desktop's 1365x768 logical
+// output, so as a floating window its bottom edge lands offscreen. Open it as a
+// full width maximized column instead, so the layout bounds it to the working
+// area and every edge stays reachable. open-maximized also keeps the corner
+// radius, whereas open-maximized-to-edges sets the xdg Maximized state and
+// squares the window off.
 window-rule {
     match app-id="dev.noctalia.Noctalia"
-    open-floating true
-    default-column-width { fixed 1080; }
-    default-window-height { fixed 920; }
+    open-floating false
+    open-maximized true
 }
 
 // fcitx5 candidate window fallback: DBus-IC clients such as WeChat beta have no
