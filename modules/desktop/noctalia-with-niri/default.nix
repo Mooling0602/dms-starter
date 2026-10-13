@@ -14,6 +14,7 @@ in
     ./xdg-portals.nix
     ./packages.nix
     ./fcitx-theme-sync.nix
+    ./theme-auto.nix
   ];
 
   # Noctalia reads every ~/.config/noctalia/*.toml first and settings.toml last,
@@ -45,8 +46,10 @@ in
       shell.polkit_agent = true;
 
       # Both wallpapers from modules/home/defaults/theme.nix live here, so the
-      # picker offers the light/dark pair; the dark one is the default because
-      # the theme below is pinned to dark.
+      # picker offers the light/dark pair. The dark one is only the seed applied
+      # at shell start; theme-auto.nix then syncs the image with the resolved
+      # mode, which matters because a mode change does not re-apply a wallpaper
+      # on its own.
       wallpaper = {
         enabled = true;
         directory = "~/.local/share/wallpapers";
@@ -54,7 +57,11 @@ in
       };
 
       theme = {
-        mode = "dark";
+        # Follow sunrise and sunset at the coordinates declared in
+        # theme-auto.nix. shell_mode defaults to "follow", so the bar and every
+        # template below flip together with the palette. The settings menu stays
+        # in charge: it writes settings.toml, which is read after this file.
+        mode = "auto";
 
         # Derive the palette from the wallpaper, like the matugen theming of the
         # DMS session did. Use source = "builtin" plus builtin = "<name>" for a
