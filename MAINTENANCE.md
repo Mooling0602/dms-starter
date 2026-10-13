@@ -266,6 +266,17 @@
 - **移除条件：** 桌面 shell 提供原生 Fcitx5 模板（Noctalia 上游加入后即可删掉本层脚本），或 Fcitx5 的 Plasma 主题能直接根据 `org.freedesktop.appearance color-scheme` 选择浅/深资源。
 - **复查方法：** 暂停 path unit 后切换 shell 深浅色，确认候选窗不再变化；恢复后运行本层的 service（`systemctl --user start fcitx5-dms-theme-sync.service` 或 `fcitx5-noctalia-theme-sync.service`），检查 `~/.local/share/fcitx5/themes/dms-plasma/panel.png` 的背景随模式切换。**同时检查 `@Nx` 变体**：`highlight.png` 与 `highlight@2x.png` 的中心像素必须同为用户强调色（`magick highlight@2x.png -format '%[pixel:p{100,100}]' info:`），只查 `highlight.png` 会漏掉本坑。切换桌面后（例如从 `kde-plasma` 回到 `dms-with-niri`，或换到 `noctalia-with-niri`）需手动跑一次该 service 刷新残留的主题文件。
 
+### Niri 配色改用自定义模板而非上游 `niri` 内置模板（Noctalia 层）
+
+- **位置：** `modules/desktop/noctalia-with-niri/niri-palette.kdl`（载荷副本）与 `default.nix` 里的自定义模板 `niri-colors`；消费方是 `niri-config.kdl` 开头的 `include "noctalia.kdl" optional=true`，`niri.nix` 在构建期渲染并校验它。
+- **影响：** Noctalia 5.2.1 的内置 `niri` 模板（`share/noctalia/assets/templates/niri/`）除渲染调色板外还有副作用：`apply.sh` 会把 `include "noctalia.kdl"` 追加到 `$XDG_CONFIG_HOME/niri/config.kdl`，`undo.sh` 会删掉该 include 并 `rm -f` 调色板文件；输出路径固定为 `~/.config/niri/noctalia.kdl`。而 `~/.config/niri/` 属于 `dms-with-niri`（决策 1：DMS 拥有该目录），在 Noctalia 会话里写入它会让两个桌面互相污染配色，切回 DMS 后 DMS 的配色会被 Noctalia 的 include 覆盖。
+- **当前处理：** 不启用该内置模板，把它的载荷原样复制为本层的 `niri-palette.kdl`，声明为等价的自定义模板并重定向输出到本层自己的 `~/.config/niri-noctalia/noctalia.kdl`。自定义模板不带任何 hook，因此不会触碰其它目录。niri 的 focus-ring、窗口边框、tab-indicator 与 recent-windows 高亮由此跟随配色。
+- **两个易踩的坑：** 其一，niri 的相对 include 按**传给 niri 的那条路径所在目录**解析，而 Home Manager 装的是指向 store 的软链，实测解析基准是软链所在目录（`~/.config/niri-noctalia/`）而非 store 里的真实文件所在目录，所以 `output_path` 与该 include 名必须对齐；构建期用「两个文件都就位时不得出现 `optional include not found`」断言这一点，因为可选 include 缺失只警告、退出码仍为 0，改名后会无声退回默认配色（`#7fc8ff` / `#505050` / `#9b0000`）。其二，模板引擎会对**整份文件**做词法分析，注释里的 `{{...}}` 也会被当成表达式，解析失败时它干脆不写文件，会话里不留任何错误，只能在构建期渲染一次才能发现。
+- **残留：** Noctalia 没有 `undo_hook` 之类的机制，切回 `dms-with-niri` 时 `~/.config/niri-noctalia/noctalia.kdl` 不会被删除。该文件对 DMS 惰性（DMS 不设 `NIRI_CONFIG`，读自己的 `~/.config/niri/config.kdl`），且其中的 `layout { border { ... } }` 只改颜色、不会打开边框，建议切换后手工删除。
+- **上游：** Noctalia 5.2.1 的 [内置模板目录](https://github.com/noctalia-dev/noctalia/tree/main/assets/templates/niri)（`niri.kdl` / `apply.sh` / `undo.sh`）；niri 的 [Include 文档](https://yalter.github.io/niri/Configuration:-Include.html)（`optional=true`、相对路径基准、缺失时监视并在文件出现后重载）。
+- **移除条件：** 上游模板支持自定义输出路径与关闭 include 副作用（例如不再向 `niri/config.kdl` 追加 include，或输出目录可配置），即可改回内置模板并删掉本层的载荷副本、自定义模板与可选 include。
+- **复查方法：** `nix build .#nixosConfigurations.vmware.config.system.build.toplevel` 应能渲染载荷并通过 `niri validate`；会话内 `ls -l ~/.config/niri-noctalia/noctalia.kdl` 应有该文件且 `grep active-color` 为当前强调色（由壁纸生成，深色 `m3-content` 下为 `#bcc2ff`）；`journalctl --user -u niri | grep "optional include not found"` 在首次渲染后应为空；`niri msg action load-config-file` 后窗口边框颜色应随之更新。注意没有查询主题的 IPC，颜色只能用截图比对默认值判断。
+
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
 - **位置：** `modules/system/packages.nix` 的 `pulseaudio`；`modules/optional/wine.nix` 的 `wine64-symlink`、`WINEDLLOVERRIDES` 与 `QT_PLUGIN_PATH`；`modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。

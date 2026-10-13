@@ -78,7 +78,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 - 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张），默认取深色那张，与 `theme.mode = "dark"` 对齐。
 - 配色：`source = "wallpaper"` 加 `wallpaper_scheme = "m3-content"`，沿用 DMS 时期由壁纸生成调色板的方式；想固定调色板就改成 `source = "builtin"` 与调色板名。
 - 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。其中 `kcolorscheme` 的输出 `~/.local/share/color-schemes/noctalia.colors` 同时是 fcitx5 候选窗同步脚本的数据源（上游没有 fcitx5 模板，见下面的移植取舍表）。
-- **故意不启用 `niri` 模板**：它除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色。本层已用绝对路径 include 渲染结果，代价仅是 niri 自身的 focus-ring 与边框颜色保持默认。
+- **`niri` 内置模板仍不启用，改用等价的自定义模板**：内置模板除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色，且它的输出目录固定。本层把该模板的载荷复制为 `niri-palette.kdl`，声明为自定义模板 `niri-colors`（`input_path` 相对路径落在 `~/.config/noctalia/`，`output_path` 指向本层自己的 `~/.config/niri-noctalia/noctalia.kdl`），不带任何 hook。niri 的 focus-ring、窗口边框、tab-indicator 与 recent-windows 高亮因此跟随配色（默认值是 `#7fc8ff` / `#505050` / `#9b0000`，未同步时一眼可辨）。
 
 仍由运行时可写、不由 Home Manager 占用的文件：模板渲染出的 `~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、终端的 `noctalia*` 主题文件，以及 DMS 拥有的 `~/.config/niri/`。`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，界面里就选不了 Noctalia 配色。
 
@@ -93,9 +93,10 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 两个桌面模块此前共用 `~/.config/niri/config.kdl`，切桌面会互相留下 include 与键位。现在按会话隔离：
 
 - niri 支持 `-c/--config` 与 `NIRI_CONFIG` 环境变量。本层在 `system.nix` 里给 `systemd.user.services.niri` 加 drop-in（`environment.NIRI_CONFIG`），指向 `~/.config/niri-noctalia/config.kdl`；`dms-with-niri` 完全不设该变量，继续读默认路径。一次会话只读一个配置，两个桌面互不读写。
-- 本层配置是声明式的：`modules/desktop/noctalia-with-niri/niri-config.kdl`（真实 KDL，便于 review 与 `niri validate`）。`niri.nix` 在构建期用一个 `runCommand` 把 include 注释掉后跑 `niri validate`，语法错误在构建阶段就暴露。占位符 `@REGION_RECORD@` 与 `@NIRI_INPUT_PORTAL@` 在构建时替换为实际路径，文件本身不含用户名或主机名。
-- 主机专属设置走 `include "host.kdl"`：放在配置最后，因此覆盖共享默认值。`hosts/vmware/desktop/noctalia-with-niri/niri-host.kdl` 给出 `Virtual-1` 的 mode/scale，同目录的 `niri-host.nix` 通过 `home-manager.sharedModules` 用 `lib.mkForce` 覆盖层里那份空默认文件（host 桌面目录是作为系统模块导入的，不能直接设 HM 选项）。相对 include 按软链所在目录解析（已实测），所以 HM 安装到 store 不影响它。
-- Noctalia 的配色文件由上游固定写在 `~/.config/niri/noctalia.kdl`，本层用 `include "~/.config/niri/noctalia.kdl"` 引用。niri 把读不到的 include 当致命错误，所以 `home.activation.noctaliaNiriThemeStub` 在文件不存在时先放一个空占位，之后交给 shell 渲染。
+- 本层配置是声明式的：`modules/desktop/noctalia-with-niri/niri-config.kdl`（真实 KDL，便于 review 与 `niri validate`）。`niri.nix` 在构建期把该配置与渲染后的配色一起放进一个临时目录跑 `niri validate`：相对 include 按 niri 收到的那条路径所在目录解析（已用软链实测：软链目录生效，而不是 store 里的真实文件所在目录），临时目录正是两者运行时的位置，所以校验的是真实的 include 行。配色用 `noctalia theme` 现场渲染，占位符写错或注释里混入花括号都会在构建阶段暴露。占位符 `@REGION_RECORD@` 与 `@NIRI_INPUT_PORTAL@` 在构建时替换为实际路径，文件本身不含用户名或主机名。
+- 主机专属设置走 `include "host.kdl"`：放在配置最后，因此覆盖共享默认值。`hosts/vmware/desktop/noctalia-with-niri/niri-host.kdl` 给出 `Virtual-1` 的 mode/scale，同目录的 `niri-host.nix` 通过 `home-manager.sharedModules` 用 `lib.mkForce` 覆盖层里那份空默认文件（host 桌面目录是作为系统模块导入的，不能直接设 HM 选项）。
+- 配色走 `include "noctalia.kdl" optional=true`，指向本层目录下由自定义模板渲染的同名文件，不再碰 DMS 的 `~/.config/niri/`。`optional=true` 让文件尚未渲染时 niri 只警告、不致命；niri 也会持续监视这个缺失的可选 include，文件一旦出现就自动重载，因此不再需要 `home.activation` 写占位文件。构建期额外断言「两个文件都已就位时不得出现 `optional include not found`」，避免 include 名与模板 `output_path` 改歪后无声退回默认配色（可选 include 缺失只警告、退出码仍为 0）。
+- 需要注意：模板没有 `undo_hook` 之类的机制，Noctalia 不会删除 `~/.config/niri-noctalia/noctalia.kdl`。切回 `dms-with-niri` 时该文件会成为残留，但 DMS 不设 `NIRI_CONFIG`、读的是自己的 `~/.config/niri/config.kdl`，而配色文件里的 `layout { border { ... } }` 只改颜色、不会打开边框（niri 只在主配置里出现 `border` 时才启用边框），所以残留是惰性的；仍建议切换后手动删除。
 - 手动命令与嵌套运行的 niri 不经过该单元，默认仍读 `~/.config/niri/config.kdl`，需要时自行加 `-c`。切换后可用 `journalctl --user -u niri | grep "loaded config"` 与 `systemctl --user show niri.service -p Environment` 确认读到的是哪个文件。
 
 ### 从 DMS 层移植时的取舍
@@ -136,6 +137,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`） |
 | 免密录屏规则因缺 `pkexec` 而空转 | 共享系统模块 `modules/system/polkit.nix` 打开 `security.polkit.enablePkexecWrapper`，恢复 gsr 的提权链路（见 `MAINTENANCE.md`） |
 | fcitx5 候选窗不跟随 Noctalia 配色 | 本层移植 DMS 的同步脚本，数据源换成本层 `kcolorscheme` 模板的输出 `~/.local/share/color-schemes/noctalia.colors`（上游没有 fcitx5 模板） |
+| niri 窗口边框与 focus-ring 不跟随 Noctalia 配色 | 不再依赖上游 `niri` 内置模板（它会写 DMS 独占的目录），本层复制其载荷为自定义模板 `niri-colors`，渲染到 `~/.config/niri-noctalia/noctalia.kdl` 并由本层配置可选 include |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |

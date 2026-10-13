@@ -11,12 +11,17 @@
 // niri.nix substitutes two build time placeholders in this file: the path of
 // the region-record script and the path of the niri-input-portal binary.
 
-// Noctalia renders the current palette into this file through its built-in
-// "niri" template. The path is fixed upstream, which is why the file stays in
-// the default niri directory even though this session reads its config from
-// elsewhere. home.activation creates it when missing, because niri treats an
-// unreadable include as a fatal error and would refuse to start.
-include "~/.config/niri/noctalia.kdl"
+// Current palette, rendered by Noctalia from niri-palette.kdl. A relative
+// include resolves against the directory of the path niri was handed (the
+// symlink's directory, not the store file it points at), i.e.
+// ~/.config/niri-noctalia/, so the rendered palette lands next to this config.
+//
+// niri watches an optional include even while it is missing and reloads once
+// the file appears, so the placeholder that used to be created at activation
+// time, and the absolute path into the dms-with-niri owned ~/.config/niri/,
+// are both gone. The include stays optional so a failure to render only costs
+// the colors instead of the whole config.
+include "noctalia.kdl" optional=true
 
 input {
     keyboard {
