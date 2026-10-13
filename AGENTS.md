@@ -111,17 +111,16 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | `backup.nix` 的 DMS/Niri 快照自动恢复 | 未移植，见下方缺口。 |
 | `security.pam.services.dankshell` 与 Howdy 联动 | 不需要。Noctalia 走 PAM 的 `login` 服务，理由见上。 |
 | `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 保留：它是这台 VM 上唯一能用的登录器（跑在 niri 里），并用 `configHome` 复用 DankMaterialShell 外观；`noctalia-greeter` 不可用，原因见缺口与 `MAINTENANCE.md`。 |
-| `system.nix` 的 gpu-screen-recorder polkit 规则 | 未移植，见下方缺口。 |
+| `system.nix` 的 gpu-screen-recorder polkit 规则 | 在本层复制一份（内容与 DMS 层一致）。每个主机只加载一个桌面实现，两份规则不会同时生效；放在本层可以让规则随桌面一起消失，而不是泄漏给所有桌面。 |
 
 ### 尚未处理的缺口
 
-- **gpu-screen-recorder 的免密码 polkit 规则**只在 `dms-with-niri` 的 `system.nix` 里。运行时 niri 快捷键调用的 `/home/mooling/.local/bin/region-record` 使用 gpu-screen-recorder，切到 noctalia 后录屏会每次索要密码。该规则与 shell 无关，宜移到共享的系统模块，而不是在新层复制一份。
 - **`fcitx-theme-sync.nix`** 读 DMS 自己的 `~/.local/share/color-schemes/DankMatugen.colors`，而 Noctalia 没有 fcitx5 模板。若要恢复候选窗跟随深浅色，可先启用 `kcolorscheme` 模板（输出 `~/.local/share/color-schemes/noctalia.colors`），再让同步脚本改读该文件。
 - **`backup.nix` 的快照自动恢复**：`user_profiles/mooling/desktop-config/` 仍是 DMS 形态（`settings.json` 等），Noctalia 侧没有对应快照；niri 部分仍可用 `scripts/backup.sh` 手工恢复。
 
 ### 认证代理与会话核对
 
-- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。必须开启的原因有两条：本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理；以及这个 nixpkgs 把 setuid 的 `pkexec` 改成可选（`security.polkit.enablePkexecWrapper` 默认 `false`，`/run/wrappers/bin/` 里只有 `sudo`），会话代理因而是唯一的授权途径。核对命令：`busctl --system call org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 应返回一个 `:1.x` 名字；`noctalia config export | grep polkit` 应包含 `polkit_agent = true`。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
+- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。必须开启的原因有两条：本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理；以及这个 nixpkgs 把 setuid 的 `pkexec` 改成可选（`security.polkit.enablePkexecWrapper` 默认 `false`，`/run/wrappers/bin/` 里只有 `sudo`），会话代理因而是唯一的授权途径。核对命令：`noctalia config export | grep polkit` 应包含 `polkit_agent = true`，且 `journalctl --user -u noctalia | grep polkit` 应出现 `registered Polkit authentication agent at /org/noctalia/PolkitAuthenticationAgent` 与 `polkit authentication agent active`。注意代理不占用系统总线上的知名名字：`busctl --system ... GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 会答 `The name does not have an owner`，它是经 Authority 的注册接口挂上去的，判断代理是否存在要看日志而不是这个名字。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
 - 登录后可用三条命令核对本次会话：`journalctl --user -u niri | grep "loaded config"` 应为 `~/.config/niri-noctalia/config.kdl`；`systemctl --user show niri.service -p Environment` 应含 `NIRI_CONFIG`；`systemctl --user status noctalia.service` 应为 active。
 
 ## 已修复的关键问题
