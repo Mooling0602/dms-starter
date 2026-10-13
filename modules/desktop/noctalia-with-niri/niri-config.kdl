@@ -253,3 +253,12 @@ debug {
 // Host specific settings (outputs, extra binds, environment). The layer writes
 // an empty default; hosts/<host>/desktop/noctalia-with-niri overrides it.
 include "host.kdl"
+
+// Machine local overrides, written by hand and deliberately not managed by Home
+// Manager (a managed file would be a read-only store symlink). Home Manager
+// only seeds it when it is missing, so edits survive rebuilds. Included last,
+// which is what makes it win over the two files above. Missing is fine, but a
+// file that exists and fails to parse is not: niri keeps the old config on a
+// failed reload, yet the next login falls back to the stock default config and
+// drops every setting from this repo.
+include "custom.kdl" optional=true
