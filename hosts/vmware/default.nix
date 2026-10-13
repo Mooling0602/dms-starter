@@ -31,6 +31,7 @@ in
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
     ../../modules/system/obs.nix
+    ../../modules/system/polkit.nix
     ./desktop/${desktop}/default.nix
     # Switching desktop: change the let binding above and prepare
     # <host>/desktop/<new desktop>/.

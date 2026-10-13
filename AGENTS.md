@@ -120,7 +120,8 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 ### 认证代理与会话核对
 
-- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。必须开启的原因有两条：本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理；以及这个 nixpkgs 把 setuid 的 `pkexec` 改成可选（`security.polkit.enablePkexecWrapper` 默认 `false`，`/run/wrappers/bin/` 里只有 `sudo`），会话代理因而是唯一的授权途径。核对命令：`noctalia config export | grep polkit` 应包含 `polkit_agent = true`，且 `journalctl --user -u noctalia | grep polkit` 应出现 `registered Polkit authentication agent at /org/noctalia/PolkitAuthenticationAgent` 与 `polkit authentication agent active`。注意代理不占用系统总线上的知名名字：`busctl --system ... GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 会答 `The name does not have an owner`，它是经 Authority 的注册接口挂上去的，判断代理是否存在要看日志而不是这个名字。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
+- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理，会话里的图形授权全部由它回答。核对命令：`noctalia config export | grep polkit` 应包含 `polkit_agent = true`，且 `journalctl --user -u noctalia | grep polkit` 应出现 `registered Polkit authentication agent at /org/noctalia/PolkitAuthenticationAgent` 与 `polkit authentication agent active`。注意代理不占用系统总线上的知名名字：`busctl --system ... GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 会答 `The name does not have an owner`，它是经 Authority 的注册接口挂上去的，判断代理是否存在要看日志而不是这个名字。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
+- **免密录屏依赖 setuid 的 pkexec**：`gpu-screen-recorder` 的 nixpkgs wrapper 把 `/run/wrappers/bin` 前置进 `PATH` 并用 `pkexec` 提权启动 `gsr-kms-server`，所以两个桌面层的免密规则只有在 pkexec 存在时才会被 polkit 询问到。该 wrapper 在这个 nixpkgs 里默认关闭，本仓库在共享系统模块 `modules/system/polkit.nix` 显式打开，原因、移除条件与复查方法见 `MAINTENANCE.md`。gsr 只支持 NVIDIA/AMD/Intel：`hosts/vmware` 上它以 `unknown gpu vendor: VMware, Inc.` 直接退出，这条链路只能在有真实 GPU 的主机上验证。
 - 登录后可用三条命令核对本次会话：`journalctl --user -u niri | grep "loaded config"` 应为 `~/.config/niri-noctalia/config.kdl`；`systemctl --user show niri.service -p Environment` 应含 `NIRI_CONFIG`；`systemctl --user status noctalia.service` 应为 active。
 
 ## 已修复的关键问题
@@ -133,7 +134,8 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | Qt 标题栏风格 | `QT_WAYLAND_DECORATION=ssd` 与 `QT_WAYLAND_DISABLE_WINDOWDECORATION=1`，让 niri 提供 SSD |
 | Dolphin 右键"打开方式"无应用 | `applications.menu` symlink |
 | Greeter 不跟随桌面主题 | `services.displayManager.dms-greeter.configHome = "/home/${config.my.username}"` |
-| 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`）；该 nixpkgs 的 setuid `pkexec` 是可选功能且默认关闭 |
+| 切到 Noctalia 后图形授权弹不出认证框 | 开启 Noctalia 自带的 polkit 代理（`shell.polkit_agent = true`） |
+| 免密录屏规则因缺 `pkexec` 而空转 | 共享系统模块 `modules/system/polkit.nix` 打开 `security.polkit.enablePkexecWrapper`，恢复 gsr 的提权链路（见 `MAINTENANCE.md`） |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |

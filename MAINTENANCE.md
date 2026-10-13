@@ -297,3 +297,12 @@
 - **上游：** [noctalia-greeter](https://github.com/noctalia-dev/noctalia-greeter)（自带合成器 1.6.0）、wlroots 0.20.2、Mesa 的 `drmCloseBufferHandle`（[wlroots#3234](https://github.com/swaywm/wlroots/issues/3234) 即引入该调用的改动）。上游未见 VMware 报告，同类症状只有 [#149](https://github.com/noctalia-dev/noctalia-greeter/issues/149)。
 - **移除条件：** noctalia-greeter 或 wlroots 能在 vmwgfx 上正常导入客户端缓冲（启动日志不再出现上述两条错误且登录界面可用），即可改回 `services.displayManager.noctalia-greeter` 并删掉本层的 dms-greeter 接线；届时若已不需要 DMS 生态，`dms-greeter` 亦可一并移除。`getty@tty2` 可在登录界面不再脆弱后移除。
 - **复查方法：** 重启后确认登录界面出现，`journalctl -b | grep -E "dms-greeter|greeter exited"` 无异常，`systemctl is-active getty@tty2` 为 active。仍黑屏时 Ctrl+Alt+F2 登录 tty2，跑 `~/check.sh`，或直接 `niri-session` 进入桌面。
+
+### setuid 的 `pkexec` wrapper（nixpkgs 默认关闭）
+
+- **位置：** `modules/system/polkit.nix` 的 `security.polkit.enablePkexecWrapper = true`（两个主机都导入该模块）；对应的免密规则在 `modules/desktop/dms-with-niri/system.nix` 与 `modules/desktop/noctalia-with-niri/system.nix`。
+- **影响：** `gpu-screen-recorder` 的 nixpkgs wrapper 会把 `/run/wrappers/bin` 前置进 `PATH`，其二进制在 `gsr-kms-server` 缺少 `cap_sys_admin` 时通过 `pkexec` 提权（二进制内有 `pkexec` 与 `gsr-kms-server is missing sys_admin cap and will require root authentication` 字符串）。这个 nixpkgs 把该 wrapper 改成可选：`security.polkit.enablePkexecWrapper` 默认 `false`，`/run/wrappers/bin/` 里只有 `sudo` 与 `sudoedit`，于是 pkexec 不存在，桌面层那条免密规则永远不会被 polkit 询问到，录屏提权必然失败。
+- **当前处理：** 在共享系统模块里显式打开该选项，恢复 pkexec；授权链路不变，操作仍要经过 polkit，只有规则放行或认证代理批准才继续。
+- **上游：** nixpkgs 的 `nixos/modules/security/polkit.nix`（`enablePkexecWrapper` 选项，`security.wrappers.pkexec.enable` 直接取自它）；提权方式见 [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/) 关于 pkexec 与 `setcap cap_sys_admin+ep` 的说明。
+- **移除条件：** `gpu-screen-recorder` 不再经 `pkexec` 提权（例如改为给 `gsr-kms-server` 授能力位），或该录屏流程不再使用；此时删除 `modules/system/polkit.nix` 及两个主机导入列表里的对应一行。
+- **复查方法：** `ls -l /run/wrappers/bin/pkexec` 应存在并带 setuid 位，`pkexec --version` 能执行。**注意 `hosts/vmware` 无法验证录屏链路**：gsr 只支持 NVIDIA/AMD/Intel，在这台 VM 上会以 `gsr error: unknown gpu vendor: VMware, Inc.` 与 `failed to load opengl` 直接退出，规则无从触发；端到端验证要在有真实 GPU 的主机上做。
