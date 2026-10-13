@@ -52,12 +52,19 @@ let
   # The staged noctalia.kdl is the rendered palette above, and its name has to
   # stay in sync with the output_path declared in default.nix. A missing optional
   # include only warns and still exits 0, so the warning is asserted away: with
-  # both files staged, any "optional include not found" means the two names
-  # drifted apart, and at runtime that would silently leave niri on stock colors.
+  # every file staged, any "optional include not found" means the include names
+  # drifted apart, and at runtime that would silently leave niri on stock colors,
+  # or on the settings this file happens to override.
+  #
+  # The seeded custom.kdl is staged as it ships. That resolves its optional
+  # include and, more usefully, validates the template itself: comment-only is
+  # valid KDL, but an example that was uncommented by mistake, or a brace left on
+  # the same line as its content, fails the build here instead of the session.
   checked = pkgs.runCommand "niri-noctalia-config.kdl" { nativeBuildInputs = [ pkgs.niri ]; } ''
     mkdir check
     cp ${generated} check/config.kdl
     cp ${palette} check/noctalia.kdl
+    cp ${./niri-custom-default.kdl} check/custom.kdl
     touch check/host.kdl
     if ! niri validate -c "$(pwd)/check/config.kdl" > validate.log 2>&1; then
       cat validate.log >&2
@@ -79,4 +86,26 @@ in
     # override the shared defaults. Hosts override `source` with lib.mkForce.
     "niri-noctalia/host.kdl".source = ./niri-host-default.kdl;
   };
+
+  # custom.kdl belongs to the user, so it must not appear in xdg.configFile:
+  # that would install a read-only store symlink and defeat the purpose of a
+  # file meant to be edited. Seeding it here only when it is absent gives niri
+  # something to include on the first login, since a missing optional include
+  # warns on every start, and leaves later edits alone. Delete the file to get
+  # the template back.
+  #
+  # The copy is a one-shot: the destination stays a plain writable file, and
+  # nothing here reads it back, so a hand edit never makes the system profile
+  # dirty or gets reported as a conflict.
+  home.activation.seedNiriCustomConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    custom_config=${lib.escapeShellArg "${config.xdg.configHome}/niri-noctalia/custom.kdl"}
+
+    if [ ! -e "$custom_config" ]; then
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p \
+        ${lib.escapeShellArg "${config.xdg.configHome}/niri-noctalia"}
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/cp \
+        ${./niri-custom-default.kdl} \
+        "$custom_config"
+    fi
+  '';
 }
