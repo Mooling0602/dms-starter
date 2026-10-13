@@ -278,6 +278,25 @@
 - **移除条件：** 上游模板支持自定义输出路径与关闭 include 副作用（例如不再向 `niri/config.kdl` 追加 include，或输出目录可配置），即可改回内置模板并删掉本层的载荷副本、自定义模板与可选 include。
 - **复查方法：** `nix build .#nixosConfigurations.vmware.config.system.build.toplevel` 应能渲染载荷并通过 `niri validate`；会话内 `ls -l ~/.config/niri-noctalia/noctalia.kdl` 应有该文件且 `grep active-color` 为当前强调色（由壁纸生成，深色 `m3-content` 下为 `#bcc2ff`）；`journalctl --user -u niri | grep "optional include not found"` 在首次渲染后应为空；`niri msg action load-config-file` 后窗口边框颜色应随之更新。注意没有查询主题的 IPC，颜色只能用截图比对默认值判断。
 
+### 深浅色切换时由钩子同步壁纸（Noctalia 层）
+
+- **位置：** `modules/desktop/noctalia-with-niri/theme-auto.nix` 的 `hooks.started` 与 `hooks.theme_mode_changed`（两者指向同一个 `writeShellScript` 产物）；模式与坐标在同目录 `default.nix` 与 `theme-auto.nix` 声明，壁纸图由 `modules/home/defaults/theme.nix` 安装。
+- **影响：** Noctalia 5.2.1 的壁纸与主题是两个独立服务。`theme.mode = "auto"` 按日出日落翻转调色板，但壁纸路径只在三个地方被写入：图形选择器、`switchWallpaperTo()`，以及可选的轮播自动化（`[wallpaper.automation] enabled`，默认关闭）；`wallpaper.directory_light` / `directory_dark` 只决定这两处挑图的**目录**，不参与应用。因此模式翻转后调色板随新壁纸重新生成，屏幕上的图却仍是旧的那张，深浅两张壁纸无法只靠声明式配置切换。`[wallpaper.default]` 只有一个 `path` 键，没有 `path_light` / `path_dark` 之类的成对配置。
+- **当前处理：** 钩子脚本向运行中的 shell 查询**已解析**的模式（`noctalia msg theme-mode-get` 返回 `light` 或 `dark`，`auto` 不会被原样返回），据此在两张图之间挑选，再用 `noctalia msg wallpaper-set` 应用。两个钩子缺一不可：`theme_mode_changed` 的环境里有 `NOCTALIA_THEME_MODE`（管理器在 fork 之后才 unset，子进程读得到），但它在**启动时不触发**，因为该回调要求「已知上一个模式」，会话的首次解析没有上一个模式；`started` 恰好补上登录时的同步（它在 IPC 初始化之后触发），且不带环境变量，所以脚本回落到查询运行中的 shell。应用前先与 `wallpaper-get` 比对，路径相同就直接退出，避免无谓地写 `settings.toml`。`noctalia` 以 store 绝对路径调用，不依赖钩子继承到的 `PATH`。
+- **已知副作用：** `wallpaper-set` 会把结果持久化到 `~/.local/state/noctalia/settings.toml`（`[wallpaper.default]`、`[wallpaper.last]` 与逐输出的 `[wallpaper.monitors.<connector>]`），而该文件优先级高于本层的 `config.toml`。所以图形界面里手动选的壁纸会在下一次模式翻转时被覆盖，这是选择「用钩子强制切换」时接受的取舍；不接受就只能放弃自动换图。
+- **上游：** Noctalia 5.2.1 的壁纸服务与主题服务（`src/shell/wallpaper/`、`src/theme/`）；钩子种类与触发条件见官方文档的 Hooks 一节。上游尚未提供「模式变化时重新应用壁纸」或按模式成对声明壁纸的能力。
+- **移除条件：** 上游让模式切换自动重新应用与当前模式匹配的壁纸（例如 `[wallpaper]` 增加成对的深浅路径，或主题服务在翻转调色板时一并切换壁纸图），即可删除 `theme-auto.nix` 里的两个 hook，只保留坐标。
+- **复查方法：** 会话内临时改模式验证同步（会写 `settings.toml`，试完记得改回 `auto`）：
+
+  ```fish
+  noctalia msg theme-mode-get            # 当前解析结果
+  noctalia msg theme-mode-set light      # 触发 theme_mode_changed
+  noctalia msg wallpaper-get             # 应为 wallpaper-light.png
+  noctalia msg theme-mode-set auto
+  ```
+
+  钩子改到 `started` 的登录同步只能靠重启会话验证：`journalctl --user -u noctalia | grep -i hook` 不应出现 `hook '...' command failed`，`noctalia msg wallpaper-get` 应与当时 `theme-mode-get` 的结果对应。修复本条后 `[theme] mode` 残留值仍需人工清一次（见 AGENTS.md「深浅色自动切换」）。
+
 ### Wine 的 PipeWire 与 WoW64 兼容层
 
 - **位置：** `modules/system/packages.nix` 的 `pulseaudio`；`modules/optional/wine.nix` 的 `wine64-symlink`、`WINEDLLOVERRIDES` 与 `QT_PLUGIN_PATH`；`modules/home/defaults/wine.nix` 和生成的 Fish 配置中的同一变量。
