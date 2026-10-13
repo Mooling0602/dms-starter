@@ -8,6 +8,11 @@
     slurp
     satty
 
+    # region-record reports start and stop through notify-send. Without this the
+    # script aborts on the "starting" notification before gpu-screen-recorder is
+    # ever launched, because it runs under set -e.
+    libnotify
+
     # virtual display mode utility
     wlr-randr
   ];
@@ -22,7 +27,7 @@
   home.file.".local/bin/region-record" = {
     text = ''
       #!/usr/bin/env bash
-      # Region recording toggle: Win+Alt+G
+      # Region recording toggle: Mod+Alt+G
       set -euo pipefail
       PIDFILE="/run/user/$UID/region-record.pid"
       DIR="$HOME/Videos/ScreenrnRecords"
