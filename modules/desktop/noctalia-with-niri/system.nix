@@ -87,4 +87,28 @@ in
   # unit exists, and this nixpkgs keeps the setuid pkexec wrapper opt in
   # (security.polkit.enablePkexecWrapper, default false), which leaves the
   # session agent as the only way to authorize an action.
+
+  # gpu-screen-recorder's KMS capture escalates via pkexec
+  # (org.freedesktop.policykit.exec), which normally prompts for a password on
+  # every recording. Allow wheel-group members in local sessions to run it
+  # without a password. The program match uses the nix store path fragment
+  # "-gpu-screen-recorder-" to avoid version drift. Having the rule when
+  # gpu-screen-recorder is not active in the current environment should be
+  # harmless.
+  #
+  # Same rule as modules/desktop/dms-with-niri/system.nix. Only one desktop
+  # implementation is imported per host, so the two copies never load together,
+  # and keeping the copy here lets the rule disappear with this desktop instead
+  # of leaking into every other one.
+  security.polkit.extraConfig = ''
+    polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.policykit.exec" &&
+            subject.isInGroup("wheel") && subject.local) {
+            var program = action.lookup("program");
+            if (program && program.indexOf("-gpu-screen-recorder-") !== -1) {
+                return polkit.Result.YES;
+            }
+        }
+    });
+  '';
 }
