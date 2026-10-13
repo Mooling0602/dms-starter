@@ -189,11 +189,16 @@ sudo howdy remove mooling
 
 # 跳过二次确认，强制恢复
 ./scripts/backup.sh apply --force mooling
+
+# 单独备份/恢复 Noctalia 会话的手写 niri 覆盖（~/.config/niri-noctalia/custom.kdl）
+./scripts/backup.sh niri-custom-snapshot mooling
+./scripts/backup.sh niri-custom-apply mooling
 ```
 
 - `snapshot.sh` 直接覆盖仓库快照中有变化的文件，不做二次确认。
 - `apply.sh` 默认在已有 DMS/Niri 配置时要求二次确认；`-f` 或 `--force` 可跳过确认。
 - 两者位于各用户的 `user_profiles/<username>/desktop-config/` 下，`scripts/backup.sh` 负责按用户分发调用。
+- `niri-custom-*` 对应 `user_profiles/<username>/niri-noctalia/`，只处理 Noctalia 会话的手写 niri 覆盖这一个文件；恢复前会先用 `niri validate` 校验快照，校验不过则拒绝覆盖，避免写坏配置导致下次登录退回 niri 默认配置。
 - `modules/desktop/dms-with-niri/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。它随 DMS 桌面层加载，切到其他桌面时该激活步骤不会执行。
 - 当前 DMS 快照只保留 `settings.json` 和插件 `.meta`，不提交 `plugin_settings.json`、浏览器 CSS、插件仓库缓存等易变或可能含设备标识的文件。
 
