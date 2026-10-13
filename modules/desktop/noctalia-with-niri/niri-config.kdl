@@ -84,6 +84,9 @@ binds {
     Mod+Space { spawn-sh "noctalia msg panel-toggle launcher"; }
     Mod+S { spawn-sh "noctalia msg panel-toggle control-center"; }
     Mod+Comma { spawn-sh "noctalia msg settings-toggle"; }
+    // Lock the session through Noctalia. The repository declares no lock daemon
+    // of its own, so swaylock/gtklock/hyprlock are not options here.
+    Mod+L { spawn-sh "noctalia msg session lock"; }
     Alt+Tab { spawn-sh "noctalia msg window-switcher hold"; }
     XF86AudioRaiseVolume { spawn-sh "noctalia msg volume-up"; }
     XF86AudioLowerVolume { spawn-sh "noctalia msg volume-down"; }
@@ -91,8 +94,11 @@ binds {
     XF86MonBrightnessUp { spawn-sh "noctalia msg brightness-up"; }
     XF86MonBrightnessDown { spawn-sh "noctalia msg brightness-down"; }
 
-    // Region screenshot with satty annotation, and the region recording toggle
-    // declared in modules/optional/screen-recorder.nix.
+    // Screenshots: Mod+Alt+C captures the focused monitor with niri's own
+    // screenshot action, Mod+Shift+X pipes a region through satty for
+    // annotation, and the region recording toggle lives in
+    // modules/optional/screen-recorder.nix.
+    Mod+Alt+C { screenshot-screen; }
     Mod+Shift+X {
         spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --output-filename \"~/Pictures/Screenshots/annotated-%Y%m%d_%H%M%S.png\" --early-exit copy";
     }
@@ -115,10 +121,13 @@ binds {
     Mod+7 { focus-workspace 7; }
     Mod+8 { focus-workspace 8; }
     Mod+9 { focus-workspace 9; }
-    Mod+Ctrl+Down { move-column-to-workspace-down; }
+    // Moving columns between workspaces lives on Mod+Ctrl+Page_Up/Page_Down,
+    // because Mod+Ctrl+arrows is taken by monitor focus below. This matches
+    // niri's own default config.
     Mod+Ctrl+I { move-column-to-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up { move-column-to-workspace-up; }
     Mod+Ctrl+U { move-column-to-workspace-down; }
-    Mod+Ctrl+Up { move-column-to-workspace-up; }
     Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
     Mod+Ctrl+WheelScrollUp cooldown-ms=150 { move-column-to-workspace-up; }
     Mod+Down { focus-workspace-down; }
@@ -146,6 +155,7 @@ binds {
     Mod+BracketRight { consume-or-expel-window-right; }
     Mod+C { center-column; }
     Mod+Ctrl+C { center-visible-columns; }
+    Mod+Ctrl+Down { focus-monitor-down; }
     Mod+Ctrl+End { move-column-to-last; }
     Mod+Ctrl+F { expand-column-to-available-width; }
     Mod+Ctrl+H { focus-monitor-left; }
@@ -156,6 +166,7 @@ binds {
     Mod+Ctrl+Left { focus-monitor-left; }
     Mod+Ctrl+R { reset-window-height; }
     Mod+Ctrl+Right { focus-monitor-right; }
+    Mod+Ctrl+Up { focus-monitor-up; }
     Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
     Mod+Ctrl+Shift+WheelScrollUp { move-column-left; }
     Mod+Ctrl+WheelScrollLeft { move-column-left; }
@@ -163,11 +174,7 @@ binds {
     Mod+End { focus-column-last; }
     Mod+Equal { set-column-width "+10%"; }
     Mod+F { maximize-column; }
-    Mod+H { focus-column-left; }
     Mod+Home { focus-column-first; }
-    Mod+J { focus-window-down; }
-    Mod+K { focus-window-up; }
-    Mod+L { focus-column-right; }
     Mod+Left { focus-column-left; }
     Mod+Minus { set-column-width "-10%"; }
     Mod+Period { expel-window-from-column; }
@@ -202,12 +209,27 @@ binds {
     Mod+WheelScrollLeft { focus-column-left; }
     Mod+WheelScrollRight { focus-column-right; }
     Mod+Shift+P { power-off-monitors; }
+    // Window focus within a column. Mod+H/J/K/L is gone: this keyboard has real
+    // arrow keys, so the vim aliases were dead weight, and Mod+Up/Down now
+    // switches workspaces instead. Mod+Alt+arrows keeps the action reachable.
+    Mod+Alt+Down { focus-window-down; }
+    Mod+Alt+Up { focus-window-up; }
     Ctrl+Print { screenshot-screen; }
     Ctrl+XF86Launch1 { screenshot-screen; }
     Print { screenshot; }
     XF86Launch1 { screenshot; }
+    // Toggle fullscreen without a modifier, alongside Mod+Shift+F above.
+    F11 { fullscreen-window; }
+    // Hide or restore the Noctalia bar. Noctalia offers no query for the current
+    // visibility, so this is a blind toggle: each press flips whatever the state
+    // is at that moment, which is what a toggle key should do. The bar releases
+    // and re-reserves its layout gap on its own.
+    F12 { spawn-sh "noctalia msg bar-toggle"; }
     Mod+Shift+E { quit; }
-    Mod+T { spawn "kitty"; }
+    // Follows the default application setting rather than hardcoding a terminal
+    // binary; the list is declared as xdg.terminal-exec in
+    // modules/home/defaults/terminal.nix.
+    Mod+T { spawn "xdg-terminal-exec"; }
     Mod+D repeat=false { toggle-overview; }
     Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
     Mod+Shift+Slash { show-hotkey-overlay; }
