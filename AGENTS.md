@@ -72,15 +72,29 @@
 
 Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入的 `settings.toml` 最后读并覆盖。所以 `programs.noctalia.settings`（Home Manager 生成只读的 `config.toml`）既能声明默认外观，也不会挡住图形设置菜单（这一条与最初「保持为空」的判断相反，已按上游文档更正）。
 
-声明内容集中在 `modules/desktop/noctalia-with-niri/default.nix`：
+声明内容集中在 `modules/desktop/noctalia-with-niri/default.nix`（深浅色切换所需的坐标与钩子在同目录的 `theme-auto.nix`，理由见下节）：
 
 - 头像：`shell.avatar_path = "~/.face"`，即 `modules/home/mooling/avatar.nix` 安装的文件。Noctalia 会同时更新 AccountsService 的 `IconFile`，其它读 AccountsService 的组件（如登录界面）可复用同一张头像。
-- 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张），默认取深色那张，与 `theme.mode = "dark"` 对齐。
+- 壁纸：`enabled` + `directory = "~/.local/share/wallpapers"`（`modules/home/defaults/theme.nix` 放置的深浅两张）。`wallpaper.default.path` 指向深色那张，但它只是首次启动的种子：实际显示哪张由 `theme-auto.nix` 的钩子按当前模式挑选（见下）。
 - 配色：`source = "wallpaper"` 加 `wallpaper_scheme = "m3-content"`，沿用 DMS 时期由壁纸生成调色板的方式；想固定调色板就改成 `source = "builtin"` 与调色板名。
+- **深浅色随日出日落自动切换**：`theme.mode = "auto"`，坐标由 `theme-auto.nix` 声明（见下）。`shell_mode` 默认 `follow`，所以状态栏、各应用配色模板与壁纸一起翻转。
 - 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。其中 `kcolorscheme` 的输出 `~/.local/share/color-schemes/noctalia.colors` 同时是 fcitx5 候选窗同步脚本的数据源（上游没有 fcitx5 模板，见下面的移植取舍表）。
 - **`niri` 内置模板仍不启用，改用等价的自定义模板**：内置模板除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色，且它的输出目录固定。本层把该模板的载荷复制为 `niri-palette.kdl`，声明为自定义模板 `niri-colors`（`input_path` 相对路径落在 `~/.config/noctalia/`，`output_path` 指向本层自己的 `~/.config/niri-noctalia/noctalia.kdl`），不带任何 hook。niri 的 focus-ring、窗口边框、tab-indicator 与 recent-windows 高亮因此跟随配色（默认值是 `#7fc8ff` / `#505050` / `#9b0000`，未同步时一眼可辨）。
 
 仍由运行时可写、不由 Home Manager 占用的文件：模板渲染出的 `~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、终端的 `noctalia*` 主题文件，以及 DMS 拥有的 `~/.config/niri/`。`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，界面里就选不了 Noctalia 配色。
+
+### 深浅色自动切换
+
+`theme-auto.nix` 是本层唯一不在 `default.nix` 里的外观声明，拆出来是为了让那段钩子脚本与坐标说明不淹没在模板清单里。它做两件事：
+
+- **坐标**：`latitude = 27.9494`、`longitude = 116.3582`（江西抚州）。Noctalia 解析 `auto` 的优先级是 `auto_locate`（按 IP 定位）、非空 `address`（地理编码）、手填坐标，前两者都要联网，而 VM 的出口 IP 会定位到机房，因此固定坐标：离线可用、可复现。`custom_schedule` 保持关闭，开启它必须同时给出 `sunset` 与 `sunrise` 两个 `HH:MM`，否则 `noctalia config validate` 会判为配置错误；用坐标时日出日落由本机天文算法算出，无需网络。
+- **钩子**：`hooks.started` 与 `hooks.theme_mode_changed` 指向同一个脚本。Noctalia 只会翻转自己的调色板，不会重新应用壁纸图（选图只发生在选择器、`switchWallpaperTo()` 和可选的轮播里，而 `directory_light`／`directory_dark` 只影响挑图时的目录），所以深浅两张图由这个脚本按模式切换。
+  - 脚本调用 `noctalia msg theme-mode-get` 取**已解析**的模式（只会返回 `light` 或 `dark`，即使配置的是 `auto`），再与 `noctalia msg wallpaper-get` 比对，路径一致就直接退出：`wallpaper-set` 本身对相同路径会提前返回，这里只是省掉一次往返、不去碰 `settings.toml`。
+  - `theme_mode_changed` 不会在启动时触发：该钩子有「已知上一个模式」的前置条件，首次解析时尚未有上一个模式，所以必须用 `started` 补上登录时的同步，否则白天登录会一直停留声明的深色种子直到下一个日落。
+  - 钩子经 `/bin/sh -lc` 运行，`theme_mode_changed` 会把 `NOCTALIA_THEME_MODE` 放进环境（管理器在 fork 之后才清除它，因此子进程读得到），脚本把它当作快路径；`started` 不带任何环境变量，所以两条路径最终都回落到查询运行中的 shell。
+  - `noctalia` 用 store 绝对路径调用（`${pkgs.noctalia}/bin/noctalia`），不依赖钩子继承到的 `PATH`。
+- **已知取舍**：`wallpaper-set` 会把结果写进 `settings.toml`，所以在图形界面手动选的壁纸会在下一次模式翻转时被覆盖。这是选择「用钩子强制切换」时接受的代价；不接受时只能放弃自动换图。
+- **核对**：`noctalia msg theme-mode-get` 应返回当前解析结果，`noctalia config export | grep -A 3 '^\[location\]'` 应显示上述坐标。注意 `settings.toml` 里若残留 `[theme] mode = "dark"`，会盖过 `config.toml` 的 `auto`（旧版本装过的手动覆盖），用 `noctalia msg theme-mode-set auto` 或在界面里改一次即可。
 
 ### 会话与切换
 
@@ -140,6 +154,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | fcitx5 选中候选词文字对比度过低 | 两层的同步脚本此前把 `HighlightCandidateColor` 覆盖成选择前景色，而选中项背后是 30% alpha 的高亮位图，实测最低仅 `1.7:1`；改为复用生成器算好的 `NormalColor`，选中与未选中文字同色，四组配色实测最差 `5.2:1`（见 `MAINTENANCE.md`） |
 | niri 窗口边框与 focus-ring 不跟随 Noctalia 配色 | 不再依赖上游 `niri` 内置模板（它会写 DMS 独占的目录），本层复制其载荷为自定义模板 `niri-colors`，渲染到 `~/.config/niri-noctalia/noctalia.kdl` 并由本层配置可选 include |
 | Noctalia 设置面板底部超出屏幕 | 该窗口是普通 toplevel 而非图层，固定请求 1080x920，超过本机 1365x768 的逻辑输出高度；窗口规则改为 `open-floating false` 加 `open-maximized true`，由布局收进工作区。不用 `open-maximized-to-edges`：它会设 xdg 的 Maximized 状态，圆角随之被清零 |
+| 深浅色不随时间切换、壁纸也不跟着换 | `theme.mode = "auto"` 加 `theme-auto.nix` 里的抚州坐标（离线解析日出日落）；壁纸图另由 `started` 与 `theme_mode_changed` 两个钩子按解析结果切换（Noctalia 自己只翻调色板，不重新应用壁纸） |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
