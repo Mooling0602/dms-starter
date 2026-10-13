@@ -139,6 +139,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | fcitx5 候选窗不跟随 Noctalia 配色 | 本层移植 DMS 的同步脚本，数据源换成本层 `kcolorscheme` 模板的输出 `~/.local/share/color-schemes/noctalia.colors`（上游没有 fcitx5 模板） |
 | fcitx5 选中候选词文字对比度过低 | 两层的同步脚本此前把 `HighlightCandidateColor` 覆盖成选择前景色，而选中项背后是 30% alpha 的高亮位图，实测最低仅 `1.7:1`；改为复用生成器算好的 `NormalColor`，选中与未选中文字同色，四组配色实测最差 `5.2:1`（见 `MAINTENANCE.md`） |
 | niri 窗口边框与 focus-ring 不跟随 Noctalia 配色 | 不再依赖上游 `niri` 内置模板（它会写 DMS 独占的目录），本层复制其载荷为自定义模板 `niri-colors`，渲染到 `~/.config/niri-noctalia/noctalia.kdl` 并由本层配置可选 include |
+| Noctalia 设置面板底部超出屏幕 | 该窗口是普通 toplevel 而非图层，固定请求 1080x920，超过本机 1365x768 的逻辑输出高度；窗口规则改为 `open-floating false` 加 `open-maximized true`，由布局收进工作区。不用 `open-maximized-to-edges`：它会设 xdg 的 Maximized 状态，圆角随之被清零 |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
