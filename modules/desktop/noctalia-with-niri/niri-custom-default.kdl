@@ -5,6 +5,9 @@
 // creates this file only when it is missing and never rewrites it, so your
 // edits survive rebuilds. Keep it out of xdg.configFile: a managed file would
 // be a read-only store symlink.
+//
+// The `nirimod` command in this session opens this file by default, so the
+// graphical window rule editor writes here instead of the read-only config.kdl.
 
 // What merges and what does not.
 //
@@ -51,3 +54,11 @@
 // environment {
 //     MOZ_ENABLE_WAYLAND "1"
 // }
+
+// Keep this empty block: the graphical editor (nirimod) stores comments as
+// trivia attached to a parsed node, so a file with no nodes at all loses every
+// comment above on its first save. An empty layout block parses to no
+// properties and therefore changes nothing. Remove it and the next save from
+// the GUI collapses this file to a single line.
+layout {
+}
