@@ -61,7 +61,7 @@
 
 ## noctalia-with-niri 桌面层
 
-`modules/desktop/noctalia-with-niri/` 是与 `dms-with-niri` 并列的桌面层，目前已在 `hosts/vmware` 上启用（其它主机切换只需改 `hosts/<host>/default.nix` 顶部的 `let desktop`，并在 `hosts/<host>/desktop/noctalia-with-niri/` 准备同名目录）。
+`modules/desktop/noctalia-with-niri/` 是与 `dms-with-niri` 并列的桌面层，目前已在 `hosts/vmware` 与 `hosts/mooling-laptop` 上启用（其它主机切换只需改 `hosts/<host>/default.nix` 顶部的 `let desktop`，并在 `hosts/<host>/desktop/noctalia-with-niri/` 准备同名目录）。
 
 ### 组成与来源
 
@@ -162,6 +162,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | Noctalia 设置面板底部超出屏幕 | 该窗口是普通 toplevel 而非图层，固定请求 1080x920，超过本机 1365x768 的逻辑输出高度；窗口规则改为 `open-floating false` 加 `open-maximized true`，由布局收进工作区。不用 `open-maximized-to-edges`：它会设 xdg 的 Maximized 状态，圆角随之被清零 |
 | 没有图形化的窗口规则编辑器 | Noctalia 不做（上游请求 #4268 关闭为 `NOT_PLANNED`），改用 NiriMod；包的 `nirimod` 命令注入 `--config` 指向可写的 `custom.kdl`，避免编辑器去写只读的 `config.kdl`（见 `MAINTENANCE.md`） |
 | 深浅色不随时间切换、壁纸也不跟着换 | `theme.mode = "auto"` 加 `theme-auto.nix` 里的抚州坐标（离线解析日出日落）；壁纸图另由 `started` 与 `theme_mode_changed` 两个钩子按解析结果切换（Noctalia 自己只翻调色板，不重新应用壁纸） |
+| 首次切到 noctalia 层时 Home Manager activation 失败 | ghostty 的 onFilesChange 校验钩子对尚未渲染的 `themes/noctalia` 返回非零，`set -e` 中止整个 activation，其后的 sd-switch 与 `custom.kdl` 播种都被跳过；改为由 `terminal.nix` 播种一个占位主题文件，并用 `entryBefore onFilesChange` 保证早于校验 |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |

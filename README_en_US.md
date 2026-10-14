@@ -7,7 +7,7 @@ A modular NixOS Flake configuration template that supports multiple users, multi
 ## Supported desktop modules
 
 - [DankMaterialShell](https://danklinux.com/) is complete and actively maintained
-- [Noctalia](https://noctalia.dev/) v5 + niri is complete, not enabled on any host yet
+- [Noctalia](https://noctalia.dev/) v5 + niri is complete and enabled on hosts/vmware and hosts/mooling-laptop
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) is a work in progress and not yet recommended
 
 ## Device identity: username and hostname
@@ -81,7 +81,7 @@ System-layer modules receive `inputs` through `specialArgs`, so they can referen
 
 ### noctalia-with-niri (Noctalia v5 + niri)
 
-A secondary desktop layer, ready but not enabled on any host: both the shell and the greeter come from the pinned nixpkgs (Noctalia v5 plus `noctalia-greeter`), with no dependency on the DMS ecosystem, and its runtime configuration is owned by the applications just like the DMS layer. Enabling it only requires changing the `let desktop` binding at the top of `hosts/<host>/default.nix` to `"noctalia-with-niri"` (`hosts/vmware/desktop/noctalia-with-niri/default.nix` already exists). The runtime configuration still to be added by hand, the porting decisions taken from the DMS layer, and the known gaps are documented in `AGENTS.md` under "noctalia-with-niri 桌面层".
+A secondary desktop layer, enabled on hosts/vmware and hosts/mooling-laptop: the shell comes from the pinned nixpkgs (Noctalia v5) and the login screen is `services.displayManager.dms-greeter`, which runs inside niri (`noctalia-greeter` ships its own wlroots compositor, which cannot run on the vmwgfx of hosts/vmware, see `MAINTENANCE.md`). No new flake input is needed, and the runtime configuration is owned by the applications just like the DMS layer. Switching a host only requires changing the `let desktop` binding at the top of `hosts/<host>/default.nix` to `"noctalia-with-niri"` and preparing a matching directory under `hosts/<host>/desktop/noctalia-with-niri/`. The porting decisions taken from the DMS layer and the known gaps are documented in `AGENTS.md` under "noctalia-with-niri 桌面层".
 
 ## Deploying a new machine
 

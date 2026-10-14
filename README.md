@@ -7,7 +7,7 @@
 ## 支持的桌面模块
 
 - [DankMaterialShell](https://danklinux.com/) 已完成，持续维护
-- [Noctalia](https://noctalia.dev/) v5 + niri 已完成，目前在 `hosts/vmware` 上启用
+- [Noctalia](https://noctalia.dev/) v5 + niri 已完成，目前在 `hosts/vmware` 与 `hosts/mooling-laptop` 上启用
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) 工作中，尚不推荐使用
 
 ## 设备身份：用户名与主机名
@@ -80,7 +80,7 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导
 
 ### noctalia-with-niri（Noctalia v5 + niri）
 
-备用桌面层，已就绪但尚未在任何主机上启用：shell 与登录器都取自锁定的 nixpkgs（Noctalia v5 + `noctalia-greeter`），不依赖 DMS 生态，运行配置同样交给应用自己管理。启用只需把 `hosts/<host>/default.nix` 顶部的 `let desktop` 改成 `"noctalia-with-niri"`（`hosts/vmware/desktop/noctalia-with-niri/default.nix` 已放好）。切换前需要手工补的运行时配置、与 DMS 层的移植取舍及已知缺口见 `AGENTS.md` 的「noctalia-with-niri 桌面层」。
+备用桌面层，已在 `hosts/vmware` 与 `hosts/mooling-laptop` 上启用：shell 取自锁定的 nixpkgs（Noctalia v5），登录器为 `services.displayManager.dms-greeter`（界面跑在 niri 里；`noctalia-greeter` 自带的 wlroots 合成器在 `hosts/vmware` 的 vmwgfx 上不可用，原因见 `MAINTENANCE.md`），不新增 flake input，运行配置同样交给应用自己管理。切换主机只需把 `hosts/<host>/default.nix` 顶部的 `let desktop` 改成 `"noctalia-with-niri"`，并在 `hosts/<host>/desktop/noctalia-with-niri/` 准备同名目录。与 DMS 层的移植取舍及已知缺口见 `AGENTS.md` 的「noctalia-with-niri 桌面层」。
 
 ## 新机器部署
 
