@@ -105,6 +105,12 @@ in
           };
         };
       };
+
+      # The tray widget hides StatusNotifierItems whose status is Passive by
+      # default. KDE Connect's indicator always reports Passive, so with the
+      # default its icon never appears and launching the indicator looks like
+      # nothing happened. Show passive items as well.
+      widget.tray.hide_passive = false;
     };
   };
 
