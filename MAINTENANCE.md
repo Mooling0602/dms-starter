@@ -329,6 +329,15 @@
 - **移除条件：** 当前 Wine 在 PipeWire 下运行 `winecfg` 不再卡死，且 WoW64 的 `winetricks` 可直接找到实际的 `wine64` 可执行文件。
 - **复查方法：** 在测试环境中移除上述覆盖，运行 `winecfg` 并执行实际使用的 WoW64 `winetricks` 流程；两者通过后再删除兼容层。
 
+### Wine 应用的托盘图标经 XEmbed 桥接进入系统托盘
+
+- **位置：** `modules/optional/xembed-sni-proxy.nix`（由 `modules/home/mooling/default.nix` 导入）。
+- **影响：** Wine 程序调用 `Shell_NotifyIcon` 只能把托盘图标放进 XEmbed 系统托盘，而 niri 不提供托盘宿主：无人认领 X 服务器上的 `_NET_SYSTEM_TRAY_S0` 选择时，图标窗口会变成独立的 Xwayland 窗口在布局里漂浮。该单元运行 plasma-workspace 自带的 `xembedsniproxy`，由它认领选择、让应用把图标嵌入进去，再把每个图标转成 StatusNotifierItem，Noctalia（或 DMS）的托盘即可像原生托盘项一样显示。nixpkgs 没有独立的 `xembed-sni-proxy` 包，其 `snixembed` 是反方向（StatusNotifierItem 转 XEmbed，服务 X11 窗口管理器），因此二进制取自 `plasma-workspace`；该闭包本就在系统闭包内，不新增下载。
+- **相关提交：** `e5462e1`（`feat(tray): bridge XEmbed tray icons into the StatusNotifierItem tray`）。
+- **已知取舍：** XEmbed 图标是小位图，保持原始 22 到 24 像素尺寸，在 HiDPI 输出上偏软；应用托盘的右键菜单仍是 Xwayland 窗口，niri 会把它当作普通窗口显示在指针附近，而不是弹出菜单。代理启动前已在运行的应用需要重启，图标才会移入托盘。
+- **移除条件：** nixpkgs 提供独立的 `xembed-sni-proxy` 包，或不再使用需要托盘图标的 X11/Wine 应用。
+- **复查方法：** 重建后 `systemctl --user status xembed-sni-proxy` 应为 active；运行一个带托盘图标的 Wine 应用，`busctl --user get-property org.kde.StatusNotifierWatcher /StatusNotifierWatcher org.kde.StatusNotifierWatcher RegisteredStatusNotifierItems` 应出现对应项，且图标显示在 Noctalia 栏的托盘里。
+
 ### Apollo 串流模块被永久移除
 
 所有串流相关的 flake 输入、模块代码均已被删除，用户不再使用。

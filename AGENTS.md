@@ -165,6 +165,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | 首次切到 noctalia 层时 Home Manager activation 失败 | ghostty 的 onFilesChange 校验钩子对尚未渲染的 `themes/noctalia` 返回非零，`set -e` 中止整个 activation，其后的 sd-switch 与 `custom.kdl` 播种都被跳过；改为由 `terminal.nix` 播种一个占位主题文件，并用 `entryBefore onFilesChange` 保证早于校验 |
 | KDE Connect 指示器启动后没有托盘图标 | 它的 StatusNotifierItem 恒为 `Passive`（从不切换 Active），Noctalia 的 tray 默认 `hide_passive = true` 将其隐藏；层内声明 `widget.tray.hide_passive = false` |
 | kdeconnectd 每次登录崩溃（could not connect to display） | 单元原来 `WantedBy = default.target`，早于图形会话环境启动，Qt 回退 xcb 插件失败，重启 5 次后 start-limit-hit；改为 `After`/`PartOf`/`WantedBy` 全部绑到 `graphical-session.target`，与 noctalia.service 同样拿到 `WAYLAND_DISPLAY` |
+| Wine 应用托盘图标变成独立浮动窗口 | Wine 的 `Shell_NotifyIcon` 只能进 XEmbed 托盘，niri 没有宿主，无人认领 `_NET_SYSTEM_TRAY_S0` 时图标窗口就漂在布局里；`modules/optional/xembed-sni-proxy.nix` 运行 plasma-workspace 的 `xembedsniproxy` 认领选择并把图标转成 StatusNotifierItem（nixpkgs 只有反方向的 `snixembed`，详见 `MAINTENANCE.md`） |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
