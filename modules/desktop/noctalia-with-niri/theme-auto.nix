@@ -11,22 +11,28 @@
 
 let
   # Noctalia resolves "auto" from [location]: auto_locate (IP geolocation) wins,
-  # then a non-empty address (geocoded), then manual latitude/longitude. The VM's
-  # IP would geolocate to the provider's datacenter, so the coordinates are
-  # pinned instead: Fuzhou, Jiangxi, which needs no network round trip and cannot
-  # drift. custom_schedule stays off, because enabling it requires both sunset
-  # and sunrise as HH:MM and would otherwise be a config error; the real
-  # sunrise/sunset for these coordinates come from the local solar calculation.
+  # then a non-empty address (geocoded), then manual latitude/longitude. The
+  # address is what the settings GUI was pointed at (Ganzhou, Jiangxi), so it is
+  # declared here as well and takes part in the resolution: it reads better than
+  # a pair of numbers, at the cost of one network round trip when the cache is
+  # cold. auto_locate stays off because the VM's exit IP would geolocate to the
+  # provider's datacenter.
   #
-  # The coordinates also feed the weather and night light services, but both keep
+  # The coordinates are the same city as the address, resolved from it and cached
+  # by Noctalia, and are what an offline host falls back to: reproducible without
+  # a network. They also feed the weather and night light services, but both keep
   # their own defaults here (weather was already enabled, night light stays off),
   # so nothing beyond the schedule is switched on by this table.
+  #
+  # custom_schedule stays off, because enabling it requires both sunset and
+  # sunrise as HH:MM and would otherwise be a config error; the real
+  # sunrise/sunset for these coordinates come from the local solar calculation.
   location = {
     auto_locate = false;
-    address = "";
+    address = "赣州";
     custom_schedule = false;
-    latitude = 27.9494;
-    longitude = 116.3582;
+    latitude = 25.70387;
+    longitude = 115.34822;
   };
 
   # Noctalia flips its own palette when the schedule crosses sunrise/sunset, but

@@ -81,6 +81,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 - **深浅色随日出日落自动切换**：`theme.mode = "auto"`，坐标由 `theme-auto.nix` 声明（见下）。`shell_mode` 默认 `follow`，所以状态栏、各应用配色模板与壁纸一起翻转。
 - 应用配色模板：`alacritty`、`kitty`、`ghostty`（对应 `terminal.nix` 声明的 include：三个模板的 apply 钩子检测到 include 已存在就不改配置，所以不会去写 HM 的只读符号链接）、`gtk3`、`gtk4`、`qt`、`kcolorscheme`。其中 `kcolorscheme` 的输出 `~/.local/share/color-schemes/noctalia.colors` 同时是 fcitx5 候选窗同步脚本的数据源（上游没有 fcitx5 模板，见下面的移植取舍表）。
 - **`niri` 内置模板仍不启用，改用等价的自定义模板**：内置模板除渲染 `noctalia.kdl` 外，还会往 DMS 独占的 `~/.config/niri/config.kdl` 追一行 include，切回 DMS 后会盖掉 DMS 自己的配色，且它的输出目录固定。本层把该模板的载荷复制为 `niri-palette.kdl`，声明为自定义模板 `niri-colors`（`input_path` 相对路径落在 `~/.config/noctalia/`，`output_path` 指向本层自己的 `~/.config/niri-noctalia/noctalia.kdl`），不带任何 hook。niri 的 focus-ring、窗口边框、tab-indicator 与 recent-windows 高亮因此跟随配色（默认值是 `#7fc8ff` / `#505050` / `#9b0000`，未同步时一眼可辨）。
+- **设置界面里挑过的外观与控件偏好**：状态栏（全透明、方角、无端边距、接触阴影、`media` 移到中部）、Dock（启用、自动隐藏、仅当前显示器、关闭占位、显示指示点）、热区（启用、左上角窗口切换器）、锁屏模糊桌面、Shell（Sarasa UI SC、秒级时间、面板玻璃质感、遥测跟随界面开启）、时钟/电池/媒体/网络四个控件的偏好，以及内置模板增补 `btop` 与 `starship`。这些是从 `settings.toml` 里按项筛出后固化的，筛法、刻意排除的运行时状态与边界见 `MAINTENANCE.md`；固化只对没有 `settings.toml` 的新设备生效。
 
 仍由运行时可写、不由 Home Manager 占用的文件：模板渲染出的 `~/.config/gtk-{3,4}.0/noctalia.css`、`~/.config/qt{5,6}ct/colors/noctalia.conf`、终端的 `noctalia*` 主题文件，以及 DMS 拥有的 `~/.config/niri/`。`gtk.enable` 与 `qt.enable` 因此都不启用：后者会把 Qt 模板配色方案旁边的 `~/.config/qt6ct/qt6ct.conf` 换成只读符号链接，界面里就选不了 Noctalia 配色。
 
@@ -88,7 +89,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 `theme-auto.nix` 是本层唯一不在 `default.nix` 里的外观声明，拆出来是为了让那段钩子脚本与坐标说明不淹没在模板清单里。它做两件事：
 
-- **坐标**：`latitude = 27.9494`、`longitude = 116.3582`（江西抚州）。Noctalia 解析 `auto` 的优先级是 `auto_locate`（按 IP 定位）、非空 `address`（地理编码）、手填坐标，前两者都要联网，而 VM 的出口 IP 会定位到机房，因此固定坐标：离线可用、可复现。`custom_schedule` 保持关闭，开启它必须同时给出 `sunset` 与 `sunrise` 两个 `HH:MM`，否则 `noctalia config validate` 会判为配置错误；用坐标时日出日落由本机天文算法算出，无需网络。
+- **位置**：`address = "赣州"`（江西赣州）加 `latitude = 25.70387`、`longitude = 115.34822`。Noctalia 解析 `auto` 的优先级是 `auto_locate`（按 IP 定位）、非空 `address`（地理编码）、手填坐标。`address` 是设置界面里选的城市，比一串数字可读，代价是位置缓存未命中时要联网做一次地理编码；`auto_locate` 仍然关闭，因为 VM 的出口 IP 会定位到机房。坐标与地址同城（就是该地址的地理编码结果），离线且没有缓存时回落到坐标，日出日落由本机天文算法算出，因此仍然可复现。`custom_schedule` 保持关闭，开启它必须同时给出 `sunset` 与 `sunrise` 两个 `HH:MM`，否则 `noctalia config validate` 会判为配置错误。
 - **钩子**：`hooks.started` 与 `hooks.theme_mode_changed` 指向同一个脚本。Noctalia 只会翻转自己的调色板，不会重新应用壁纸图（选图只发生在选择器、`switchWallpaperTo()` 和可选的轮播里，而 `directory_light`／`directory_dark` 只影响挑图时的目录），所以深浅两张图由这个脚本按模式切换。
   - 脚本调用 `noctalia msg theme-mode-get` 取**已解析**的模式（只会返回 `light` 或 `dark`，即使配置的是 `auto`），再与 `noctalia msg wallpaper-get` 比对，路径一致就直接退出：`wallpaper-set` 本身对相同路径会提前返回，这里只是省掉一次往返、不去碰 `settings.toml`。
   - `theme_mode_changed` 不会在启动时触发：该钩子有「已知上一个模式」的前置条件，首次解析时尚未有上一个模式，所以必须用 `started` 补上登录时的同步，否则白天登录会一直停留声明的深色种子直到下一个日落。
@@ -161,7 +162,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | niri 窗口边框与 focus-ring 不跟随 Noctalia 配色 | 不再依赖上游 `niri` 内置模板（它会写 DMS 独占的目录），本层复制其载荷为自定义模板 `niri-colors`，渲染到 `~/.config/niri-noctalia/noctalia.kdl` 并由本层配置可选 include |
 | Noctalia 设置面板底部超出屏幕 | 该窗口是普通 toplevel 而非图层，固定请求 1080x920，超过本机 1365x768 的逻辑输出高度；窗口规则改为 `open-floating false` 加 `open-maximized true`，由布局收进工作区。不用 `open-maximized-to-edges`：它会设 xdg 的 Maximized 状态，圆角随之被清零 |
 | 没有图形化的窗口规则编辑器 | Noctalia 不做（上游请求 #4268 关闭为 `NOT_PLANNED`），改用 NiriMod；包的 `nirimod` 命令注入 `--config` 指向可写的 `custom.kdl`，避免编辑器去写只读的 `config.kdl`（见 `MAINTENANCE.md`） |
-| 深浅色不随时间切换、壁纸也不跟着换 | `theme.mode = "auto"` 加 `theme-auto.nix` 里的抚州坐标（离线解析日出日落）；壁纸图另由 `started` 与 `theme_mode_changed` 两个钩子按解析结果切换（Noctalia 自己只翻调色板，不重新应用壁纸） |
+| 深浅色不随时间切换、壁纸也不跟着换 | `theme.mode = "auto"` 加 `theme-auto.nix` 里的赣州地址与坐标（按解析结果切换日出日落）；壁纸图另由 `started` 与 `theme_mode_changed` 两个钩子按解析结果切换（Noctalia 自己只翻调色板，不重新应用壁纸） |
 | 首次切到 noctalia 层时 Home Manager activation 失败 | ghostty 的 onFilesChange 校验钩子对尚未渲染的 `themes/noctalia` 返回非零，`set -e` 中止整个 activation，其后的 sd-switch 与 `custom.kdl` 播种都被跳过；改为由 `terminal.nix` 播种一个占位主题文件，并用 `entryBefore onFilesChange` 保证早于校验 |
 | KDE Connect 指示器启动后没有托盘图标 | 它的 StatusNotifierItem 恒为 `Passive`（从不切换 Active），Noctalia 的 tray 默认 `hide_passive = true` 将其隐藏；层内声明 `widget.tray.hide_passive = false` |
 | kdeconnectd 每次登录崩溃（could not connect to display） | 单元原来 `WantedBy = default.target`，早于图形会话环境启动，Qt 回退 xcb 插件失败，重启 5 次后 start-limit-hit；改为 `After`/`PartOf`/`WantedBy` 全部绑到 `graphical-session.target`，与 noctalia.service 同样拿到 `WAYLAND_DISPLAY` |

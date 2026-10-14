@@ -297,6 +297,24 @@
 
   钩子改到 `started` 的登录同步只能靠重启会话验证：`journalctl --user -u noctalia | grep -i hook` 不应出现 `hook '...' command failed`，`noctalia msg wallpaper-get` 应与当时 `theme-mode-get` 的结果对应。修复本条后 `[theme] mode` 残留值仍需人工清一次（见 AGENTS.md「深浅色自动切换」）。
 
+### Noctalia 设置界面的改动按项固化进 `config.toml`（Noctalia 层）
+
+- **位置：** `modules/desktop/noctalia-with-niri/default.nix` 的 `programs.noctalia.settings`（外观与控件偏好）与 `theme-auto.nix` 的 `location`。
+- **影响：** 设置界面把改动写进 `~/.local/state/noctalia/settings.toml`，该文件在 `~/.config/noctalia/*.toml` 之后读取并逐键覆盖，因此界面改动只留在改过的那台机器上，换机或重装即丢失。而界面写出的常常是整个控件块的完整快照，照抄会把与上游默认相同的键一起固化，还会把运行时状态（当前壁纸、某台显示器的锁屏组件几何）一起钉死，所以必须按项筛选。
+- **当前处理：** 只固化「与上游默认不同且与设备无关」的项，逐项经用户勾选后写入。筛法是用空的 `XDG_CONFIG_HOME`/`XDG_STATE_HOME` 跑 `noctalia config export full` 取纯默认，再与 `settings.toml` 逐键比对（实测 63 个键里 58 个与默认不同），按「可直接移植 / 有副作用 / 需拍板」分组后由用户决定。已固化：状态栏（全透明、方角、无端边距、接触阴影、`media` 移到中部）、Dock（启用、自动隐藏、仅当前显示器、关闭占位、显示指示点）、热区（启用、左上角窗口切换器）、锁屏模糊桌面、Shell（Sarasa UI SC、秒级时间、面板玻璃质感、遥测跟随界面开启）、时钟/电池/媒体/网络四个控件的偏好，以及内置模板增补 `btop` 与 `starship`。位置按用户选择固化为 `address = "赣州"`，坐标同步取该地址的地理编码结果作为离线兜底。
+- **刻意不固化的部分：** `wallpaper.default` / `wallpaper.last` / `wallpaper.monitors.*` 是运行时状态且带 `/home/<user>` 绝对路径，由 `theme-auto.nix` 的钩子按深浅色管理；锁屏组件几何绑定 `eDP-1` 与该机的布局尺寸，换机会错位，确需固化时按主机放 `hosts/<host>/desktop/noctalia-with-niri/`；`config_version` 是状态文件版本号；`shell.app_icon_color` 与上游默认一致。
+- **边界：** 固化只对**没有** `settings.toml` 的新设备生效。本机已被界面写过的键仍是界面那份赢，要改现值必须在界面里改，或删掉 `settings.toml` 里对应键；`builtin_ids` 去掉内置 `niri` 模板也要在界面里取消勾选才对本机生效（该模板的副作用见「Niri 配色改用自定义模板而非上游 `niri` 内置模板」）。
+- **复查方法：** 重建后 `noctalia config validate ~/.config/noctalia/config.toml` 应为 `Config is valid`（该文件是 Home Manager 生成的只读符号链接）。要确认新设备真正拿到的值，用临时目录预演：把同一份文件复制为 `/tmp/nc/noctalia/config.toml`，再跑 `XDG_CONFIG_HOME=/tmp/nc XDG_STATE_HOME=/tmp/ns noctalia config export full`，与空配置目录下的同一命令输出逐键比对；本机的 `settings.toml` 优先级更高，直接 `noctalia config export` 看不到这里的结果。
+
+### Noctalia 社区主题模板需要每台设备下载一次（Noctalia 层）
+
+- **位置：** `modules/desktop/noctalia-with-niri/default.nix` 的 `theme.templates.community_ids`。
+- **影响：** 社区模板不随 `noctalia` 包分发，而是设置界面从社区目录下载后缓存到 `~/.local/state/noctalia/community-templates/<id>/`（每个目录一份 `template.toml` 加 `.noctalia-cache.json`，根目录另有 `catalog.json`）。`community_ids` 只决定「缓存里哪些模板参与渲染」：二进制里对应分支是 `community template '{}' is not cached yet`，命中即跳过，声明 id 不会触发下载，`noctalia msg` 也没有按 id 预取的子命令（只有 `templates-apply`）。因此新设备上这 22 个模板在下载前是静默缺失的，表现为这些应用的配色不跟随桌面。
+- **当前处理：** 仍把 id 清单声明进 `config.toml`，让设备下载完成后立刻得到同一组模板、不必逐个勾选；下载这一步无法声明式复现，需在设置界面的模板页操作一次。
+- **上游：** Noctalia 5.2.1 的社区模板目录（缓存根目录的 `catalog.json` 记录来源）；上游未提供「按 id 预取」的 CLI，也没有把社区模板打进包的渠道。
+- **移除条件：** 上游提供声明式安装方式（nixpkgs 打包社区模板，或 CLI 支持按 id 下载），即可改为随包装安装并把 `community_ids` 留给默认值。
+- **复查方法：** 新设备进过一次设置界面的模板页后，`ls ~/.local/state/noctalia/community-templates` 应包含 `community_ids` 列出的每个 id；`noctalia msg templates-apply` 后 `journalctl --user -u noctalia | grep -i "not cached"` 应为空。
+
 ### 声明式 niri 配置里留一枚可写的 `custom.kdl`（Noctalia 层）
 
 - **位置：** `modules/desktop/noctalia-with-niri/niri-config.kdl` 末尾的 `include "custom.kdl" optional=true`；模板载荷是同目录的 `niri-custom-default.kdl`，播种逻辑在同目录 `niri.nix` 的 `home.activation.seedNiriCustomConfig`；备份往返是 `scripts/backup.sh` 的 `niri-custom-snapshot` 与 `niri-custom-apply`（脚本在 `user_profiles/mooling/niri-noctalia/`）。
