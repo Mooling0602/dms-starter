@@ -1,0 +1,11 @@
+// Host specific niri settings for the noctalia-with-niri desktop on mooling-laptop.
+//
+// Included last by the shared config, so these values win. The DMS generated
+// session used the same mode and scale, which keeps the desktop at the size it
+// already had.
+
+output "eDP-1" {
+    mode "2560x1440@165.000"
+    scale 1.5
+    position x=0 y=0
+}
