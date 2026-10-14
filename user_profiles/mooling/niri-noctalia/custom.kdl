@@ -24,9 +24,9 @@
 //
 // Two traps worth knowing:
 //   * output and workspace blocks are appended, and niri uses the FIRST block
-//     matching an output. A second output "Virtual-1" block here is ignored,
-//     not merged. Edit hosts/<host>/desktop/noctalia-with-niri/niri-host.kdl
-//     instead.
+//     matching an output, so a second block for the same output here is
+//     ignored, not merged. Edit
+//     hosts/<host>/desktop/noctalia-with-niri/niri-host.kdl instead.
 //   * input { keyboard { xkb { ... } } }, touchpad, mouse, trackpoint and
 //     trackball are replaced whole. Writing a partial touchpad block drops the
 //     settings you left out.
