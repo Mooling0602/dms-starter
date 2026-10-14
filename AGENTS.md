@@ -49,7 +49,7 @@
 
 9. **桌面专属的 Home Manager 配置由桌面层用 `home-manager.sharedModules` 挂载**：桌面无关的 HM 模块才放在全局接线模块 `modules/core.nix` 的 `home-manager.users.<name>.imports` 里（原位于 `flake.nix`，分拆后接线由 `modules/core.nix` 承接）。**禁止**把 DMS 生态的模块（`dms.homeModules.dank-material-shell`、`danksearch`、`dankcalendar`）或桌面专属的 `home.activation` 步骤写进 `modules/core.nix`，否则切换桌面后仍然生效（曾导致 KDE 下残留 `dms.service`、`dsearch.service`、`fcitx5-dms-theme-sync` 及 `restoreDesktopConfig` 激活步骤）。系统层模块经 `specialArgs` 拿到 `inputs`，可直接引用自己桌面所需的 input，无需在 `modules/core.nix` 为该桌面加 overlay 或 `extraSpecialArgs`。
 
-10. **Noctalia 桌面层：外观声明式，niri 配置按会话隔离**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.dms-greeter`，后者因为它跑在 niri 里，而 `noctalia-greeter` 的 wlroots 合成器在这台 VM 上不可用），不新增 flake input。外观（头像、壁纸、配色与应用配色模板）由 `programs.noctalia.settings` 声明进 `~/.config/noctalia/config.toml`：Noctalia 先读该目录的 `*.toml`、最后读界面写入的 `settings.toml`，因此声明默认值不会挡住在图形界面里修改，这与决策 1 的「DMS 拥有运行配置」并不冲突。niri 侧不再共用 DMS 的 `~/.config/niri/config.kdl`：本层声明 `~/.config/niri-noctalia/config.kdl`，并用 `systemd.user.services.niri` 的 drop-in 把 `NIRI_CONFIG` 指过去。`gtk.enable` 与 `qt.enable` 仍不启用，因为模板渲染出的应用配色文件必须保持可写。深浅色按日出日落自动切换：`theme.mode = "auto"` 配 `theme-auto.nix` 里的固定坐标（不联网、不出网到机房），壁纸图另由该文件的钩子跟随模式切换，因为 Noctalia 只翻转调色板，不会重新应用壁纸。细节见「noctalia-with-niri 桌面层」。
+10. **Noctalia 桌面层：外观声明式，niri 配置按会话隔离**：`modules/desktop/noctalia-with-niri/` 的 shell、登录器与模块都来自锁定 nixpkgs（`noctalia` 5.2.1 + `services.displayManager.dms-greeter`，后者因为它跑在 niri 里，而 `noctalia-greeter` 的 wlroots 合成器在这台 VM 上不可用），不新增 flake input。外观（头像、壁纸、配色与应用配色模板）由 `programs.noctalia.settings` 声明进 `~/.config/noctalia/config.toml`：Noctalia 先读该目录的 `*.toml`、最后读界面写入的 `~/.local/state/noctalia/settings.toml`，因此声明默认值不会挡住在图形界面里修改，这与决策 1 的「DMS 拥有运行配置」并不冲突。niri 侧不再共用 DMS 的 `~/.config/niri/config.kdl`：本层声明 `~/.config/niri-noctalia/config.kdl`，并用 `systemd.user.services.niri` 的 drop-in 把 `NIRI_CONFIG` 指过去。`gtk.enable` 与 `qt.enable` 仍不启用，因为模板渲染出的应用配色文件必须保持可写。深浅色按日出日落自动切换：`theme.mode = "auto"` 配 `theme-auto.nix` 里的固定坐标（不联网、不出网到机房），壁纸图另由该文件的钩子跟随模式切换，因为 Noctalia 只翻转调色板，不会重新应用壁纸。细节见「noctalia-with-niri 桌面层」。
 
 ## Niri 配置文件管理
 
@@ -71,7 +71,7 @@
 
 ### 配置分层与外观
 
-Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入的 `settings.toml` 最后读并覆盖。所以 `programs.noctalia.settings`（Home Manager 生成只读的 `config.toml`）既能声明默认外观，也不会挡住图形设置菜单（这一条与最初「保持为空」的判断相反，已按上游文档更正）。
+Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入的 `~/.local/state/noctalia/settings.toml` 最后读并覆盖。所以 `programs.noctalia.settings`（Home Manager 生成只读的 `config.toml`）既能声明默认外观，也不会挡住图形设置菜单（这一条与最初「保持为空」的判断相反，已按上游文档更正）。
 
 声明内容集中在 `modules/desktop/noctalia-with-niri/default.nix`（深浅色切换所需的坐标与钩子在同目录的 `theme-auto.nix`，理由见下节）：
 
@@ -94,8 +94,8 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
   - `theme_mode_changed` 不会在启动时触发：该钩子有「已知上一个模式」的前置条件，首次解析时尚未有上一个模式，所以必须用 `started` 补上登录时的同步，否则白天登录会一直停留声明的深色种子直到下一个日落。
   - 钩子经 `/bin/sh -lc` 运行，`theme_mode_changed` 会把 `NOCTALIA_THEME_MODE` 放进环境（管理器在 fork 之后才清除它，因此子进程读得到），脚本把它当作快路径；`started` 不带任何环境变量，所以两条路径最终都回落到查询运行中的 shell。
   - `noctalia` 用 store 绝对路径调用（`${pkgs.noctalia}/bin/noctalia`），不依赖钩子继承到的 `PATH`。
-- **已知取舍**：`wallpaper-set` 会把结果写进 `settings.toml`，所以在图形界面手动选的壁纸会在下一次模式翻转时被覆盖。这是选择「用钩子强制切换」时接受的代价；不接受时只能放弃自动换图。
-- **核对**：`noctalia msg theme-mode-get` 应返回当前解析结果，`noctalia config export | grep -A 3 '^\[location\]'` 应显示上述坐标。注意 `settings.toml` 里若残留 `[theme] mode = "dark"`，会盖过 `config.toml` 的 `auto`（旧版本装过的手动覆盖），用 `noctalia msg theme-mode-set auto` 或在界面里改一次即可。
+- **已知取舍**：`wallpaper-set` 会把结果写进 `~/.local/state/noctalia/settings.toml`，所以在图形界面手动选的壁纸会在下一次模式翻转时被覆盖。这是选择「用钩子强制切换」时接受的代价；不接受时只能放弃自动换图。
+- **核对**：`noctalia msg theme-mode-get` 应返回当前解析结果，`noctalia config export | grep -A 3 '^\[location\]'` 应显示上述坐标。注意 `~/.local/state/noctalia/settings.toml` 里若残留 `[theme] mode = "dark"`，会盖过 `config.toml` 的 `auto`（旧版本装过的手动覆盖），用 `noctalia msg theme-mode-set auto` 或在界面里改一次即可。
 
 ### 会话与切换
 
@@ -140,7 +140,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 
 ### 认证代理与会话核对
 
-- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理，会话里的图形授权全部由它回答。核对命令：`noctalia config export | grep polkit` 应包含 `polkit_agent = true`，且 `journalctl --user -u noctalia | grep polkit` 应出现 `registered Polkit authentication agent at /org/noctalia/PolkitAuthenticationAgent` 与 `polkit authentication agent active`。注意代理不占用系统总线上的知名名字：`busctl --system ... GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 会答 `The name does not have an owner`，它是经 Authority 的注册接口挂上去的，判断代理是否存在要看日志而不是这个名字。图形设置里仍可在 Security 分组关闭它，界面写的是 `settings.toml`，优先级高于本层的 `config.toml`。
+- **polkit 认证代理由 Noctalia 自带，上游默认关闭**：`shell.polkit_agent` 默认 `false`，本层在 `default.nix` 里显式开启。本层没有导入 niri-flake 的 Home Manager 模块，所以不存在 `niri-flake-polkit` 单元，也没有第二个候选代理，会话里的图形授权全部由它回答。核对命令：`noctalia config export | grep polkit` 应包含 `polkit_agent = true`，且 `journalctl --user -u noctalia | grep polkit` 应出现 `registered Polkit authentication agent at /org/noctalia/PolkitAuthenticationAgent` 与 `polkit authentication agent active`。注意代理不占用系统总线上的知名名字：`busctl --system ... GetNameOwner s org.freedesktop.PolicyKit1.AuthenticationAgent` 会答 `The name does not have an owner`，它是经 Authority 的注册接口挂上去的，判断代理是否存在要看日志而不是这个名字。图形设置里仍可在 Security 分组关闭它，界面写的是 `~/.local/state/noctalia/settings.toml`，优先级高于本层的 `config.toml`。
 - **免密录屏依赖 setuid 的 pkexec**：`gpu-screen-recorder` 的 nixpkgs wrapper 把 `/run/wrappers/bin` 前置进 `PATH` 并用 `pkexec` 提权启动 `gsr-kms-server`，所以两个桌面层的免密规则只有在 pkexec 存在时才会被 polkit 询问到。该 wrapper 在这个 nixpkgs 里默认关闭，本仓库在共享系统模块 `modules/system/polkit.nix` 显式打开，原因、移除条件与复查方法见 `MAINTENANCE.md`。gsr 只支持 NVIDIA/AMD/Intel：`hosts/vmware` 上它以 `unknown gpu vendor: VMware, Inc.` 直接退出，这条链路只能在有真实 GPU 的主机上验证。
 - 登录后可用三条命令核对本次会话：`journalctl --user -u niri | grep "loaded config"` 应为 `~/.config/niri-noctalia/config.kdl`；`systemctl --user show niri.service -p Environment` 应含 `NIRI_CONFIG`；`systemctl --user status noctalia.service` 应为 active。
 
@@ -163,6 +163,8 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | 没有图形化的窗口规则编辑器 | Noctalia 不做（上游请求 #4268 关闭为 `NOT_PLANNED`），改用 NiriMod；包的 `nirimod` 命令注入 `--config` 指向可写的 `custom.kdl`，避免编辑器去写只读的 `config.kdl`（见 `MAINTENANCE.md`） |
 | 深浅色不随时间切换、壁纸也不跟着换 | `theme.mode = "auto"` 加 `theme-auto.nix` 里的抚州坐标（离线解析日出日落）；壁纸图另由 `started` 与 `theme_mode_changed` 两个钩子按解析结果切换（Noctalia 自己只翻调色板，不重新应用壁纸） |
 | 首次切到 noctalia 层时 Home Manager activation 失败 | ghostty 的 onFilesChange 校验钩子对尚未渲染的 `themes/noctalia` 返回非零，`set -e` 中止整个 activation，其后的 sd-switch 与 `custom.kdl` 播种都被跳过；改为由 `terminal.nix` 播种一个占位主题文件，并用 `entryBefore onFilesChange` 保证早于校验 |
+| KDE Connect 指示器启动后没有托盘图标 | 它的 StatusNotifierItem 恒为 `Passive`（从不切换 Active），Noctalia 的 tray 默认 `hide_passive = true` 将其隐藏；层内声明 `widget.tray.hide_passive = false` |
+| kdeconnectd 每次登录崩溃（could not connect to display） | 单元原来 `WantedBy = default.target`，早于图形会话环境启动，Qt 回退 xcb 插件失败，重启 5 次后 start-limit-hit；改为 `After`/`PartOf`/`WantedBy` 全部绑到 `graphical-session.target`，与 noctalia.service 同样拿到 `WAYLAND_DISPLAY` |
 | 蓝牙不可用 | `hardware.bluetooth.enable` |
 | 文件选择器走 GNOME | xdg-desktop-portal-kde + portals.conf |
 | 终端配色不跟随系统 | 主题引用单列于 `modules/desktop/<desktop-module>/terminal.nix`；终端程序、字体与通用偏好留在 `modules/home/defaults/terminal.nix`，由 Home Manager 合并两侧配置 |
