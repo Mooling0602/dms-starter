@@ -96,14 +96,15 @@ in
   #
   # The copy is a one-shot: the destination stays a plain writable file, and
   # nothing here reads it back, so a hand edit never makes the system profile
-  # dirty or gets reported as a conflict.
+  # dirty or gets reported as a conflict. install is used instead of cp
+  # because cp carries the source mode over, and a file in the nix store is
+  # read-only: the seeded overlay would come out 0444, and neither a text
+  # editor nor NiriMod could save into it.
   home.activation.seedNiriCustomConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     custom_config=${lib.escapeShellArg "${config.xdg.configHome}/niri-noctalia/custom.kdl"}
 
     if [ ! -e "$custom_config" ]; then
-      $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p \
-        ${lib.escapeShellArg "${config.xdg.configHome}/niri-noctalia"}
-      $DRY_RUN_CMD ${pkgs.coreutils}/bin/cp \
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -D -m 0644 \
         ${./niri-custom-default.kdl} \
         "$custom_config"
     fi
