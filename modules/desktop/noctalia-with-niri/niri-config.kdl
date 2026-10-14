@@ -1,0 +1,289 @@
+// Declarative niri session config for the noctalia-with-niri desktop.
+//
+// Installed read-only at ~/.config/niri-noctalia/config.kdl; system.nix points
+// niri at it through NIRI_CONFIG. It is deliberately NOT the default
+// ~/.config/niri/config.kdl, which dms-with-niri owns and rewrites at runtime,
+// so the two desktops never read or overwrite each other's niri config.
+//
+// Includes are positional: a later include overrides settings made earlier, so
+// the palette include comes first and the host specific file comes last.
+//
+// niri.nix substitutes two build time placeholders in this file: the path of
+// the region-record script and the path of the niri-input-portal binary.
+
+// Current palette, rendered by Noctalia from niri-palette.kdl. A relative
+// include resolves against the directory of the path niri was handed (the
+// symlink's directory, not the store file it points at), i.e.
+// ~/.config/niri-noctalia/, so the rendered palette lands next to this config.
+//
+// niri watches an optional include even while it is missing and reloads once
+// the file appears, so the placeholder that used to be created at activation
+// time, and the absolute path into the dms-with-niri owned ~/.config/niri/,
+// are both gone. The include stays optional so a failure to render only costs
+// the colors instead of the whole config.
+include "noctalia.kdl" optional=true
+
+input {
+    keyboard {
+        xkb {
+            layout "cn"
+            model ""
+            rules ""
+            variant ""
+        }
+        repeat-delay 600
+        repeat-rate 25
+        track-layout "global"
+        numlock
+    }
+    touchpad {
+        tap
+        natural-scroll
+        dwt
+        accel-speed 0.0
+        accel-profile "adaptive"
+    }
+    mouse {
+        accel-speed 0.0
+        accel-profile "adaptive"
+    }
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+cursor {
+    xcursor-theme "breeze_cursors"
+    xcursor-size 24
+}
+
+environment {
+    "QT_QPA_PLATFORMTHEME" "qt5ct"
+    "QT_QPA_PLATFORMTHEME_QT6" "qt6ct"
+    "QT_WAYLAND_DECORATION" "ssd"
+    "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1"
+}
+
+layout {
+    gaps 4
+
+    border {
+        width 2
+    }
+
+    focus-ring {
+        width 2
+    }
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+binds {
+    // Noctalia shell (upstream niri integration guide).
+    Mod+Space { spawn-sh "noctalia msg panel-toggle launcher"; }
+    Mod+S { spawn-sh "noctalia msg panel-toggle control-center"; }
+    Mod+Comma { spawn-sh "noctalia msg settings-toggle"; }
+    Mod+V { spawn-sh "noctalia msg panel-toggle clipboard"; }
+    // Lock the session through Noctalia. The repository declares no lock daemon
+    // of its own, so swaylock/gtklock/hyprlock are not options here.
+    Mod+L { spawn-sh "noctalia msg session lock"; }
+    Alt+Tab { spawn-sh "noctalia msg window-switcher hold"; }
+    XF86AudioRaiseVolume { spawn-sh "noctalia msg volume-up"; }
+    XF86AudioLowerVolume { spawn-sh "noctalia msg volume-down"; }
+    XF86AudioMute { spawn-sh "noctalia msg volume-mute"; }
+    XF86MonBrightnessUp { spawn-sh "noctalia msg brightness-up"; }
+    XF86MonBrightnessDown { spawn-sh "noctalia msg brightness-down"; }
+
+    // Screenshots: Mod+Shift+V captures the focused monitor with niri's own
+    // screenshot action, Mod+Shift+X pipes a region through satty for
+    // annotation, and the region recording toggle lives in
+    // modules/optional/screen-recorder.nix.
+    Mod+Shift+V { screenshot-screen; }
+    Mod+Shift+X {
+        spawn "sh" "-c" "grim -g \"$(slurp)\" - | satty --filename - --copy-command wl-copy --output-filename \"~/Pictures/Screenshots/annotated-%Y%m%d_%H%M%S.png\" --early-exit copy";
+    }
+    Mod+Alt+G {
+        spawn "@REGION_RECORD@";
+    }
+
+    // Emergency release of an InputCapture grab: while the pointer is locked and
+    // the keyboard is exclusive, niri handles its own binds before the client,
+    // so this is the only reliable way out (see MAINTENANCE.md).
+    Mod+Shift+Space allow-inhibiting=false {
+        spawn "@NIRI_INPUT_PORTAL@" "--release";
+    }
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    // Moving columns between workspaces lives on Mod+Ctrl+Page_Up/Page_Down,
+    // because Mod+Ctrl+arrows is taken by monitor focus below. This matches
+    // niri's own default config.
+    Mod+Ctrl+I { move-column-to-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up { move-column-to-workspace-up; }
+    Mod+Ctrl+U { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp cooldown-ms=150 { move-column-to-workspace-up; }
+    Mod+Down { focus-workspace-down; }
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up { focus-workspace-up; }
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+    Mod+Shift+I { move-workspace-up; }
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up { move-workspace-up; }
+    Mod+Shift+U { move-workspace-down; }
+    Mod+Up { focus-workspace-up; }
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+    Alt+Print { screenshot-window; }
+    Alt+XF86Launch1 { screenshot-window; }
+    Mod+BracketLeft { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+    Mod+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+    Mod+Ctrl+Down { focus-monitor-down; }
+    Mod+Ctrl+End { move-column-to-last; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+    Mod+Ctrl+H { focus-monitor-left; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+J { focus-monitor-down; }
+    Mod+Ctrl+K { focus-monitor-up; }
+    Mod+Ctrl+L { focus-monitor-right; }
+    Mod+Ctrl+Left { focus-monitor-left; }
+    Mod+Ctrl+R { reset-window-height; }
+    Mod+Ctrl+Right { focus-monitor-right; }
+    Mod+Ctrl+Up { focus-monitor-up; }
+    Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
+    Mod+Ctrl+Shift+WheelScrollUp { move-column-left; }
+    Mod+Ctrl+WheelScrollLeft { move-column-left; }
+    Mod+Ctrl+WheelScrollRight { move-column-right; }
+    Mod+End { focus-column-last; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+F { maximize-column; }
+    Mod+Home { focus-column-first; }
+    Mod+Left { focus-column-left; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Period { expel-window-from-column; }
+    Mod+Q repeat=false { close-window; }
+    Mod+R { switch-preset-column-width; }
+    Mod+Right { focus-column-right; }
+    Mod+Shift+Ctrl+Down { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+H { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+J { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+K { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+L { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+Left { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+Up { move-column-to-monitor-up; }
+    Mod+Shift+Down { move-window-down; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+    Mod+Shift+Left { move-column-left; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+R { switch-preset-window-height; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+T { toggle-window-floating; }
+    Mod+Shift+Up { move-window-up; }
+    Mod+Shift+WheelScrollDown { focus-column-right; }
+    Mod+Shift+WheelScrollUp { focus-column-left; }
+    Mod+W { toggle-column-tabbed-display; }
+    Mod+WheelScrollLeft { focus-column-left; }
+    Mod+WheelScrollRight { focus-column-right; }
+    Mod+Shift+P { power-off-monitors; }
+    // Window focus within a column. Mod+H/J/K/L is gone: this keyboard has real
+    // arrow keys, so the vim aliases were dead weight, and Mod+Up/Down now
+    // switches workspaces instead. Mod+Alt+arrows keeps the action reachable.
+    Mod+Alt+Down { focus-window-down; }
+    Mod+Alt+Up { focus-window-up; }
+    // Moved off Mod+Shift+V, which now captures the focused monitor. Niri's own
+    // default puts it on Mod+Shift+V, so this is the one deviation to remember.
+    Mod+Alt+V { switch-focus-between-floating-and-tiling; }
+    Ctrl+Print { screenshot-screen; }
+    Ctrl+XF86Launch1 { screenshot-screen; }
+    Print { screenshot; }
+    XF86Launch1 { screenshot; }
+    // Toggle fullscreen without a modifier, alongside Mod+Shift+F above.
+    F11 { fullscreen-window; }
+    // Hide or restore the Noctalia bar. Noctalia offers no query for the current
+    // visibility, so this is a blind toggle: each press flips whatever the state
+    // is at that moment, which is what a toggle key should do. The bar releases
+    // and re-reserves its layout gap on its own.
+    F12 { spawn-sh "noctalia msg bar-toggle"; }
+    Mod+Shift+E { quit; }
+    // Follows the default application setting rather than hardcoding a terminal
+    // binary; the list is declared as xdg.terminal-exec in
+    // modules/home/defaults/terminal.nix.
+    Mod+T { spawn "xdg-terminal-exec"; }
+    Mod+D repeat=false { toggle-overview; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Tab repeat=false { toggle-overview; }
+}
+
+// Rounded corners applied to every window (upstream niri integration guide).
+window-rule {
+    geometry-corner-radius 20
+    clip-to-geometry true
+    tiled-state true
+    draw-border-with-background false
+}
+
+// The settings panel is a regular toplevel, not a layer surface, and it asks for
+// a 1080x920 surface, which is taller than this desktop's 1365x768 logical
+// output, so as a floating window its bottom edge lands offscreen. Open it as a
+// full width maximized column instead, so the layout bounds it to the working
+// area and every edge stays reachable. open-maximized also keeps the corner
+// radius, whereas open-maximized-to-edges sets the xdg Maximized state and
+// squares the window off.
+window-rule {
+    match app-id="dev.noctalia.Noctalia"
+    open-floating false
+    open-maximized true
+}
+
+// fcitx5 candidate window fallback: DBus-IC clients such as WeChat beta have no
+// X11 parent window, so the candidate window degrades to a separate toplevel
+// through xwayland-satellite and tiling makes the layout jump. Floating keeps it
+// readable; proper anchoring needs upstream text-input-v3 support.
+window-rule {
+    match app-id="^fcitx$"
+    open-floating true
+    open-focused false
+}
+
+// Allows notification actions and window activation from the shell.
+debug {
+    honor-xdg-activation-with-invalid-serial
+}
+
+// Host specific settings (outputs, extra binds, environment). The layer writes
+// an empty default; hosts/<host>/desktop/noctalia-with-niri overrides it.
+include "host.kdl"
+
+// Machine local overrides, written by hand and deliberately not managed by Home
+// Manager (a managed file would be a read-only store symlink). Home Manager
+// only seeds it when it is missing, so edits survive rebuilds. Included last,
+// which is what makes it win over the two files above. Missing is fine, but a
+// file that exists and fails to parse is not: niri keeps the old config on a
+// failed reload, yet the next login falls back to the stock default config and
+// drops every setting from this repo.
+include "custom.kdl" optional=true

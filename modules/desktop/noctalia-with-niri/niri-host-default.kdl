@@ -1,0 +1,5 @@
+// Default host specific niri settings for the noctalia-with-niri desktop.
+//
+// config.kdl includes this file last, so anything here overrides the shared
+// defaults. Hosts replace it through hosts/<host>/desktop/noctalia-with-niri/,
+// which is where machine specific outputs and extra binds belong.
