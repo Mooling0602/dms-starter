@@ -1,11 +1,18 @@
 // Host specific niri settings for the noctalia-with-niri desktop on mooling-laptop.
 //
-// Included last by the shared config, so these values win. The DMS generated
-// session used the same mode and scale, which keeps the desktop at the size it
-// already had.
+// Included last by the shared config, so these values win. The values are
+// taken from the DMS generated session (see
+// user_profiles/mooling/desktop-config/niri/dms/outputs.kdl), so the panel
+// keeps the timing and the refresh behavior it already had. The exact mode
+// string matters: this panel offers only 2560x1440@165.003 and
+// 2560x1440@40.002, and a rounded 165.000 matches neither, which niri reports
+// as "configured mode could not be found, falling back to preferred" while
+// still landing on the same mode only because it is the preferred one.
+// Variable refresh rate was on-demand under DMS and stays on.
 
 output "eDP-1" {
-    mode "2560x1440@165.000"
+    mode "2560x1440@165.003"
     scale 1.5
     position x=0 y=0
+    variable-refresh-rate on-demand=true
 }
