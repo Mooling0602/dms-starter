@@ -64,6 +64,11 @@ in
       $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -D -m 0644 \
         ${noctaliaThemePlaceholder} \
         "$theme_file"
+    else
+      # Same repair as the custom.kdl seed: a placeholder written before
+      # install was used carries the read-only mode of the store file, and the
+      # shell has to overwrite this path with the rendered palette.
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod u+w "$theme_file"
     fi
   '';
 }

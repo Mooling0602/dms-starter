@@ -107,6 +107,11 @@ in
       $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -D -m 0644 \
         ${./niri-custom-default.kdl} \
         "$custom_config"
+    else
+      # Seeds written before install was used carry the read-only mode of the
+      # store file, which makes the one writable file of this layer impossible
+      # to edit. Correct the mode without touching the contents.
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/chmod u+w "$custom_config"
     fi
   '';
 }
