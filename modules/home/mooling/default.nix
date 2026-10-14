@@ -5,6 +5,5 @@ in
   imports = optionalImports [
     ../../optional/screen-recorder.nix
     ../../optional/kde-connect.nix
-    ../../optional/xembed-sni-proxy.nix
   ];
 }

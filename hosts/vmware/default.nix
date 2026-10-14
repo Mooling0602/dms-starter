@@ -4,8 +4,7 @@ let
   # Desktop module in use, matching ./desktop/<desktop>/.
   # Must be a let binding: imports evaluate before config, so referring to
   # config.my.desktop here would recurse infinitely.
-  desktop = "noctalia-with-niri";
-  # desktop = "dms-with-niri";
+  desktop = "dms-with-niri";
   # desktop = "kde-plasma";
 in
 
@@ -31,7 +30,6 @@ in
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
     ../../modules/system/obs.nix
-    ../../modules/system/polkit.nix
     ./desktop/${desktop}/default.nix
     # Switching desktop: change the let binding above and prepare
     # <host>/desktop/<new desktop>/.

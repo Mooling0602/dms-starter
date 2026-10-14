@@ -7,7 +7,6 @@ A modular NixOS Flake configuration template that supports multiple users, multi
 ## Supported desktop modules
 
 - [DankMaterialShell](https://danklinux.com/) is complete and actively maintained
-- [Noctalia](https://noctalia.dev/) v5 + niri is complete and enabled on hosts/vmware and hosts/mooling-laptop
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) is a work in progress and not yet recommended
 
 ## Device identity: username and hostname
@@ -78,10 +77,6 @@ The desktop implementation layer (`modules/desktop/<name>/system.nix`) mounts it
 System-layer modules receive `inputs` through `specialArgs`, so they can reference the inputs their own desktop needs directly, with no extra overlay or `extraSpecialArgs` for that desktop in the global wiring layer (`flake.nix` / `modules/core.nix`).
 
 > `imports` evaluates before `config`, so it must **not** be written as `imports = [ ./desktop/${config.my.desktop}/... ]` (that would recurse infinitely); a local variable bound with `let` is required.
-
-### noctalia-with-niri (Noctalia v5 + niri)
-
-A secondary desktop layer, enabled on hosts/vmware and hosts/mooling-laptop: the shell comes from the pinned nixpkgs (Noctalia v5) and the login screen is `services.displayManager.dms-greeter`, which runs inside niri (`noctalia-greeter` ships its own wlroots compositor, which cannot run on the vmwgfx of hosts/vmware, see `MAINTENANCE.md`). No new flake input is needed, and the runtime configuration is owned by the applications just like the DMS layer. Switching a host only requires changing the `let desktop` binding at the top of `hosts/<host>/default.nix` to `"noctalia-with-niri"` and preparing a matching directory under `hosts/<host>/desktop/noctalia-with-niri/`. The porting decisions taken from the DMS layer and the known gaps are documented in `AGENTS.md` under "noctalia-with-niri 桌面层".
 
 ## Deploying a new machine
 
