@@ -35,7 +35,10 @@
 let
   # The contents do not matter until the shell replaces them, but the file has
   # to exist and parse: a theme file is ghostty config syntax, where only "#"
-  # starts a comment ("//" is rejected as an unknown field).
+  # starts a comment ("//" is rejected as an unknown field). install is used
+  # instead of cp so the seeded file is writable: a file in the nix store is
+  # read-only, and the shell has to overwrite the placeholder with the
+  # rendered palette.
   noctaliaThemePlaceholder = pkgs.writeText "ghostty-noctalia-theme" ''
     # Placeholder written by Home Manager. Noctalia replaces this file with
     # the rendered palette when the shell starts.
@@ -58,9 +61,7 @@ in
     theme_file=${lib.escapeShellArg "${config.xdg.configHome}/ghostty/themes/noctalia"}
 
     if [ ! -e "$theme_file" ]; then
-      $DRY_RUN_CMD ${pkgs.coreutils}/bin/mkdir -p \
-        ${lib.escapeShellArg "${config.xdg.configHome}/ghostty/themes"}
-      $DRY_RUN_CMD ${pkgs.coreutils}/bin/cp \
+      $DRY_RUN_CMD ${pkgs.coreutils}/bin/install -D -m 0644 \
         ${noctaliaThemePlaceholder} \
         "$theme_file"
     fi
