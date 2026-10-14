@@ -4,8 +4,9 @@ let
   # Desktop module in use, matching ./desktop/<desktop>/.
   # Must be a let binding: imports evaluate before config, so referring to
   # config.my.desktop here would recurse infinitely.
-  desktop = "dms-with-niri";
+  # desktop = "dms-with-niri";
   # desktop = "kde-plasma";
+  desktop = "noctalia-with-niri";
 in
 
 {
