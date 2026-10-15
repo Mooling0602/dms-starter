@@ -390,3 +390,15 @@
 - **上游：** nixpkgs 的 `nixos/modules/security/polkit.nix`（`enablePkexecWrapper` 选项，`security.wrappers.pkexec.enable` 直接取自它）；提权方式见 [gpu-screen-recorder](https://git.dec05eba.com/gpu-screen-recorder/about/) 关于 pkexec 与 `setcap cap_sys_admin+ep` 的说明。
 - **移除条件：** `gpu-screen-recorder` 不再经 `pkexec` 提权（例如改为给 `gsr-kms-server` 授能力位），或该录屏流程不再使用；此时删除 `modules/system/polkit.nix` 及两个主机导入列表里的对应一行。
 - **复查方法：** `ls -l /run/wrappers/bin/pkexec` 应存在并带 setuid 位，`pkexec --version` 能执行。**注意 `hosts/vmware` 无法验证录屏链路**：gsr 只支持 NVIDIA/AMD/Intel，在这台 VM 上会以 `gsr error: unknown gpu vendor: VMware, Inc.` 与 `failed to load opengl` 直接退出，规则无从触发；端到端验证要在有真实 GPU 的主机上做。
+
+### WPS 的更新弹窗在 xwayland-satellite 下无法点击（`wps-update-dialog`）
+
+- **位置：** `modules/optional/wps-update-dialog.nix` 与同目录的 `wps-update-dialog-guard.py`（由 `modules/home/mooling/default.nix` 的 `optionalImports` 导入）。单元名 `wps-update-dialog-guard`。
+- **影响：** `wpsoffice-cn` 把「发现新版本，是否更新？」提示画成一个自绘无边框的 X11 对话框：`WM_CLASS` 属于 `et`，`_NET_WM_WINDOW_TYPE` 含 `DIALOG`，`_NET_WM_STATE` 含 `MODAL`，`_MOTIF_WM_HINTS` 关闭装饰。在 xwayland-satellite 下该窗口在 X11 栈序里落在应用主窗口**之下**（实测：弹窗 index 21，同进程另一个标题为「更新」的窗口 index 22，主窗口 index 28），合成器又不向它投递指针输入。于是点击一律被栈顶的主窗口接走，而主窗口已被 `_NET_WM_STATE_MODAL` 禁用，弹窗既点不动也关不掉，整个 WPS 不可用。对弹窗区域做 X11 命中测试时，四个采样点全部落到文档窗口，是该现象的量化证据。
+- **当前处理：** `wps-update-dialog-guard` 单元轮询 X 服务器（间隔 0.5 秒），命中上述四属性组合的窗口即发送标准 `WM_DELETE_WINDOW` 客户端消息。该消息由 WPS 自己处理，实测能正常关闭弹窗并让主窗口恢复可用。
+- **为什么不去改栈序：** xwayland-satellite 自己拥有栈序，客户端发起的 `XRaiseWindow`、`XLowerWindow` 与 `XConfigureWindow(stack_mode=Above)` 全部被静默忽略（调用后栈序不变且不返回 X11 错误）。「把弹窗提到主窗口之上」这条路在这台机器上走不通，`WM_DELETE_WINDOW` 才是唯一可用的干预点。
+- **相关提交：** `3c28cb8`（`fix(wps): close the update dialog that cannot take pointer input`）。
+- **已知取舍：** 弹窗仍会先短暂出现再被自动关闭（通常在半秒内），而不是变得可交互；若 WPS 重复弹出，守护也会重复关闭。识别刻意收紧到四个属性同时满足，普通对话框（另存为、字体设置等）不会被误关。
+- **上游：** niri 通过 [xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite) 提供 X11 支持；WPS for Linux 的更新提示是闭源二进制，其窗口标志没有可配置项。
+- **移除条件：** xwayland-satellite（或 niri）能正确处理这类自绘模态对话框的输入路由，即弹窗可以直接点击和关闭；或 `wpsoffice-cn` 不再弹出该更新提示。届时删除 `modules/optional/wps-update-dialog.nix`、`modules/optional/wps-update-dialog-guard.py`，以及 `modules/home/mooling/default.nix` 中对应的那一行导入。
+- **复查方法：** `systemctl --user status wps-update-dialog-guard` 应为 active；启动 WPS 时弹窗应在约一秒内自行消失，`journalctl --user -u wps-update-dialog-guard` 出现 `closing WPS update dialog 'WPS Office'`；弹窗消失后主窗口的单元格应能正常点选、菜单能正常展开。若弹窗仍在且日志无该行，先看日志里是否停在 `X connection problem ... retrying in 5s`，那说明单元没拿到 `DISPLAY`。
