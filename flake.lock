@@ -64,11 +64,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791959899,
-        "narHash": "sha256-0W1tsRa431hURrmDjLjPs8zakzkUpFyKXjUDCfJ1phk=",
+        "lastModified": 1792051266,
+        "narHash": "sha256-q5JDEVS3psVtizlX5BP6zmxZpfer5KO0s7EHtF+VyjE=",
         "owner": "ilysenko",
         "repo": "codex-desktop-linux",
-        "rev": "ac4c7c173768b53492cafbe66f6cd4f4f68a5751",
+        "rev": "1153895b6fe9101fcf777a4264ccaaf3a4ce55be",
         "type": "github"
       },
       "original": {
@@ -179,11 +179,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792037983,
-        "narHash": "sha256-GfY1lTzOchQk3YXpB5HIdkhRSNt4yXFR1Chnxl3JXms=",
+        "lastModified": 1792044062,
+        "narHash": "sha256-NvSZlmeBIjlQMCxOuLQEpotKToATvRGAuHnj91Dfxmc=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "ad964512a964d738c71bdb827b6050736b0d1e66",
+        "rev": "c4aea85296a3a20e34be7e467170265c0c29dc38",
         "type": "github"
       },
       "original": {
@@ -354,11 +354,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1792038949,
-        "narHash": "sha256-RCSQSli+LZ77orMbtqZDqm8iy43fnTw6K25td0xj4pU=",
+        "lastModified": 1792056293,
+        "narHash": "sha256-H2wGrjy3/l8hHZjpTabPSkM6EocN7v8pn/F4MR7cJmE=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "09aee45133d3dfce34e4873ac1c9003d284b695e",
+        "rev": "4e80fdc9b04f4531a78c89f6dff66e0a4d920b3f",
         "type": "github"
       },
       "original": {
@@ -503,11 +503,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1791734076,
-        "narHash": "sha256-0dNcyVeoD61zhucIpt5BAQ+ytd6JzF641Z+A9bgltLo=",
-        "rev": "7fd4004d0511991fff3a0524856a9be09e28c5f0",
+        "lastModified": 1791956154,
+        "narHash": "sha256-gJX2+xcImvxBCI3bp7zXKLUX2AwsdTxMgJ1UX/5Hm/o=",
+        "rev": "55bfb4d7437bd4e09ab7cba58a43bd68eb310044",
         "type": "tarball",
-        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1090327.7fd4004d0511/nixexprs.tar.zst"
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.11pre1092090.55bfb4d7437b/nixexprs.tar.zst"
       },
       "original": {
         "type": "tarball",
