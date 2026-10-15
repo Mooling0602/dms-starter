@@ -20,7 +20,7 @@ let
     [
       "${config.home.homeDirectory}/.local/bin/region-record"
       "${pkgs.niri-input-portal}/bin/niri-input-portal"
-      "${pkgs.xorg.xrdb}/bin/xrdb"
+      "${pkgs.xrdb}/bin/xrdb"
     ]
     (builtins.readFile ./niri-config.kdl);
 
