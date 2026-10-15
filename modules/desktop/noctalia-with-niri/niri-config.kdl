@@ -8,8 +8,8 @@
 // Includes are positional: a later include overrides settings made earlier, so
 // the palette include comes first and the host specific file comes last.
 //
-// niri.nix substitutes two build time placeholders in this file: the path of
-// the region-record script and the path of the niri-input-portal binary.
+// niri.nix substitutes build time placeholders in this file: the paths of the
+// region-record script, the niri-input-portal binary and xrdb.
 
 // Current palette, rendered by Noctalia from niri-palette.kdl. A relative
 // include resolves against the directory of the path niri was handed (the
@@ -22,6 +22,12 @@
 // are both gone. The include stays optional so a failure to render only costs
 // the colors instead of the whole config.
 include "noctalia.kdl" optional=true
+
+// Nothing loads X resources here on its own: xwayland-satellite starts on
+// demand, so session startup is the only place that can wait for the X server
+// and merge ~/.Xresources into it. The Xft.dpi in that file is what X11 clients
+// such as WPS read for their font DPI, and it follows the host's output scale.
+spawn-at-startup "sh" "-c" "until @XRDB@ -merge \"$HOME/.Xresources\" 2>/dev/null; do sleep 1; done"
 
 input {
     keyboard {

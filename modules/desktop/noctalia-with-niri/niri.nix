@@ -16,10 +16,11 @@ let
   # niri-config.kdl is real KDL, validated below; the placeholders keep user or
   # store paths out of the file itself.
   substituted = builtins.replaceStrings
-    [ "@REGION_RECORD@" "@NIRI_INPUT_PORTAL@" ]
+    [ "@REGION_RECORD@" "@NIRI_INPUT_PORTAL@" "@XRDB@" ]
     [
       "${config.home.homeDirectory}/.local/bin/region-record"
       "${pkgs.niri-input-portal}/bin/niri-input-portal"
+      "${pkgs.xorg.xrdb}/bin/xrdb"
     ]
     (builtins.readFile ./niri-config.kdl);
 
