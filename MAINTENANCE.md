@@ -402,3 +402,12 @@
 - **上游：** niri 通过 [xwayland-satellite](https://github.com/Supreeeme/xwayland-satellite) 提供 X11 支持；WPS for Linux 的更新提示是闭源二进制，其窗口标志没有可配置项。
 - **移除条件：** xwayland-satellite（或 niri）能正确处理这类自绘模态对话框的输入路由，即弹窗可以直接点击和关闭；或 `wpsoffice-cn` 不再弹出该更新提示。届时删除 `modules/optional/wps-update-dialog.nix`、`modules/optional/wps-update-dialog-guard.py`，以及 `modules/home/mooling/default.nix` 中对应的那一行导入。
 - **复查方法：** `systemctl --user status wps-update-dialog-guard` 应为 active；启动 WPS 时弹窗应在约一秒内自行消失，`journalctl --user -u wps-update-dialog-guard` 出现 `closing WPS update dialog 'WPS Office'`；弹窗消失后主窗口的单元格应能正常点选、菜单能正常展开。若弹窗仍在且日志无该行，先看日志里是否停在 `X connection problem ... retrying in 5s`，那说明单元没拿到 `DISPLAY`。
+
+### WPS 的输入法与界面缩放按整机缩放声明
+
+- **位置：** `modules/home/mooling/packages.nix` 对 `wpsoffice-cn` 的 `overrideAttrs`，用 `makeWrapper` 给 `$out/bin/{et,wpp,wps,wpspdf}` 各包一层 wrapper；缩放值来自 `my.displayScale`，选项定义在 `modules/system/config.nix`，逐机声明在 `hosts/<host>/default.nix`，经 `modules/core.nix` 的 `home-manager.extraSpecialArgs` 传入 Home Manager。
+- **影响：** WPS 自带一套定制的 Qt 5.12（`libQt5*Kso.so.5.12.12`），并自带 fcitx5 的 Qt 平台输入法插件 `office6/qt/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so`，`office6/qt.conf` 也已经把 `Plugins` 指向该目录。但 Qt 不会自己选中这个插件，而会话里没有 `QT_IM_MODULE`（全局设置它会让其它 Qt 应用也走插件路径），结果 WPS 里完全打不出中文。插件说的是 fcitx5 的 DBus 接口（`org.fcitx.Fcitx5` 与 `org.fcitx.Fcitx.InputContext`），因此不需要 nixpkgs 的 `fcitx5-qt`：后者针对 Qt 5.15.19 编译并要求 `Qt_5.15` 符号，而 WPS 的 Qt 是 5.12.12，加载必然失败（`objdump -T` 预检结论）。缩放方面，xwayland-satellite 把物理输出尺寸交给 WPS，而 niri 以 `my.displayScale` 驱动该输出，两者不一致时 WPS 按 96 DPI 排版、界面元素明显偏小；`QT_SCALE_FACTOR` 取整机缩放值即可对齐，不用 `QT_AUTO_SCREEN_SCALE_FACTOR`，因为后者会按 xwayland-satellite 上报的显示器几何自行推算，取值不可控。
+- **相关提交：** `624eec3`（`fix(wps): restore CJK input and correct the UI scale in WPS`）。
+- **已知取舍：** `my.displayScale` 与 niri 输出块里的 `scale` 是两份独立声明（后者在 `hosts/<host>/desktop/noctalia-with-niri/niri-host.kdl`，KDL 无法插值），换显示器或改缩放时两处都要改。
+- **移除条件：** nixpkgs 的 `wpsoffice-cn` 自带可用的输入法接线（上游补上 `QT_IM_MODULE`，或改成自己能选中插件），或用户不再需要在 WPS 中输入中文；届时把本 override 恢复为纯 `wpsoffice-cn`。`my.displayScale` 在没有其它使用者后可以一并移除。
+- **复查方法：** 重建后 `grep -a QT_IM_MODULE /nix/store/*-wpsoffice-cn-*/bin/wps` 应命中 wrapper 脚本；启动 WPS 后切换 fcitx5 能输入中文且候选窗出现；界面字号与 Dolphin、Kate 等原生应用相当。`busctl --user list | grep -i fcitx` 能看到 fcitx5 的会话连接。
