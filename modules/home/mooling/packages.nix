@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, displayScale, ... }:
 
 # Home-manager user space module, using by user mooling.
 
@@ -28,7 +28,23 @@
     # runtime-added ones stay out of the Nix store.
     font-manager
 
-    wpsoffice-cn # WPS Office, Linux Personal edition
+    # WPS Office, Linux Personal edition.
+    #
+    # WPS ships its own Qt 5.12 plus an fcitx5 input context plugin that Qt
+    # never selects by itself, and Xwayland hands it the physical output size
+    # while niri scales that output by my.displayScale. Both variables are set
+    # here instead of in the session, where the other Qt applications do not
+    # want them. Details in MAINTENANCE.md.
+    (wpsoffice-cn.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ makeWrapper ];
+      postFixup = (old.postFixup or "") + ''
+        for prog in et wpp wps wpspdf; do
+          wrapProgram "$out/bin/$prog" \
+            --set QT_IM_MODULE fcitx \
+            --set QT_SCALE_FACTOR ${builtins.toJSON displayScale}
+        done
+      '';
+    }))
 
     qq # Tencent QQ
     # Wayland-fixed QQ launcher, reachable as "QQ (Wayland fix)" in the app

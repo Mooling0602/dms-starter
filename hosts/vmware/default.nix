@@ -16,6 +16,9 @@ in
   my.username = "mooling";
   my.hostname = hostname;
   my.desktop = desktop;
+  # Matches the scale of the niri output block in
+  # ./desktop/noctalia-with-niri/niri-host.kdl.
+  my.displayScale = 1.5;
 
   imports = [
     ./hardware-configuration.nix

@@ -40,5 +40,6 @@
   home-manager.extraSpecialArgs = inputs // {
     inherit hostname;
     username = config.my.username;
+    displayScale = config.my.displayScale;
   };
 }
