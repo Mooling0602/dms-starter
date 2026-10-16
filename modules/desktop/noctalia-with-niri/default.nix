@@ -191,7 +191,12 @@ in
         contact_shadow = true;
 
         # The media widget moved out of the end section into the middle.
-        center = [ "clock" "media" ];
+        center = [
+          "clock"
+          "media"
+          "privacy"
+        ];
+
         end = [
           "tray"
           "notifications"
@@ -200,9 +205,6 @@ in
           "bluetooth"
           "volume"
           "brightness"
-          # With hide_inactive above, this only takes space while a capture
-          # is running, so it sits with the other status icons.
-          "privacy"
           "battery"
           "control-center"
           "session"
