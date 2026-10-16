@@ -166,6 +166,17 @@ in
       # nothing happened. Show passive items as well.
       widget.tray.hide_passive = false;
 
+      # The privacy widget shows one icon each for microphone, camera and
+      # screen sharing, switching to an active glyph while PipeWire reports a
+      # capture stream of that kind; hovering it lists the applications. It
+      # matches stream links, not device use, so an idle device stays dark and
+      # only a portal-issued screen cast is seen. hide_inactive (upstream
+      # default false) drops idle icons and the whole widget, so it takes bar
+      # space only while something is actually capturing. The filters under
+      # shell.privacy ignore matching applications and are left at their empty
+      # defaults. Note the underscore, same trap as the backdrop keys above.
+      widget.privacy.hide_inactive = true;
+
       # Everything below was picked in the settings GUI and is seeded here so a
       # fresh host starts from the same look. It is deliberately not a mirror of
       # the GUI: runtime state stays out, namely which wallpaper is up
@@ -189,6 +200,9 @@ in
           "bluetooth"
           "volume"
           "brightness"
+          # With hide_inactive above, this only takes space while a capture
+          # is running, so it sits with the other status icons.
+          "privacy"
           "battery"
           "control-center"
           "session"
