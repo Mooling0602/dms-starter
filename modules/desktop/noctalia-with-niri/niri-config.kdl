@@ -263,13 +263,14 @@ window-rule {
     draw-border-with-background false
 }
 
-// Background effect defaults for every toplevel (niri 26.04 background
-// effects). `blur true` is what turns the effect on, and it is deliberately
-// left commented out: blurring behind every window at once is heavy, so each
-// application opts in with its own `window-rule` in custom.kdl. This block
-// still has a job, because rules merge in order and a rule that omits a field
-// does not reset it: `xray false` set here becomes the default those per-app
-// rules inherit, so they only have to say `blur true`.
+// Background blur for every toplevel (niri 26.04 background effects). It is on
+// globally because a window that cannot show it does not pay for it: an
+// application that paints an opaque background shows no blur regardless of this
+// rule, and GTK windows show it through the transparent background the
+// stylesheets below give them.
+//
+// This rule also sets the defaults per-app rules in custom.kdl inherit, since
+// rules merge in order and a rule that omits a field does not reset it.
 //
 // `xray false` makes the effect sample what actually sits behind the window
 // instead of only the wallpaper, which is what frosted glass should look like.
