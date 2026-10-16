@@ -56,6 +56,25 @@ in
         default.path = "~/.local/share/wallpapers/wallpaper-dark.png";
       };
 
+      # Renders a blurred, tinted copy of the current wallpaper as a layer-shell
+      # backdrop, which niri draws behind its overview. Disabled upstream by
+      # default. niri only treats the surface as that backdrop when the matching
+      # layer-rule in niri-config.kdl sets place-within-backdrop, so the two have
+      # to be declared together: enabling this alone leaves an ordinary
+      # full-screen layer surface, and the rule alone matches no surface at all.
+      #
+      # The keys use underscores. The docs render them hyphenated, but Noctalia's
+      # validator only warns about an unknown setting and still exits 0, so a
+      # hyphenated key would silently do nothing while the build stayed green.
+      # The values are the documented defaults: 0.0 is no blur or no tint, 1.0 is
+      # maximum blur or a fully opaque tint. The tint colour is the palette's
+      # surface colour and is not configurable.
+      backdrop = {
+        enabled = true;
+        blur_intensity = 0.5;
+        tint_intensity = 0.3;
+      };
+
       theme = {
         # Follow sunrise and sunset at the coordinates declared in
         # theme-auto.nix. shell_mode defaults to "follow", so the bar and every

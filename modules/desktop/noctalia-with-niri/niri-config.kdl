@@ -245,12 +245,82 @@ binds {
     Mod+Tab repeat=false { toggle-overview; }
 }
 
+// Ask clients to omit their client-side decorations where possible, which is
+// what makes the focus ring and border draw *around* a window instead of behind
+// it, and what removes some client-side rounded corners. Clients that insist on
+// CSD still get them. niri reads the last value written for this flag and
+// custom.kdl no longer sets it, so this one holds.
+//
+// It only takes effect for apps started after the setting changes, because
+// clients are told about it when their surface is created, not on reload.
+prefer-no-csd
+
 // Rounded corners applied to every window (upstream niri integration guide).
 window-rule {
     geometry-corner-radius 20
     clip-to-geometry true
     tiled-state true
     draw-border-with-background false
+}
+
+// Background blur for every toplevel (niri 26.04 background effects). `blur
+// true` turns the effect on; `xray false` makes it sample what actually sits
+// behind the window instead of only the wallpaper, which is what frosted glass
+// should look like. The effect is invisible on its own: it needs a matching
+// per-app `opacity` below 1, and those live in custom.kdl because they are
+// machine preferences rather than part of the shared desktop.
+//
+// `xray false` is the non-xray path: it re-renders the backdrop each frame
+// instead of reusing a cached wallpaper render, so it costs more than the
+// default. Writing nothing here would leave xray at niri's default of true
+// whenever an effect is visible, which is why the value is spelled out.
+window-rule {
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+// The rules above only reach toplevels. Noctalia's bar, dock, panels,
+// notifications and OSD are layer-shell surfaces, and a window-rule never
+// matches one, which is why a global window-rule on its own looked like it did
+// nothing to the shell. Noctalia publishes blur regions for these surfaces
+// through ext-background-effects, and niri blurs a surface that requests a
+// region, but it defaults that blur to xray true: the shell would sample the
+// wallpaper and can leak wallpaper-coloured pixels through its anti-aliased
+// rounded corners. `xray false` is what makes those corners blend with the
+// window underneath. The namespace list is the upstream one; the regex is
+// anchored so it does not catch noctalia-wallpaper or noctalia-window-switcher.
+layer-rule {
+    match namespace="^noctalia-(bar-[^\"]+|notification|dock|panel|attached-panel|osd)$"
+    background-effect {
+        xray false
+    }
+}
+
+// The window switcher has no blur region of its own, so unlike the surfaces
+// above it needs `blur true` to get the effect at all.
+layer-rule {
+    match namespace="noctalia-window-switcher"
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
+// Blurred overview wallpaper (docs: Noctalia niri compositor settings, option
+// 1). Noctalia can render a blurred, tinted copy of the current wallpaper as a
+// layer-shell backdrop for niri's overview; place-within-backdrop is what makes
+// niri draw it as that backdrop instead of as an ordinary layer surface. The
+// namespace is a prefix, so it also matches the per-output instances.
+//
+// This is the one non-xray case that always renders correctly: the backdrop
+// samples Noctalia's cached wallpaper render rather than live framebuffers.
+// Noctalia only creates the surface when `[backdrop] enabled` is set, which
+// this layer declares in default.nix, next to the rest of the shell settings.
+layer-rule {
+    match namespace="^noctalia-backdrop"
+    place-within-backdrop true
 }
 
 // The settings panel is a regular toplevel, not a layer surface, and it asks for
