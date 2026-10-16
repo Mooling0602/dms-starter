@@ -58,6 +58,30 @@
 //     MOZ_ENABLE_WAYLAND "1"
 // }
 
+// Frosted glass for one application, matched by app-id:
+// window-rule {
+//     match app-id=r"^io\.github\.nirimod$"
+//     background-effect {
+//         blur true
+//         xray false
+//     }
+// }
+//
+// GTK applications already paint a translucent window background (see
+// modules/desktop/noctalia-with-niri/noctalia-glass-gtk3.css and
+// noctalia-glass-gtk4.css), so a rule like the one above is all it takes to
+// turn that into frosted glass, and only for the applications listed here.
+// Leave the global blur rule in niri-config.kdl commented out: that one would
+// blur behind every window at once.
+//
+// The effect is drawn behind the window, so an application that still paints an
+// opaque background, such as Electron or Qt, shows no blur at all. `xray false`
+// samples the live desktop behind the window; drop it to use the cheaper
+// wallpaper-only backdrop.
+//
+// `opacity` is not needed and is better left alone: it fades the whole window,
+// text included, while the toolkit level transparency above keeps text crisp.
+
 // Keep this empty block: the graphical editor (nirimod) stores comments as
 // trivia attached to a parsed node, so a file with no nodes at all loses every
 // comment above on its first save. An empty layout block parses to no

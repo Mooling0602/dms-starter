@@ -263,17 +263,25 @@ window-rule {
     draw-border-with-background false
 }
 
-// Background blur for every toplevel (niri 26.04 background effects). `blur
-// true` turns the effect on; `xray false` makes it sample what actually sits
-// behind the window instead of only the wallpaper, which is what frosted glass
-// should look like. The effect is invisible on its own: it needs a matching
-// per-app `opacity` below 1, and those live in custom.kdl because they are
-// machine preferences rather than part of the shared desktop.
+// Background effect defaults for every toplevel (niri 26.04 background
+// effects). `blur true` is what turns the effect on, and it is deliberately
+// left commented out: blurring behind every window at once is heavy, so each
+// application opts in with its own `window-rule` in custom.kdl. This block
+// still has a job, because rules merge in order and a rule that omits a field
+// does not reset it: `xray false` set here becomes the default those per-app
+// rules inherit, so they only have to say `blur true`.
 //
-// `xray false` is the non-xray path: it re-renders the backdrop each frame
-// instead of reusing a cached wallpaper render, so it costs more than the
-// default. Writing nothing here would leave xray at niri's default of true
-// whenever an effect is visible, which is why the value is spelled out.
+// `xray false` makes the effect sample what actually sits behind the window
+// instead of only the wallpaper, which is what frosted glass should look like.
+// It is also the expensive path: the backdrop is re-rendered each frame rather
+// than reusing a cached wallpaper render. Writing nothing would leave xray at
+// niri's default of true whenever an effect is visible, which is why the value
+// is spelled out.
+//
+// A window also has to be semi-transparent for any of this to show. GTK
+// applications get that from noctalia-glass-gtk3.css and
+// noctalia-glass-gtk4.css; everything else keeps painting an opaque background
+// and shows no blur, since nothing outside a process can change how it draws.
 window-rule {
     background-effect {
         // Uncomment to enable global blur effect.
