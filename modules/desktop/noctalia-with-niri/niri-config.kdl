@@ -276,7 +276,8 @@ window-rule {
 // whenever an effect is visible, which is why the value is spelled out.
 window-rule {
     background-effect {
-        blur true
+        // Uncomment to enable global blur effect.
+        // blur true
         xray false
     }
 }
