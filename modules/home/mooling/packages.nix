@@ -53,7 +53,16 @@
     wechat # WeChat
     telegram-desktop # Chat social media
     discord # Gaming social media
-    element-desktop # Chat client in Matrix protocol
+    # Matrix chat client.
+    # Electron picks its Linux keyring backend from the desktop environment:
+    # niri falls into DESKTOP_ENVIRONMENT_OTHER, so Chromium finds no backend
+    # name and safeStorage reports basic_text. Element 1.12.x then refuses to
+    # open its database with "System unsupported" and only offers plaintext
+    # storage. Pinning libsecret makes it use gnome-keyring, which
+    # modules/system/keyring.nix starts on every desktop. See MAINTENANCE.md.
+    (element-desktop.override {
+      commandLineArgs = "--password-store=gnome-libsecret";
+    })
     # Best browser from Google.
     # On Linux Chrome picks its keyring backend from XDG_CURRENT_DESKTOP: KDE
     # goes to KWallet's "Chrome Keys/Chrome Safe Storage", everything else

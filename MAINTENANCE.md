@@ -218,6 +218,25 @@
 
   反向对照：临时用 `env QTKEYCHAIN_BACKEND=kwallet6 ssh-add ~/.ssh/key-mooling-laptop` 应超时且 `keys=0`。
 
+### Element Desktop 在 niri 下改用 libsecret 密钥后端
+
+- **位置：** `modules/home/mooling/packages.nix` 的 `element-desktop.override { commandLineArgs = "--password-store=gnome-libsecret"; }`。
+- **影响：** Element Desktop 是 Electron 应用，而 Electron（Chromium）在 Linux 上按桌面环境挑选密钥环后端，探测逻辑与上一条 Chrome 同源（`base/nix/xdg_util.cc`）。niri 不匹配任何枚举、落进 `DESKTOP_ENVIRONMENT_OTHER`，Chromium 拿不到后端名，`safeStorage.getSelectedStorageBackend()` 返回 `basic_text`。Element 1.12.30 的 `Store.chooseBackend()`（打包产物为 `app.asar` 内的 `/lib/store.js`）先调 `safeStorage.setUsePlainTextEncryption(true)`，这会让 `isEncryptionAvailable()` 返回 true，于是它不判定为「无加密可用」，而是判定为「有后端但只能明文」；首次启动尚无 `safeStorageBackend` 记录时进入 `consultUserConsentDegradedMode("basic_text")`，弹出 "System unsupported / Your system has an unsupported keyring meaning the database cannot be opened."。选「取消」即退出，数据库从不创建（`~/.config/Element` 下没有 `IndexedDB`）。
+
+  此时密钥环本身完全正常：`gnome-keyring-daemon` 持有 `org.freedesktop.secrets`，login keyring 已由 PAM 解锁（`gkr-pam: gnome-keyring-daemon started properly and unlocked keyring`），libsecret 0.21.7 就在 Electron 二进制的 RUNPATH 内，缺的只是后端名。
+- **当前处理：** 钉死 `--password-store=gnome-libsecret`。nixpkgs 的 `element-desktop` 支持 `commandLineArgs`，参数附加在包装器末尾、`app.asar` 之后，Chromium 仍会解析。本机实测：默认环境返回 `basic_text`，加该开关后返回 `gnome_libsecret`，Element 正常创建 `IndexedDB`，并把 `"safeStorageBackend": "gnome_libsecret"` 写进 `electron-config.json`。
+- **为何不用其他值：** 与 Chrome 同理，只能写 `gnome-libsecret`；`basic` 正是弹框里 "Use weaker encryption" 那条降级路径，会让数据库密钥以明文存放。反方向把会话的 `XDG_CURRENT_DESKTOP` 改成 GNOME 同样有效（实测两者都返回 `gnome_libsecret`），但那会改变会话内所有按桌面环境探测的程序，范围过大。
+- **上游：** Electron `safeStorage` 文档（弹框正文引用的那一节）：https://www.electronjs.org/docs/latest/api/safe-storage#safestoragegetselectedstoragebackend-linux ；Element 源码注释引用的两个上游报告：[electron#39789](https://github.com/electron/electron/issues/39789)、[vscode#185212](https://github.com/microsoft/vscode/issues/185212)。Chromium 侧按设计如此，理由见上一条。
+- **移除条件：** Electron/Chromium 不再按桌面环境决定 Linux 密钥环后端（或 niri 被识别），或 Element 不再因 `basic_text` 阻塞启动。
+- **复查方法：** 确认包装器已注入参数，并确认 Element 记录的后端：
+
+  ```fish
+  grep -o -- '--password-store=[a-z0-9-]*' (readlink -f (command -v element-desktop))
+  grep -o '"safeStorageBackend": "[a-z_]*"' ~/.config/Element/electron-config.json
+  ```
+
+  第二条应输出 `"safeStorageBackend": "gnome_libsecret"`。想在不碰真实 profile 的前提下复现，可改临时目录启动：`env XDG_CONFIG_HOME=/tmp/element-probe element-desktop`，随后检查 `/tmp/element-probe/Element/electron-config.json` 与其中是否出现 `IndexedDB`。
+
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
 
 - **位置：** `overlays/tuxedo-firebat.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
