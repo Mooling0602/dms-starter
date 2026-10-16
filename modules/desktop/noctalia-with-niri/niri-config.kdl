@@ -284,8 +284,7 @@ window-rule {
 // and shows no blur, since nothing outside a process can change how it draws.
 window-rule {
     background-effect {
-        // Uncomment to enable global blur effect.
-        // blur true
+        blur true
         xray false
     }
 }
