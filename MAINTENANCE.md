@@ -106,6 +106,27 @@
 
   构建成功（或该输出已能从二进制缓存取得）即可移除本覆盖。
 
+### `zen-browser` 的固定输出哈希与重新上传的发布资源不一致
+
+- **位置：** `overlays/zen-browser-hash.nix`；原先直接使用 `inputs.zen-browser` 的条目已从 `overlays/custom-packages.nix` 移出。
+- **影响：** `flake.lock` 锁定的 `youwen5/zen-browser-flake` `5a0d21f` 的 `sources.json` 记录 Zen `1.23.3b` 的 `x86_64-linux` 哈希为 `sha256-d9cHicsaxIhxd0FpzxdQdy6J62cfSiWHJO9F1pyIbxU=`，但该 tag 的发布资源已于 2026-10-16 22:08 UTC 被上游重新上传（`last-modified` 晚于该 flake 提交的 08:43 UTC），实际内容哈希为 `sha256-uyBF0+IWVNQP6EElAJLurf0sH8gx7vtQkiJ3PIvcoUk=`，固定输出派生因此以 `hash mismatch` 失败，连带 `home-manager-path`、`etc`、`nixos-system-*` 等整条闭包无法构建。
+- **当前处理：** 覆盖 `zen-browser-unwrapped` 的 `hash`，换成按 `sources.json` 中 URL 重新计算的 `x86_64-linux` 与 `aarch64-linux` 两组值，其余包装逻辑仍走 flake 自身。
+- **上游：** https://github.com/youwen5/zen-browser-flake 。其 `update-scripts/update.nu` 生成 `sources.json` 前会把最新 release tag 与已记录的 `version` 比对，tag 不变就直接返回，因此同 tag 重新上传资源不会被自动修正。
+- **移除条件：** `flake.lock` 中的 `zen-browser` 前进到哈希与现状一致的提交（例如 Zen 发布新版本 tag 后由自动更新重算，或上游手动修正 `sources.json`）。
+- **复查方法：** 直接从 flake 的 `sources.json` 取 URL 重新计算哈希并比对：
+
+  ```fish
+  set src (nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).inputs.zen-browser.outPath')
+  cat $src/sources.json
+  nix store prefetch-file --hash-type sha256 --json (jq -r '."x86_64-linux".url' $src/sources.json)
+  ```
+
+  输出与 `sources.json` 中的 `hash` 一致时，删除 `overlays/zen-browser-hash.nix` 与 `overlays/default.nix` 中的对应条目，并把 `zen-browser` 一行加回 `overlays/custom-packages.nix`，再运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
+  ```
+
 ## 已解除的临时构建绕过
 
 ### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
