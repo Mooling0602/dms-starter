@@ -13,4 +13,5 @@
   (import ./tuxedo-firebat.nix)
   (import ./obs-nvenc-qsv.nix)
   (import ./vtk-pegtl-gate.nix)
+  (import ./zen-browser-hash.nix { inherit inputs; })
 ]
