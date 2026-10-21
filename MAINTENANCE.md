@@ -266,6 +266,23 @@
 - **移除条件：** 上游兼容性表原生接受该 DMI 组合；移除前验证 `tuxedo_keyboard`、`clevo_acpi` 和 `/sys/class/leds/rgb:kbd_backlight` 在干净启动后可用。
 - **复查方法：** 检查上游兼容性表是否已有该 DMI 条目，然后运行 `cat /sys/class/leds/rgb:kbd_backlight/{brightness,max_brightness}`。
 
+### 外部内核模块的 `$(MAKEFLAGS)` 透传与 depmod 绕过
+
+- **位置：** `overlays/tuxedo-firebat.nix` 里的 `postPatch` 与 `installFlags`，以及 `overlays/v4l2loopback-no-depmod.nix`。
+- **影响：** nixpkgs 自 `c736bb8b`（linux: generate deterministic module signatures and certificates）起把 `cmd_sign=${kmodigest} $(space)$@` 放进内核的 `commonMakeFlags`，外部模块的 `makeFlags` 随之带上这条含 `$(space)` 的值。`tuxedo-drivers` 的 `Makefile` 把 `$(MAKEFLAGS)` 显式拼进递归 make 命令行，而被 make 转义的 `$$(space)` 到子 shell 时仍是字面量，直接报 `syntax error near unexpected token '('`。`postPatch` 去掉这三处显式透传；子 make 仍从环境继承同样的 `makeFlags`，签名与 `.ko.cer` 生成不受影响。
+  同一批 nixpkgs 提交（`48c35672`，linux: keep enough to rebuild images from vmlinux）让 `System.map` 留在内核 dev 输出里，于是 `modules_install` 的外部模块路径不再跳过 `depmod`，`v4l2loopback` 与 `tuxedo-drivers` 的产出根目录会多出 `modules.alias`、`modules.dep`、`modules.devname` 等文件。`aggregateModules` 把各包合并进同一个 `lib/modules/<ver>/` 时，这些文件与真正的内核模块树同名，报 `buildEnv error: two given paths contain a conflicting subpath`。两个覆盖都用 `installFlags = [ "DEPMOD=true" ]` 关掉包内的 depmod：合并后的模块树由聚合器统一重建映射表，包内那次本就多余。
+- **上游：** 签名部分 [nixpkgs#571181](https://github.com/NixOS/nixpkgs/pull/571181)；`System.map` 导致的 depmod 冲突见 [#576406](https://github.com/NixOS/nixpkgs/issues/576406)，`v4l2loopback` 的同类失败 [#575851](https://github.com/NixOS/nixpkgs/issues/575851)，修复 PR [#575861](https://github.com/NixOS/nixpkgs/pull/575861)；`tuxedo-drivers` 的 `$(MAKEFLAGS)` 报错见 [#576266](https://github.com/NixOS/nixpkgs/issues/576266)。
+- **移除条件：** `tuxedo-drivers` 上游不再显式透传 `$(MAKEFLAGS)`，或 nixpkgs 改为不把 `cmd_sign` 放进 `commonMakeFlags`；`v4l2loopback` 的修复 PR 合并进 lock 的 nixpkgs 后即可删掉 `overlays/v4l2loopback-no-depmod.nix`。`tuxedo-drivers` 的 `installFlags` 在 nixpkgs 自己处理外部模块 depmod 之后同样可以移除。
+- **复查方法：** 确认两个包的产出根目录不再有映射表文件，且证书仍在：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.boot.kernelPackages.tuxedo-drivers --print-out-paths | read -l p
+  ls $p/lib/modules/*/            # 应只有 updates
+  find $p -name '*.ko.cer' | wc -l # 应与 .ko.xz 数量相同
+  ```
+
+  `v4l2loopback` 同样检查 `config.boot.kernelPackages.v4l2loopback` 的输出，并运行一次完整的 `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel`，确认 `aggregateModules` 不再报冲突。
+
 ### Firebat T5K 的 DMS 键盘 RGB 同步
 
 - **位置：** `hosts/mooling-laptop/desktop/dms-with-niri/keyboard-backlight-sync.nix` 的 `dms-keyboard-backlight-sync` systemd service 与 path unit。

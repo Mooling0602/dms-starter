@@ -11,6 +11,7 @@
   (import ./python-fixes.nix)
   (import ./custom-packages.nix { inherit inputs; })
   (import ./tuxedo-firebat.nix)
+  (import ./v4l2loopback-no-depmod.nix)
   (import ./obs-nvenc-qsv.nix)
   (import ./vtk-pegtl-gate.nix)
   (import ./zen-browser-hash.nix { inherit inputs; })
