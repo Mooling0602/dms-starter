@@ -5,6 +5,7 @@
 {
   imports = [
     ../../../../modules/desktop/noctalia-with-niri/system.nix
+    ./keyboard-backlight-sync.nix
   ];
 
   home-manager.sharedModules = [ ./niri-host.nix ];

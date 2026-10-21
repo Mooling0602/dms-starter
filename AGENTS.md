@@ -132,6 +132,7 @@ Noctalia 按目录读配置：`~/.config/noctalia/*.toml` 先读，界面写入�
 | `ui.nix` 的 Qt 会话变量 | 保留，取值与 DMS 层一致；但不再启用 `qt.enable`。 |
 | `ui.nix` 的可写 `adw-gtk3` 副本 | 只保留 `adw-gtk3` 包本身。Noctalia 仅导入 `noctalia.css` 并切换 gtk-theme，不像 DMS 那样原地改样式表；store 中的主题经 `XDG_DATA_DIRS`（含 `/etc/profiles/per-user/<user>/share`）即可被发现，`MAINTENANCE.md` 那条仍只属于 DMS。GTK 应用自己的透明背景不走 DMS 的补丁路径，而是激活步骤向 `~/.config/gtk-{3,4}.0/` 投放 `noctalia-glass.css`，见「GTK 应用的毛玻璃」。 |
 | `fcitx-theme-sync.nix` | 移植：数据源改用 Noctalia 的 KColorScheme 模板输出（`~/.local/share/color-schemes/noctalia.colors`），生成的 fcitx 主题目录沿用 `classicui.conf` 里固定的 `dms-plasma` 名字，详见 `MAINTENANCE.md`。 |
+| `keyboard-backlight-sync.nix` | 移植：同样改读 `noctalia.colors`，单元换名为 `noctalia-keyboard-backlight-sync`；与 fcitx 那条不同，它仍是**系统级**单元，因为 `rgb:kbd_backlight/multi_intensity` 是 `root:root 0644`，而 `brightnessctl` 走的 logind 接口只管亮度不带颜色，详见 `MAINTENANCE.md`。 |
 | `backup.nix` 的 DMS/Niri 快照自动恢复 | 未移植，见下方缺口。 |
 | `security.pam.services.dankshell` 与 Howdy 联动 | 不需要。Noctalia 走 PAM 的 `login` 服务，理由见上。 |
 | `services.displayManager.dms-greeter` 与用户的 `dms-greeter` 组 | 保留：它是这台 VM 上唯一能用的登录器（跑在 niri 里），并用 `configHome` 复用 DankMaterialShell 外观；`noctalia-greeter` 不可用，原因见缺口与 `MAINTENANCE.md`。 |

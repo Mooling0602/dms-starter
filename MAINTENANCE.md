@@ -301,13 +301,23 @@
 
   `v4l2loopback` 同样检查 `config.boot.kernelPackages.v4l2loopback` 的输出，并运行一次完整的 `nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel`，确认 `aggregateModules` 不再报冲突。
 
-### Firebat T5K 的 DMS 键盘 RGB 同步
+### Firebat T5K 的键盘 RGB 同步
 
-- **位置：** `hosts/mooling-laptop/desktop/dms-with-niri/keyboard-backlight-sync.nix` 的 `dms-keyboard-backlight-sync` systemd service 与 path unit。
-- **影响：** DMS 会在 `~/.local/share/color-schemes/DankMatugen.colors` 写入动态调色板。该服务监听该文件，读取 `Colors:Selection/BackgroundNormal` 并写入 `rgb:kbd_backlight/multi_intensity`；只更新 RGB，不改变键盘背光亮度，也不依赖 TUXEDO Control Center。
-- **上游：** DMS：https://github.com/AvengeMedia/DankMaterialShell ，TUXEDO 键盘接口：https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
-- **移除条件：** DMS 原生支持通过稳定接口控制键盘 RGB。
-- **复查方法：** 重建后切换 DMS 配色，运行 `cat /sys/class/leds/rgb:kbd_backlight/multi_intensity`，确认数值等于 `kreadconfig6 --file ~/.local/share/color-schemes/DankMatugen.colors --group 'Colors:Selection' --key BackgroundNormal` 的逗号替换为空格后的结果；同时确认 `cat /sys/class/leds/rgb:kbd_backlight/brightness` 未变化。
+- **位置：** 两个桌面层各有一份，只有当前桌面的那份生效：
+  - `hosts/mooling-laptop/desktop/dms-with-niri/keyboard-backlight-sync.nix`：`dms-keyboard-backlight-sync`
+  - `hosts/mooling-laptop/desktop/noctalia-with-niri/keyboard-backlight-sync.nix`：`noctalia-keyboard-backlight-sync`
+- **影响：** 两个 shell 都会把由壁纸生成的动态调色板写进 `~/.local/share/color-schemes/`（DMS 写 `DankMatugen.colors`，Noctalia 经 `kcolorscheme` 模板写 `noctalia.colors`）。对应服务监听该文件，读取 `Colors:Selection/BackgroundNormal` 并写入 `rgb:kbd_backlight/multi_intensity`；只更新 RGB，不改变键盘背光亮度，也不依赖 TUXEDO Control Center。
+- **为什么是系统级单元而非用户级单元：** sysfs 属性是 `root:root 0644`，普通用户直接写会得到 `权限不够`。`brightnessctl` 能调亮度是因为它经 logind 的 `org.freedesktop.login1.Session.SetBrightness` 转交，该接口只覆盖 `brightness` 属性、不带颜色，所以颜色这一路没有非特权的等价通道。因此两个桌面层都用 `systemd.services`/`systemd.paths` 而非 `systemd.user.*`，与同层的 `fcitx-theme-sync.nix`（纯用户态文件读写）不同。
+- **上游：** DMS：https://github.com/AvengeMedia/DankMaterialShell ；Noctalia：https://github.com/noctalia-dev/noctalia ；TUXEDO 键盘接口：https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers
+- **移除条件：** 对应 shell 原生支持通过稳定接口控制键盘 RGB，或内核/udev 给该属性加上 `uaccess` 之类的非特权写通道。
+- **复查方法：** 重建后切换配色，运行 `cat /sys/class/leds/rgb:kbd_backlight/multi_intensity`，确认数值等于对应配色文件里 `Colors:Selection/BackgroundNormal` 的逗号替换为空格后的结果，例如：
+
+  ```fish
+  kreadconfig6 --file ~/.local/share/color-schemes/noctalia.colors --group 'Colors:Selection' --key BackgroundNormal
+  systemctl status noctalia-keyboard-backlight-sync.path
+  ```
+
+  同时确认 `cat /sys/class/leds/rgb:kbd_backlight/brightness` 未变化。手动重放可运行 `sudo -A $(readlink -f $(systemctl show -p ExecStart --value noctalia-keyboard-backlight-sync.service | sed 's/.*path=\([^ ;]*\).*/\1/'))`。
 
 ### DMS 的可写 `adw-gtk3` 副本
 
