@@ -7,6 +7,37 @@ final: prev:
     kernel-final: kernel-prev:
     let
       patched = kernel-prev.tuxedo-drivers.overrideAttrs (oldAttrs: {
+        # Linux 7.3 removed struct acpi_driver and module_acpi_driver() in
+        # 541b293ab186 ("ACPI: bus: Eliminate struct acpi_driver"). Upstream
+        # moved clevo_acpi, tuxi_acpi and gxtp7380 to platform_driver with an
+        # ACPI match table in 4.24.0, which is newer than the 4.20.1 that
+        # nixpkgs still pins, so build the driver from the newest tagged
+        # release instead of carrying the API rewrite as a local patch.
+        version = "4.25.0";
+        src = final.fetchFromGitLab {
+          group = "tuxedocomputers";
+          owner = "development/packages";
+          repo = "tuxedo-drivers";
+          rev = "v4.25.0";
+          hash = "sha256-AER+JPl3lem1OFV51VdOZAnr3Uy1BFSpEJNrE+shYis=";
+        };
+
+        # Upstream moved the udev rules from usr/ to files/usr/ together with
+        # that refactor. nixpkgs' postInstall rewrites and installs them from
+        # the source tree, so point it at the new location and fail loudly if
+        # upstream moves them again: an empty rules directory would otherwise
+        # pass udevCheckHook without installing anything.
+        postInstall =
+          builtins.replaceStrings [ "usr/lib/udev/rules.d" ] [ "files/usr/lib/udev/rules.d" ] (
+            oldAttrs.postInstall or ""
+          )
+          + ''
+            if [ -z "$(find "$out/etc/udev/rules.d" -name '*.rules' -print -quit 2>/dev/null)" ]; then
+              echo "tuxedo-drivers: no udev rules installed, check the source layout" >&2
+              exit 1
+            fi
+          '';
+
         # Upstream's Makefile re-passes $(MAKEFLAGS) to its recursive make
         # calls, but nixpkgs >= c736bb8b passes `cmd_sign=...$(space)$@`
         # through makeFlags. Those references are escaped for the outer

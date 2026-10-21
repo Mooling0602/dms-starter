@@ -258,6 +258,24 @@
 
   第二条应输出 `"safeStorageBackend": "gnome_libsecret"`。想在不碰真实 profile 的前提下复现，可改临时目录启动：`env XDG_CONFIG_HOME=/tmp/element-probe element-desktop`，随后检查 `/tmp/element-probe/Element/electron-config.json` 与其中是否出现 `IndexedDB`。
 
+### tuxedo-drivers 的版本覆盖（内核 7.3 的 ACPI 驱动 API）
+
+- **位置：** `overlays/tuxedo-firebat.nix` 的 `linuxPackages_latest` 覆盖里的 `version`、`src` 与 `postInstall`。
+- **影响：** 内核 7.3 在 `541b293ab186`（ACPI: bus: Eliminate struct acpi_driver）里删掉了 `struct acpi_driver`、`module_acpi_driver()` 与 `ACPI_DRIVER_ALL_NOTIFY_EVENTS`，ACPI 驱动必须改写成带 `.driver.acpi_match_table` 的 `platform_driver`，并通过 `ACPI_COMPANION()` 与 `acpi_dev_install_notify_handler()` 取设备与装通知回调。nixpkgs 锁定的 `tuxedo-drivers` 仍是 4.20.1，其 `clevo_acpi.c`、`tuxi_acpi.c`、`gxtp7380.c` 都还在用旧 API，在 7.3 上编译直接失败（`variable 'clevo_acpi_driver' has initializer but incomplete type`）。上游在 4.24.0（commits `f39a28b0`、`5a4da041`、`dd412641`、`8326e865`）完成了这次迁移，因此覆盖把源码换成 4.25.0，而不是在本地维护一份内核 API 补丁。
+  同一次重构还把 udev 规则从 `usr/` 挪到了 `files/usr/`，nixpkgs 的 `postInstall` 从源码树读取并安装规则，所以覆盖里把路径改成 `files/usr/lib/udev/rules.d`，否则产出的 `$out/etc/udev/rules.d` 会为空而 `udevCheckHook` 静默通过。`no-cp-usr.patch` 与内嵌的 Firebat DMI 补丁在 4.25.0 上仍能干净应用（`tuxedo_compatibility_check.c` 两版逐字节相同）。
+- **上游：** 仓库 https://gitlab.com/tuxedocomputers/development/packages/tuxedo-drivers ，去除 `struct acpi_driver` 的内核提交 [541b293ab186](https://github.com/torvalds/linux/commit/541b293ab186)。
+- **移除条件：** 锁定的 nixpkgs 里 `tuxedo-drivers` 版本升到 4.24.0 以上；同时确认新版里 udev 规则仍能被 nixpkgs 的 `postInstall` 找到。移除后按下方复查方法确认模块与规则都还在。
+- **复查方法：**
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.boot.kernelPackages.tuxedo-drivers --print-out-paths | read -l p
+  ls $p/etc/udev/rules.d/                     # 应有 7 条 99-tuxedo-fix-*.rules
+  ls $p/lib/modules/*/updates/src/clevo_acpi.ko.xz
+  modinfo -F alias $p/lib/modules/*/updates/src/clevo_acpi.ko.xz  # 应含 acpi*:CLV0001:*
+  ```
+
+  重建后另需确认 Firebat 白名单仍生效：`dmesg | grep -i tuxedo` 应看到兼容性检查通过，且 `tuxedo_keyboard`、`clevo_acpi` 都出现在 `lsmod` 里。
+
 ### Firebat T5K 的 tuxedo-drivers 兼容白名单
 
 - **位置：** `overlays/tuxedo-firebat.nix` 的 `linuxPackages_latest` 覆盖（内嵌补丁），以及 `hosts/mooling-laptop/default.nix` 的驱动配置。
