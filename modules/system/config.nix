@@ -28,6 +28,15 @@
       description = "Active desktop module name for this host, set in hosts/<host>/default.nix.";
     };
 
+    # Output scale of this host's main display. Read by anything that has to
+    # compensate for the compositor scale on its own; keep it equal to the
+    # `scale` of the matching niri output block. 1.0 means no scaling.
+    my.displayScale = lib.mkOption {
+      type = lib.types.float;
+      default = 1.0;
+      description = "Compositor output scale of this host's main display, set in hosts/<host>/default.nix.";
+    };
+
     # Set to true by whichever desktop implementation is loaded.
     #
     # Identity validation lives inside each implementation module (it asserts

@@ -8,20 +8,26 @@
     slurp
     satty
 
+    # region-record reports start and stop through notify-send. Without this the
+    # script aborts on the "starting" notification before gpu-screen-recorder is
+    # ever launched, because it runs under set -e.
+    libnotify
+
     # virtual display mode utility
     wlr-randr
   ];
 
   # Region-recording toggle script (gpu-screen-recorder + slurp).
-  # Invoked from the Mod+Alt+G binding in ~/.config/niri/config.kdl:
-  # the first press selects a region with slurp and starts recording, the next
+  # Invoked from the Mod+Alt+G binding of the active desktop: dms-with-niri keeps
+  # it in the runtime ~/.config/niri/config.kdl (see key design decision 1 in
+  # AGENTS.md), noctalia-with-niri declares it in
+  # modules/desktop/noctalia-with-niri/niri-config.kdl.
+  # The first press selects a region with slurp and starts recording, the next
   # sends SIGINT to stop and flush the file.
-  # niri's own config is intentionally not managed declaratively (see key
-  # design decision 1 in AGENTS.md).
   home.file.".local/bin/region-record" = {
     text = ''
       #!/usr/bin/env bash
-      # Region recording toggle: Win+Alt+G
+      # Region recording toggle: Mod+Alt+G
       set -euo pipefail
       PIDFILE="/run/user/$UID/region-record.pid"
       DIR="$HOME/Videos/ScreenrnRecords"

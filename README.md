@@ -7,6 +7,7 @@
 ## 支持的桌面模块
 
 - [DankMaterialShell](https://danklinux.com/) 已完成，持续维护
+- [Noctalia](https://noctalia.dev/) v5 + niri 已完成，目前在 `hosts/vmware` 与 `hosts/mooling-laptop` 上启用
 - [KDE Plasma](https://wiki.nixos.cn/wiki/KDE) 工作中，尚不推荐使用
 
 ## 设备身份：用户名与主机名
@@ -76,6 +77,10 @@ hosts/<hostname>/default.nix          # let desktop = "dms-with-niri"; 决定导
 系统层模块通过 `specialArgs` 拿到 `inputs`，因此可以直接引用自己桌面所需的 input，无需在全局接线层（`flake.nix` / `modules/core.nix`）为它额外加 overlay 或 `extraSpecialArgs`。
 
 > `imports` 的求值早于 `config`，因此**不能**写成 `imports = [ ./desktop/${config.my.desktop}/... ]`（会无限递归）；必须使用 `let` 绑定的局部变量。
+
+### noctalia-with-niri（Noctalia v5 + niri）
+
+备用桌面层，已在 `hosts/vmware` 与 `hosts/mooling-laptop` 上启用：shell 取自锁定的 nixpkgs（Noctalia v5），登录器为 `services.displayManager.dms-greeter`（界面跑在 niri 里；`noctalia-greeter` 自带的 wlroots 合成器在 `hosts/vmware` 的 vmwgfx 上不可用，原因见 `MAINTENANCE.md`），不新增 flake input，运行配置同样交给应用自己管理。切换主机只需把 `hosts/<host>/default.nix` 顶部的 `let desktop` 改成 `"noctalia-with-niri"`，并在 `hosts/<host>/desktop/noctalia-with-niri/` 准备同名目录。与 DMS 层的移植取舍及已知缺口见 `AGENTS.md` 的「noctalia-with-niri 桌面层」。
 
 ## 新机器部署
 
@@ -147,6 +152,7 @@ du -sh /nix/store                                             # nix store 大小
 ## 配置边界
 
 - DMS/Niri 运行配置不由 Home Manager 挂载；`~/.config/niri/` 和 DMS 自身配置文件由应用自己写入。
+- Noctalia 会话的 niri 配置是声明式的，另留一个可写的 `~/.config/niri-noctalia/custom.kdl` 用来手写覆盖；窗口规则可以用 NiriMod 图形化编辑，它默认就写这个文件（Noctalia 自身没有该编辑器）。
 - DMS/Niri 可变配置快照保存在 `user_profiles/mooling/desktop-config/`，仅用于备份和审查。
 - NvChad Lua 配置来自独立仓库 `github:Mooling0602/NvCfg`，本仓库只保留 `nix4nvchad` 包装和运行时依赖。
 - 终端分两层：`modules/home/defaults/terminal.nix` 定义终端程序、字体与桌面无关的偏好；跟随桌面会话的配色放在各桌面模块内（如 `modules/desktop/dms-with-niri/terminal.nix` 引用 DMS matugen 生成的配色文件），由 Home Manager 自动合并。
@@ -184,11 +190,16 @@ sudo howdy remove mooling
 
 # 跳过二次确认，强制恢复
 ./scripts/backup.sh apply --force mooling
+
+# 单独备份/恢复 Noctalia 会话的手写 niri 覆盖（~/.config/niri-noctalia/custom.kdl）
+./scripts/backup.sh niri-custom-snapshot mooling
+./scripts/backup.sh niri-custom-apply mooling
 ```
 
 - `snapshot.sh` 直接覆盖仓库快照中有变化的文件，不做二次确认。
 - `apply.sh` 默认在已有 DMS/Niri 配置时要求二次确认；`-f` 或 `--force` 可跳过确认。
 - 两者位于各用户的 `user_profiles/<username>/desktop-config/` 下，`scripts/backup.sh` 负责按用户分发调用。
+- `niri-custom-*` 对应 `user_profiles/<username>/niri-noctalia/`，只处理 Noctalia 会话的手写 niri 覆盖这一个文件；恢复前会先用 `niri validate` 校验快照，校验不过则拒绝覆盖，避免写坏配置导致下次登录退回 niri 默认配置。
 - `modules/desktop/dms-with-niri/backup.nix` 在 Home Manager 激活时检查用户名；若用户名匹配且 DMS 或 Niri 配置缺失，会自动执行 `apply-missing` 并跳过二次确认。它随 DMS 桌面层加载，切到其他桌面时该激活步骤不会执行。
 - 当前 DMS 快照只保留 `settings.json` 和插件 `.meta`，不提交 `plugin_settings.json`、浏览器 CSS、插件仓库缓存等易变或可能含设备标识的文件。
 
