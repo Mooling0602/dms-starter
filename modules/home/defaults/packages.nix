@@ -46,6 +46,16 @@
     (lib.lowPrio jdk8)
     jdk25
     gcc
+    # Rust. rustfmt, clippy and rust-analyzer are separate nixpkgs attributes
+    # rather than components of a single toolchain, so they are listed
+    # alongside rustc and cargo instead of arriving with them. All five come
+    # from the same rustc release, which keeps lint and format output in step
+    # with the compiler.
+    rustc
+    cargo
+    rustfmt
+    clippy
+    rust-analyzer
     nodejs
     bun
     pnpm
