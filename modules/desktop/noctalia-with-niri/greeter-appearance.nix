@@ -93,9 +93,20 @@ let
     input_path = "$tpl"
     output_path = "$PWD/work/$mode.json"
     EOF
+      # --prefer darkness is what matches the desktop: matugen and Noctalia run
+      # separate Material 3 implementations, so without a shared seed strategy
+      # they pick different clusters from the same image. Feeding the light
+      # wallpaper with a fallback colour biased towards the character's costume
+      # (under a quarter of the frame) produced a red primary where Noctalia
+      # reports teal. darkness reads the backdrop, which is the bulk of both
+      # wallpapers, and reproduces Noctalia's result exactly: #bcc2ff on the dark
+      # image, and the same hue on the light one.
+      #
+      # The fallback colour stays because matugen refuses to run without a
+      # preference when no terminal is attached; it is only a last resort now.
       ${lib.getExe pkgs.matugen} image "$image" -m "$mode" \
         -c "work/config-$mode.toml" \
-        --prefer closest-to-fallback --fallback-color "#ffbf9b"
+        --prefer darkness --fallback-color "#ffbf9b"
     }
 
     run light ${lightWallpaper} ${paletteTemplate "light"}
