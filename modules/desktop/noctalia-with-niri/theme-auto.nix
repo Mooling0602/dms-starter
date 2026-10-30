@@ -1,5 +1,6 @@
 {
   pkgs,
+  solarLocation,
   ...
 }:
 
@@ -31,8 +32,7 @@ let
     auto_locate = false;
     address = "赣州";
     custom_schedule = false;
-    latitude = 25.70387;
-    longitude = 115.34822;
+    inherit (solarLocation) latitude longitude;
   };
 
   # Noctalia flips its own palette when the schedule crosses sunrise/sunset, but

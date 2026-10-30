@@ -41,5 +41,8 @@
     inherit hostname;
     username = config.my.username;
     displayScale = config.my.displayScale;
+    # Shared with the desktop layer's [location] table and with the login screen,
+    # so both cross sunrise/sunset at the same moment.
+    inherit (config.my) solarLocation;
   };
 }

@@ -37,14 +37,27 @@
       description = "Compositor output scale of this host's main display, set in hosts/<host>/default.nix.";
     };
 
-    # Set to true by whichever desktop implementation is loaded.
+    # Where this machine is, for anything that has to tell day from night.
+    # Declared once and shared by both sides of the schedule: the desktop layer
+    # hands it to Noctalia's [location] table, and the login screen uses it to
+    # pick its light or dark appearance before any user session exists. They must
+    # agree, or the greeter and the desktop would flip at different times.
     #
-    # Identity validation lives inside each implementation module (it asserts
-    # it is the desktop declared by my.desktop, taking the name from its own
-    # directory). But when the desktop layer is imported while the
-    # implementation is missing from imports, no implementation module exists
-    # and its assertion never runs, so this fallback is the only guard against
-    # silently loading no desktop at all.
+    # Coordinates rather than an address because the login screen has to decide
+    # before the network is usable: a geocoded address would need a round trip
+    # and would leave the first boot of the day in a default mode.
+    my.solarLocation = {
+      latitude = lib.mkOption {
+        type = lib.types.float;
+        description = "Latitude in decimal degrees, used for the sunrise/sunset schedule.";
+      };
+      longitude = lib.mkOption {
+        type = lib.types.float;
+        description = "Longitude in decimal degrees, used for the sunrise/sunset schedule.";
+      };
+    };
+
+    # Set to true by whichever desktop implementation is loaded.
     my.desktopImplementationLoaded = lib.mkOption {
       type = lib.types.bool;
       default = false;

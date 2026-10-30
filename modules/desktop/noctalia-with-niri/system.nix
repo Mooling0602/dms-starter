@@ -17,6 +17,10 @@ in
     # Login screen: wlroots compositor workarounds for this GPU plus the escape
     # hatch. See the file header and MAINTENANCE.md.
     ./greeter.nix
+
+    # Palette and light/dark mode for the login screen, decided before greetd
+    # starts. See the file header.
+    ./greeter-appearance.nix
   ];
 
   # Used by the fallback assertion in modules/system/config.nix: only set when

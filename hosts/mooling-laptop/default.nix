@@ -20,6 +20,12 @@ in
   # ./desktop/noctalia-with-niri/niri-host.kdl.
   my.displayScale = 1.5;
 
+  # Ganzhou, Jiangxi. Shared by Noctalia's auto schedule and the login screen.
+  my.solarLocation = {
+    latitude = 25.70387;
+    longitude = 115.34822;
+  };
+
   imports = [
     ./hardware-configuration.nix
     ./gpu.nix
