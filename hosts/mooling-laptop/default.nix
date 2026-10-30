@@ -69,7 +69,7 @@ in
   hardware.tuxedo-drivers.enable = true;
   boot.kernelModules = [ "tuxedo_keyboard" "clevo_acpi" ];
 
-  boot.resumeDevice = "/dev/disk/by-uuid/c531a6ba-9945-42f0-821b-9a0553fe100d";
+  boot.resumeDevice = "/dev/disk/by-uuid/2fe9b029-3c41-44df-9d07-9da568b3e58f";
 
   networking.hostName = config.my.hostname;
 
