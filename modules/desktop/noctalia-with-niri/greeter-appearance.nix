@@ -139,7 +139,9 @@ let
       # and the greeter keeps its own defaults.
       [ -f "$session" ] || exit 0
 
-      case "$(${solarMode})" in
+      # Use the store interpreter: system services do not inherit a user PATH.
+      mode="$(${lib.getExe pkgs.python3} ${solarMode})"
+      case "$mode" in
         light)
           light=true
           wallpaper="''${HOME:-/home/${user}}/.local/share/wallpapers/wallpaper-light.png"
@@ -147,6 +149,10 @@ let
         dark)
           light=false
           wallpaper="''${HOME:-/home/${user}}/.local/share/wallpapers/wallpaper-dark.png"
+          ;;
+        *)
+          printf 'Unexpected solar mode: %s\n' "$mode" >&2
+          exit 1
           ;;
       esac
       [ -f "$wallpaper" ] || exit 0
