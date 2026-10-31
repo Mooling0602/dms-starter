@@ -504,6 +504,22 @@
 - **移除条件：** xwayland-satellite（或 niri）能正确处理这类自绘模态对话框的输入路由，即弹窗可以直接点击和关闭；或 `wpsoffice-cn` 不再弹出该更新提示。届时删除 `modules/optional/wps-update-dialog.nix`、`modules/optional/wps-update-dialog-guard.py`，以及 `modules/home/mooling/default.nix` 中对应的那一行导入。
 - **复查方法：** `systemctl --user status wps-update-dialog-guard` 应为 active；启动 WPS 时弹窗应在约一秒内自行消失，`journalctl --user -u wps-update-dialog-guard` 出现 `closing WPS update dialog 'WPS Office'`；弹窗消失后主窗口的单元格应能正常点选、菜单能正常展开。若弹窗仍在且日志无该行，先看日志里是否停在 `X connection problem ... retrying in 5s`，那说明单元没拿到 `DISPLAY`。
 
+### 微信的应用级输入法环境变量
+
+- **位置：** `modules/home/mooling/packages.nix` 的 `wechat-with-fcitx5`（`symlinkJoin` 加 `makeWrapper`）。
+- **原因与处理：** 微信已原生支持 Wayland，仅给 `wechat` 启动入口增加 `QT_IM_MODULE=fcitx5`，不全局设置 Qt 输入法变量，也不改变图形后端。桌面项使用同一个 `wechat` 命令，因此菜单和终端启动都经过该 wrapper。
+- **上游：** [微信 Linux](https://linux.weixin.qq.com/)；[Nixpkgs 微信包](https://github.com/NixOS/nixpkgs/tree/nixos-unstable/pkgs/by-name/we/wechat)。
+- **移除条件：** 微信或 Nixpkgs 的启动器无需本地设置该变量即可正常使用 fcitx5 时，删除此 wrapper。
+- **复查方法：** 构建对应微信包后检查 `bin/wechat` 导出 `QT_IM_MODULE=fcitx5`；应用配置后完全退出并重新启动微信，验证中文输入和候选窗。构建及 wrapper 检查不能代替实际输入验证。
+
+### ChatGPT 的原生 Wayland 后端选择
+
+- **位置：** `modules/core.nix` 的 Home Manager `home.sessionVariables` 与 `systemd.user.sessionVariables` 中的 `CODEX_OZONE_PLATFORM`。
+- **原因与处理：** `codex-desktop` 输入的 Nix wrapper 默认设置 `CODEX_OZONE_PLATFORM=x11`，覆盖了启动器原有的会话检测。将该应用专用变量设为 `auto`，同时覆盖终端和桌面菜单的启动环境：当前 niri 会话存在有效的 Wayland socket 时选择原生 Wayland，X11 会话仍沿用 X11。不全局启用 `NIXOS_OZONE_WL`，不改变其他 Electron 应用，也不覆盖现有 `linuxFeatures`。
+- **上游：** [codex-desktop-linux](https://github.com/ilysenko/codex-desktop-linux)，默认值见 `flake.nix` 的 `makeWrapper`，后端检测见 `launcher/start.sh.template` 的 `append_ozone_platform`。
+- **移除条件：** 上游 Nix 包不再默认固定 X11，并且原有会话检测能正常选择原生 Wayland 时，删除这两处环境变量。
+- **复查方法：** 应用配置并重新登录后，`systemctl --user show-environment` 应包含 `CODEX_OZONE_PLATFORM=auto`；完全退出并重新启动 ChatGPT，确认主进程参数包含 `--ozone-platform=wayland`，并检查输入法与窗口缩放。用户自行指定的命令行或 flags 文件仍可覆盖自动选择。
+
 ### WPS 的输入法与 X11 字体 DPI
 
 - **位置：** 输入法在 `modules/home/mooling/packages.nix` 对 `wpsoffice-cn` 的 `overrideAttrs`（用 `makeWrapper` 给 `$out/bin/{et,wpp,wps,wpspdf}` 各包一层 wrapper，只导出 `QT_IM_MODULE`）；缩放走 `Xft.dpi`，值在 `modules/home/defaults/theme.nix` 由 `my.displayScale` 推导（1.5 得到 144），加载动作在 `modules/desktop/noctalia-with-niri/niri-config.kdl` 的 `spawn-at-startup` 里，`niri.nix` 用 `@XRDB@` 占位符替换出 xrdb 的路径。`my.displayScale` 选项定义在 `modules/system/config.nix`，逐机声明在 `hosts/<host>/default.nix`，经 `modules/core.nix` 的 `home-manager.extraSpecialArgs` 传入 Home Manager。

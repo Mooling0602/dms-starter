@@ -50,7 +50,16 @@
     # menu; the plain qq entry stays for comparison. The package comes from
     # overlays/custom-packages.nix.
     linuxqq-wayland-fix
-    wechat # WeChat
+    # Select WeChat's input method without changing other Qt applications.
+    (symlinkJoin {
+      name = "wechat-with-fcitx5";
+      paths = [ wechat ];
+      nativeBuildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/wechat" --set QT_IM_MODULE fcitx5
+      '';
+      meta = wechat.meta;
+    })
     telegram-desktop # Chat social media
     discord # Gaming social media
     # Matrix chat client.
