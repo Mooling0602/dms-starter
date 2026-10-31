@@ -1,11 +1,15 @@
-{ pkgs, ... }:
+{ pkgs, displayScale, ... }:
 
 # Home-manager module, has been imported by default.
 
 {
+  # Xft.dpi is the font DPI X11 clients read, WPS among them, and it follows the
+  # host's compositor scale. It only reaches the X server through the
+  # spawn-at-startup hook in the niri config; nothing loads ~/.Xresources on its
+  # own under xwayland-satellite.
   xresources.properties = {
     "Xcursor.size" = 24;
-    "Xft.dpi" = 144;
+    "Xft.dpi" = builtins.floor (96 * displayScale);
   };
 
   dconf.settings = {
