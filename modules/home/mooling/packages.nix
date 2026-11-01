@@ -2,6 +2,27 @@
 
 # Home-manager user space module, using by user mooling.
 
+let
+  # Re-evaluate the upstream flake with its AppImage runtime dependency added.
+  # See MAINTENANCE.md for the failure and removal conditions.
+  elyNixpkgs = ely-office.inputs.nixpkgs;
+  system = pkgs.stdenv.hostPlatform.system;
+  elyPkgs = elyNixpkgs.legacyPackages.${system};
+  fixedElyPkgs = elyPkgs // {
+    appimageTools = elyPkgs.appimageTools // {
+      wrapType2 = args: elyPkgs.appimageTools.wrapType2 (args // {
+        extraPkgs = runtimePkgs: (args.extraPkgs runtimePkgs) ++ [ runtimePkgs.libgpg-error ];
+      });
+    };
+  };
+  fixedElyNixpkgs = elyNixpkgs // {
+    legacyPackages = elyNixpkgs.legacyPackages // { ${system} = fixedElyPkgs; };
+  };
+  elyOffice = (import "${ely-office}/flake.nix").outputs {
+    self = ely-office;
+    nixpkgs = fixedElyNixpkgs;
+  };
+in
 {
   home.packages = with pkgs; [
     btop # System monitor
@@ -29,7 +50,7 @@
     font-manager
 
     # Upstream Ely Office suite, packaged from its official AppImages.
-    ely-office.packages.${pkgs.stdenv.hostPlatform.system}.default
+    elyOffice.packages.${system}.default
 
     # WPS Office, Linux Personal edition.
     #

@@ -34,6 +34,19 @@
 
 ## 临时构建绕过
 
+### Ely Office 的 AppImage 运行环境缺少 libgpg-error
+
+- **位置：** `modules/home/mooling/packages.nix` 中的 `elyOffice`、`fixedElyPkgs` 与 `fixedElyNixpkgs`。
+- **影响：** 上游 flake 的 0.1.13 运行环境只额外提供 Vulkan、Wayland 和 libxkbcommon。ElyDoc、ElyTable、ElyShow、ElyPDF 与 ElyMail 启动时报 `libgpg-error.so.0: cannot open shared object file`，即使构建和系统切换成功也无法启动。
+- **当前处理：** 用跟随本仓库 nixpkgs 的上游 flake 重新计算原始输出，仅给 `appimageTools.wrapType2` 的 `extraPkgs` 追加 `libgpg-error`。继续使用上游的 AppImage 地址、哈希、桌面入口和其他依赖。七个应用均已实际启动并创建窗口；尚未覆盖各应用的功能测试。
+- **上游：** [ElyOffice](https://github.com/ELY-Open-Source/ElyOffice) 的 `flake.nix`；锁定版本见 `flake.lock`。
+- **移除条件：** 更新上游输入后，未加本地覆盖的套件在本机七个应用均能正常创建窗口。届时直接使用 `ely-office.packages.${system}.default`，并删除本条记录。
+- **复查方法：** 构建不带覆盖的上游套件，逐个启动输出目录的 `bin/ely-doc`、`ely-table`、`ely-show`、`ely-pdf`、`ely-mail`、`ely-tree` 与 `ely-mark`，确认窗口出现且日志没有缺库错误：
+
+  ```sh
+  nix build --impure --no-link --print-out-paths --expr '(builtins.getFlake (toString ./.)).inputs.ely-office.packages.x86_64-linux.default'
+  ```
+
 ### VTK 9.5 的 pegtl 模块改名门控写反
 
 - **位置：** `overlays/vtk-pegtl-gate.nix` 的 `vtk_9_5` 覆盖（`postPatch`）。
