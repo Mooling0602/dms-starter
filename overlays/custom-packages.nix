@@ -17,6 +17,7 @@ final: prev:
   axolotl-launcher-bin = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.axolotl-launcher-bin;
   pebble-mail = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.pebble-mail;
   openfic = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.openfic;
+  elyterminal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.elyterminal;
   niri-input-portal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.niri-input-portal;
   startlive = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.startlive;
   # QQ Wayland fix launcher, installed into the user environment

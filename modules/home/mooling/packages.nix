@@ -114,6 +114,7 @@ in
     axolotl-launcher-bin # Minecraft Launcher
     pebble-mail # Email client
     openfic # AI Novel workspace
+    elyterminal # GPU-rendered terminal
     startlive # Bilibili live streaming without LiveHime
     claude-code # Coding CLI from A\
     codex # OpenAI's coding CLI
