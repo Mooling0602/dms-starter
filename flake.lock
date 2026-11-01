@@ -212,6 +212,26 @@
         "type": "github"
       }
     },
+    "ely-office": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793513971,
+        "narHash": "sha256-WIu3XcrkIsmWhqxm6rW1Lyg6FJbfZdDG1IcQXriLGv4=",
+        "owner": "ELY-Open-Source",
+        "repo": "ElyOffice",
+        "rev": "ab559b8d179b0b8740e0720ca7c9fd6814aa4086",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ELY-Open-Source",
+        "repo": "ElyOffice",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -539,6 +559,7 @@
         "dgop": "dgop",
         "dms": "dms",
         "dw-proton": "dw-proton",
+        "ely-office": "ely-office",
         "home-manager": "home-manager",
         "linuxqq-wayland-fix": "linuxqq-wayland-fix",
         "llm-agents": "llm-agents",

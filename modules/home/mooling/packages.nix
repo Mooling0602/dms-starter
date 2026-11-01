@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, ely-office, ... }:
 
 # Home-manager user space module, using by user mooling.
 
@@ -27,6 +27,9 @@
     # Font viewer and installer. Copies fonts into ~/.local/share/fonts, so
     # runtime-added ones stay out of the Nix store.
     font-manager
+
+    # Upstream Ely Office suite, packaged from its official AppImages.
+    ely-office.packages.${pkgs.stdenv.hostPlatform.system}.default
 
     # WPS Office, Linux Personal edition.
     #

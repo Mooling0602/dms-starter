@@ -56,6 +56,10 @@
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    ely-office = {
+      url = "github:ELY-Open-Source/ElyOffice";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # ChatGPT Community (codex-desktop): community repack of the official
     # Linux .deb, integrated through homeManagerModules.
     codex-desktop = {
