@@ -10,6 +10,14 @@
 
 ## 上游包源替换
 
+### 笔记本的 Niri 开发版：验证 NVIDIA 渲染时的背景模糊
+
+- **位置：** `hosts/mooling-laptop/desktop/noctalia-with-niri/niri-package.nix`；仅该桌面会话将 nixpkgs 的 Niri 26.04 源码替换为上游 Niri 2026-10-31 的固定提交，构建仍使用锁定 nixpkgs。主机的 `niri-host.kdl` 指定 NVIDIA 渲染设备。
+- **原因：** 内屏由 Intel 驱动而 Niri 在 NVIDIA 上渲染时，26.04 的非 xray 模糊不可见。上游 [niri#4378](https://github.com/niri-wm/niri/issues/4378) 描述了相同拓扑，并在更新 Smithay 后关闭；这份开发版是验证候选，并非本机已确认修复。NVIDIA 同时运行 Niri、OBS 和 NVENC 时，1440p60 的短录帧率正常。
+- **取舍：** 需要本地编译未发布的 Niri，可能引入其他回归；验证前保留旧系统 generation。客户端可以正常登录后，再核对模糊、OBS 录屏、屏幕共享及日常会话。
+- **移除条件：** 锁定 nixpkgs 的正式 Niri 已包含相关 Smithay 修复，并在本机同时验证模糊和录屏正常时，删除包覆盖及导入。若开发版仍不正常或引发回归，可删除该覆盖和主机的 NVIDIA 渲染设置，重建后重新登录。
+- **复查命令：** `systemctl --user status niri` 中运行路径应含 `26.04-unstable-2026-10-31`；上游源码内的版本字符串仍为 `26.04`，所以 `niri --version` 不能区分这两个构建。用 `journalctl --user -u niri -b | grep 'using as the render node'` 确认 NVIDIA，用 `niri validate -c ~/.config/niri-noctalia/config.kdl` 检查配置；运行 `nvidia-offload obs`，用屏幕采集与 NVENC 实测 1440p60，查看渲染及编码丢帧并确认画面。上游状态见 [niri#4378](https://github.com/niri-wm/niri/issues/4378) 和 [niri#4395](https://github.com/niri-wm/niri/pull/4395)。
+
 ### `niri-input-portal` 提供 niri 缺失的 InputCapture 门户后端
 
 - **位置：** `overlays/custom-packages.nix` 的 `nix-packages` 条目；`modules/desktop/dms-with-niri/xdg-portals.nix` 与 `modules/desktop/noctalia-with-niri/xdg-portals.nix` 的 `xdg.portal.extraPortals`、`xdg.portal.config` 与 `systemd.user.services`（两个桌面层各留一份同内容配置，因为门户跟随桌面层加载）；`~/.config/niri/config.kdl` 的 `Mod+Shift+Space` 逃生键（该文件由运行时管理，不由 Nix 声明）。包本体与本地补丁 `fix-eis-device-region.patch` 位于 `Mooling0602/nix-packages` 的 `pkgs/by-name/ni/niri-input-portal/`。

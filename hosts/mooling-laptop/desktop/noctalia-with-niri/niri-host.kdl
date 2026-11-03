@@ -10,6 +10,13 @@
 // still landing on the same mode only because it is the preferred one.
 // Variable refresh rate was on-demand under DMS and stays on.
 
+// Test NVIDIA rendering for the compositor and screen capture. The internal
+// panel remains connected to Intel, so display frames still cross GPUs.
+// Remove this block to restore the default GPU selection.
+debug {
+    render-drm-device "/dev/dri/by-path/pci-0000:01:00.0-render"
+}
+
 output "eDP-1" {
     mode "2560x1440@165.003"
     scale 1.5
