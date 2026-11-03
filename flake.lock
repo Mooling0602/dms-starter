@@ -179,11 +179,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793671383,
-        "narHash": "sha256-7dgBiQCXJHrfl/2pTevRWt0/AOaA5lEnbW+f6GQA1+s=",
+        "lastModified": 1793676617,
+        "narHash": "sha256-MMhtP0B+F0dJTmURXxOrvvGzbIL2aZ0pRezM4BmCSxc=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "0e99c3125e15f95d5e2aea194ea5c99f7acbf3b5",
+        "rev": "f1507fa4fa3f25842dc73a8b25f747f98bcf55fc",
         "type": "github"
       },
       "original": {
@@ -219,11 +219,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793672276,
-        "narHash": "sha256-CK9+DQi20Jn4b8Se4WZRtzTcYLOobLEPrpa4BkMpT48=",
+        "lastModified": 1793676740,
+        "narHash": "sha256-oGI9d7hgS2OTD2apPE/P9iTKW9QN8TVSZFgloeDOUzU=",
         "owner": "ELY-Open-Source",
         "repo": "ElyOffice",
-        "rev": "26db22dc8b537ecbe5dd7303656430dae59863a9",
+        "rev": "ad50d2eb668df6106cf2270aa1c9cd64d6e06ac8",
         "type": "github"
       },
       "original": {
@@ -453,11 +453,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793674421,
-        "narHash": "sha256-e/BsWpr1d1rFU3SIWsD1PLainYf2a1d3SL+RDUKroy8=",
+        "lastModified": 1793677185,
+        "narHash": "sha256-j7rUNWAf8syCe56nB3cC8PUBSTXV3x/JU35bXvv+AgQ=",
         "owner": "Mooling0602",
         "repo": "nix-packages",
-        "rev": "469a7c81bbb6e640a8468e4b5fafad5ad7ef902c",
+        "rev": "39fec63a62a92771273adc9bc8b51b87b2bc721e",
         "type": "github"
       },
       "original": {
