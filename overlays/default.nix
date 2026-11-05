@@ -15,4 +15,5 @@
   (import ./obs-nvenc-qsv.nix)
   (import ./vtk-pegtl-gate.nix)
   (import ./zen-browser-hash.nix { inherit inputs; })
+  (import ./opencode-hash.nix)
 ]

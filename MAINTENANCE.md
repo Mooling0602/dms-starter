@@ -148,6 +148,26 @@
   nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
   ```
 
+### `opencode` 的 bun `node_modules` 固定输出哈希过期
+
+- **位置：** `overlays/opencode-hash.nix`。
+- **影响：** 锁定的 nixpkgs rev `1d06008` 中 `opencode 2.2.5` 的 `node_modules` 固定输出派生仍写 `sha256-xfOVcw1+waLVNhFDwzOtzxrUSQEogvn88YomydOlhwc=`，实际 `bun install` 解析出的依赖树哈希为 `sha256-prx9dX7kUvs/E3zopkaPk5LXh3xJAy5sZeum/W8L7cA=`，构建以 `hash mismatch` 失败。传播路径为 `opencode` → `home-manager-path` → `home-manager-generation` → `system-units` / `etc` / `activate`，整个 `nixos-system-*` 闭包无法构建。
+- **当前处理：** 用覆盖改写 `opencode.overrideAttrs` 里 `node_modules` 子派生的 `outputHash`，取值照抄上游修复提交，Linux 与 Darwin 各一份，其余构建逻辑不动。覆盖后 `opencode` 单包构建通过。
+- **上游：** NixOS/nixpkgs 提交 [`c399e1b7fb`](https://github.com/NixOS/nixpkgs/commit/c399e1b7fb)（"opencode: fix hash"，2026-11-04）。该提交晚于本仓库锁定的 `1d06008`。
+- **移除条件：** `flake.lock` 中 `nixpkgs`（`tarball` 类型节点 `nixpkgs_2`）前进到包含 `c399e1b7fb` 的 rev。
+- **复查方法：** 检查锁定 nixpkgs 中该包的哈希：
+
+  ```fish
+  set nixpkgs (nix eval --raw --impure --expr '(builtins.getFlake (toString ./.)).nixosConfigurations.mooling-laptop.pkgs.path')
+  grep -n 'outputHash =' $nixpkgs/pkgs/by-name/op/opencode/package.nix
+  ```
+
+  输出含 `sha256-prx9dX7kUvs/` 表示修复已到位；此时删除 `overlays/opencode-hash.nix` 与 `overlays/default.nix` 中的对应条目，再运行：
+
+  ```fish
+  nix build .#nixosConfigurations.mooling-laptop.config.system.build.toplevel --no-link
+  ```
+
 ## 已解除的临时构建绕过
 
 ### `face-recognition-models` 的 Python 3.14 `pkg_resources` 兼容性
