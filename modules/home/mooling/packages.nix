@@ -1,7 +1,28 @@
-{ pkgs, ... }:
+{ pkgs, ely-office, ... }:
 
 # Home-manager user space module, using by user mooling.
 
+let
+  # Re-evaluate the upstream flake with its AppImage runtime dependency added.
+  # See MAINTENANCE.md for the failure and removal conditions.
+  elyNixpkgs = ely-office.inputs.nixpkgs;
+  system = pkgs.stdenv.hostPlatform.system;
+  elyPkgs = elyNixpkgs.legacyPackages.${system};
+  fixedElyPkgs = elyPkgs // {
+    appimageTools = elyPkgs.appimageTools // {
+      wrapType2 = args: elyPkgs.appimageTools.wrapType2 (args // {
+        extraPkgs = runtimePkgs: (args.extraPkgs runtimePkgs) ++ [ runtimePkgs.libgpg-error ];
+      });
+    };
+  };
+  fixedElyNixpkgs = elyNixpkgs // {
+    legacyPackages = elyNixpkgs.legacyPackages // { ${system} = fixedElyPkgs; };
+  };
+  elyOffice = (import "${ely-office}/flake.nix").outputs {
+    self = ely-office;
+    nixpkgs = fixedElyNixpkgs;
+  };
+in
 {
   home.packages = with pkgs; [
     btop # System monitor
@@ -28,17 +49,53 @@
     # runtime-added ones stay out of the Nix store.
     font-manager
 
-    wpsoffice-cn # WPS Office, Linux Personal edition
+    # Upstream Ely Office suite, packaged from its official AppImages.
+    elyOffice.packages.${system}.default
+
+    # WPS Office, Linux Personal edition.
+    #
+    # WPS ships its own Qt 5.12 plus an fcitx5 input context plugin that Qt
+    # never selects by itself, so CJK input needs QT_IM_MODULE here rather than
+    # in the session, where the other Qt applications do not want it. Its UI
+    # scale comes from Xft.dpi instead: that custom Qt has no QT_SCALE_FACTOR
+    # support. Details in MAINTENANCE.md.
+    (wpsoffice-cn.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ makeWrapper ];
+      postFixup = (old.postFixup or "") + ''
+        for prog in et wpp wps wpspdf; do
+          wrapProgram "$out/bin/$prog" \
+            --set QT_IM_MODULE fcitx
+        done
+      '';
+    }))
 
     qq # Tencent QQ
     # Wayland-fixed QQ launcher, reachable as "QQ (Wayland fix)" in the app
     # menu; the plain qq entry stays for comparison. The package comes from
     # overlays/custom-packages.nix.
     linuxqq-wayland-fix
-    wechat # WeChat
+    # Select WeChat's input method without changing other Qt applications.
+    (symlinkJoin {
+      name = "wechat-with-fcitx5";
+      paths = [ wechat ];
+      nativeBuildInputs = [ makeWrapper ];
+      postBuild = ''
+        wrapProgram "$out/bin/wechat" --set QT_IM_MODULE fcitx5
+      '';
+      meta = wechat.meta;
+    })
     telegram-desktop # Chat social media
     discord # Gaming social media
-    element-desktop # Chat client in Matrix protocol
+    # Matrix chat client.
+    # Electron picks its Linux keyring backend from the desktop environment:
+    # niri falls into DESKTOP_ENVIRONMENT_OTHER, so Chromium finds no backend
+    # name and safeStorage reports basic_text. Element 1.12.x then refuses to
+    # open its database with "System unsupported" and only offers plaintext
+    # storage. Pinning libsecret makes it use gnome-keyring, which
+    # modules/system/keyring.nix starts on every desktop. See MAINTENANCE.md.
+    (element-desktop.override {
+      commandLineArgs = "--password-store=gnome-libsecret";
+    })
     # Best browser from Google.
     # On Linux Chrome picks its keyring backend from XDG_CURRENT_DESKTOP: KDE
     # goes to KWallet's "Chrome Keys/Chrome Safe Storage", everything else
@@ -57,6 +114,7 @@
     axolotl-launcher-bin # Minecraft Launcher
     pebble-mail # Email client
     openfic # AI Novel workspace
+    elyterminal # GPU-rendered terminal
     startlive # Bilibili live streaming without LiveHime
     claude-code # Coding CLI from A\
     codex # OpenAI's coding CLI

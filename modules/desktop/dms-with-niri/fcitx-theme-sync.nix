@@ -86,8 +86,27 @@ let
     selection_background="$(rgb_to_hex "$selection_background_rgb")"
     selection_foreground="$(rgb_to_hex "$selection_foreground_rgb")"
 
+    # The selected candidate repeats the color the generator already picked for
+    # NormalColor, which is what unselected candidates use, so the two never
+    # disagree: dark themes get light text, light themes dark text. The block
+    # behind a selected candidate is a 30% alpha image composited over the
+    # panel, not the opaque HighlightBackgroundColor, so the selection
+    # foreground would only reach about 1.4:1 to 2.2:1 against it.
+    # HighlightColor is the preedit highlight instead, whose background really
+    # is the opaque HighlightBackgroundColor, so it keeps the selection
+    # foreground.
+    # kreadconfig6 exits 0 even when the group or key is missing and then
+    # prints nothing, so the emptiness check is the actual fallback.
+    normal_color="$(
+      ${pkgs.kdePackages.kconfig}/bin/kreadconfig6 \
+        --file "$dms_theme/theme.conf" \
+        --group 'InputPanel' \
+        --key NormalColor
+    )"
+    [ -n "$normal_color" ] || normal_color="$selection_foreground"
+
     ${pkgs.gnused}/bin/sed -i \
-      -e "s/^HighlightCandidateColor=.*/HighlightCandidateColor=$selection_foreground/" \
+      -e "s/^HighlightCandidateColor=.*/HighlightCandidateColor=$normal_color/" \
       -e "s/^HighlightColor=.*/HighlightColor=$selection_foreground/" \
       -e "s/^HighlightBackgroundColor=.*/HighlightBackgroundColor=$selection_background/" \
       "$dms_theme/theme.conf"

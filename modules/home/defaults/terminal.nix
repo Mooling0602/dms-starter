@@ -7,6 +7,19 @@
 # desktop module instead (e.g. modules/desktop/dms-with-niri/terminal.nix).
 
 {
+  # Which terminal "open a terminal" means. xdg-terminal-exec resolves the
+  # desktop entry from this list at launch time, so the keybinding can spawn it
+  # instead of hardcoding a binary and the choice stays a declared default
+  # rather than something buried in a bind. The keys match XDG_CURRENT_DESKTOP
+  # case-insensitively and "default" is the fallback. It lands in
+  # $XDG_CONFIG_HOME/xdg-terminals.list, which outranks the /etc/xdg and
+  # XDG_DATA_DIRS locations; only a <desktop>-xdg-terminals.list in the same
+  # directory would outrank it.
+  xdg.terminal-exec = {
+    enable = true;
+    settings.default = [ "kitty.desktop" ];
+  };
+
   programs.alacritty = {
     enable = true;
     settings = {

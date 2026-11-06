@@ -1,0 +1,67 @@
+// Machine local overrides for the noctalia-with-niri niri session.
+//
+// config.kdl includes this file last, so anything written here wins over the
+// shared defaults, the palette rendered by Noctalia and host.kdl. Home Manager
+// creates this file only when it is missing and never rewrites it, so your
+// edits survive rebuilds. Keep it out of xdg.configFile: a managed file would
+// be a read-only store symlink.
+//
+// The `nirimod` command in this session opens this file by default, so the
+// graphical window rule editor writes here instead of the read-only config.kdl.
+
+// What merges and what does not.
+//
+// Merged per property, so only write the keys you want to change:
+//   input, cursor, layout, debug, blur, animations, gestures, overview.
+// Merged per entry, so only write the entries you want to change: binds (the
+//   keys you name replace the existing bind on that key, every other bind is
+//   kept; Mod+X and Super+X count as the same key), environment (appended,
+//   later value wins).
+// Take the last value written: screenshot-path, prefer-no-csd.
+// Appended and matched in order: window-rule and layer-rule. All matching
+// rules apply, so a later rule refines an earlier one. A property can only be
+// given another value, never unset.
+//
+// Two traps worth knowing:
+//   * output and workspace blocks are appended, and niri uses the FIRST block
+//     matching an output, so a second block for the same output here is
+//     ignored, not merged. Edit
+//     hosts/<host>/desktop/noctalia-with-niri/niri-host.kdl instead.
+//   * input { keyboard { xkb { ... } } }, touchpad, mouse, trackpoint and
+//     trackball are replaced whole. Writing a partial touchpad block drops the
+//     settings you left out.
+
+// A syntax error here is worse than a missing file. niri keeps the running
+// config when a reload fails, but a login parses this file at startup, and on
+// failure niri falls back to its stock default config and drops everything
+// this repo declares. Validate after editing:
+//
+//   niri validate -c ~/.config/niri-noctalia/config.kdl
+
+// Remove the leading "//" from an example below to use it.
+
+// Tighter gaps and a thicker border:
+// layout {
+//     gaps 8
+//     border {
+//         width 4
+//     }
+// }
+
+// Extra key bindings, replacing the shared ones with the same key:
+// binds {
+//     Mod+Shift+T { spawn "alacritty"; }
+// }
+
+// Environment for processes niri spawns:
+// environment {
+//     MOZ_ENABLE_WAYLAND "1"
+// }
+
+// Keep this empty block: the graphical editor (nirimod) stores comments as
+// trivia attached to a parsed node, so a file with no nodes at all loses every
+// comment above on its first save. An empty layout block parses to no
+// properties and therefore changes nothing. Remove it and the next save from
+// the GUI collapses this file to a single line.
+layout {
+}
