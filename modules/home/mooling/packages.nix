@@ -44,6 +44,7 @@ in
     kdePackages.plasma-browser-integration # Seems useless, but just keep it
     kdePackages.gwenview # KDE Image viewer
     kdePackages.filelight # KDE storage size analyzer
+    kdePackages.krecorder # KDE audio recorder
 
     # Font viewer and installer. Copies fonts into ~/.local/share/fonts, so
     # runtime-added ones stay out of the Nix store.
