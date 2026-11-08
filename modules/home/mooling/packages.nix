@@ -44,7 +44,13 @@ in
     kdePackages.plasma-browser-integration # Seems useless, but just keep it
     kdePackages.gwenview # KDE Image viewer
     kdePackages.filelight # KDE storage size analyzer
-    kdePackages.krecorder # KDE audio recorder
+    # Qt 6 FileDialog exposes selectedFile rather than fileUrl.
+    (kdePackages.krecorder.overrideAttrs (old: {
+      postPatch = (old.postPatch or "") + ''
+        substituteInPlace src/contents/ui/RecordingListPage.qml \
+          --replace-fail 'fileUrl.toString()' 'selectedFile.toString()'
+      '';
+    }))
 
     # Font viewer and installer. Copies fonts into ~/.local/share/fonts, so
     # runtime-added ones stay out of the Nix store.

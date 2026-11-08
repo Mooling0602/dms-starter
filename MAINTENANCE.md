@@ -42,6 +42,14 @@
 
 ## 临时构建绕过
 
+### KRecorder 导出录音时引用了不存在的对话框属性
+
+- **位置：** `modules/home/mooling/packages.nix` 中的 `kdePackages.krecorder` 覆盖。
+- **原因：** 26.08.2 的 `RecordingListPage.qml` 使用 Qt 6 `FileDialog` 中不存在的 `fileUrl`，选择导出路径后报 `ReferenceError`，无法复制录音。补丁改用 Qt 6 的 `selectedFile`，保留原来的路径解码和复制逻辑。
+- **上游：** [KRecorder 源码](https://invent.kde.org/multimedia/krecorder)；[Qt FileDialog 文档](https://doc.qt.io/qt-6/qml-qtquick-dialogs-filedialog.html#selectedFile-prop)。
+- **移除条件：** 上游版本修复该引用后删除覆盖；`--replace-fail` 会在旧代码消失时令构建失败，提醒重新检查。
+- **复查方法：** 重建后在 KRecorder 中对一段录音选择「导出到位置」，使用含空格或中文的文件名，确认目标文件存在且可播放。
+
 ### Ely Office 的 AppImage 运行环境缺少 libgpg-error
 
 - **位置：** `modules/home/mooling/packages.nix` 中的 `elyOffice`、`fixedElyPkgs` 与 `fixedElyNixpkgs`。
