@@ -5,6 +5,7 @@ final: prev:
 {
   codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
   pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
+  zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
   reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
   # The package is named deepseek-harness in Mooling0602/nix-packages;
   # the binary it produces is dsh.
