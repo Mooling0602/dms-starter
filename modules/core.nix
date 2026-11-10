@@ -35,10 +35,19 @@
       enable = true;
       linuxFeatures = [ "api-key-model-visibility" ];
     };
+
+    # Override the package's X11 default for both terminal and app-menu launches.
+    # Auto selects native Wayland when available and still supports X11 sessions.
+    home.sessionVariables.CODEX_OZONE_PLATFORM = "auto";
+    systemd.user.sessionVariables.CODEX_OZONE_PLATFORM = "auto";
   };
 
   home-manager.extraSpecialArgs = inputs // {
     inherit hostname;
     username = config.my.username;
+    displayScale = config.my.displayScale;
+    # Shared with the desktop layer's [location] table and with the login screen,
+    # so both cross sunrise/sunset at the same moment.
+    inherit (config.my) solarLocation;
   };
 }

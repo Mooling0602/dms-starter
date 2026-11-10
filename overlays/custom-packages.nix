@@ -5,6 +5,7 @@ final: prev:
 {
   codex = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.codex-bin;
   pi = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.pi;
+  zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
   reasonix = inputs.llm-agents.packages.${final.stdenv.hostPlatform.system}.reasonix;
   # The package is named deepseek-harness in Mooling0602/nix-packages;
   # the binary it produces is dsh.
@@ -17,9 +18,9 @@ final: prev:
   axolotl-launcher-bin = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.axolotl-launcher-bin;
   pebble-mail = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.pebble-mail;
   openfic = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.openfic;
+  elyterminal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.elyterminal;
   niri-input-portal = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.niri-input-portal;
   startlive = inputs.nix-packages.packages.${final.stdenv.hostPlatform.system}.startlive;
-  zen-browser = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system}.default;
   # QQ Wayland fix launcher, installed into the user environment
   # by modules/home/mooling/packages.nix. Upstream's nixosModules
   # is not imported: it would also add the package and pkgs.qq to

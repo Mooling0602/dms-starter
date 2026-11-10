@@ -4,8 +4,9 @@ let
   # Desktop module in use, matching ./desktop/<desktop>/.
   # Must be a let binding: imports evaluate before config, so referring to
   # config.my.desktop here would recurse infinitely.
-  desktop = "dms-with-niri";
+  # desktop = "dms-with-niri";
   # desktop = "kde-plasma";
+  desktop = "noctalia-with-niri";
 in
 
 {
@@ -15,6 +16,15 @@ in
   my.username = "mooling";
   my.hostname = hostname;
   my.desktop = desktop;
+  # Matches the scale of the niri output block in
+  # ./desktop/noctalia-with-niri/niri-host.kdl.
+  my.displayScale = 1.5;
+
+  # Ganzhou, Jiangxi. Shared by Noctalia's auto schedule and the login screen.
+  my.solarLocation = {
+    latitude = 25.70387;
+    longitude = 115.34822;
+  };
 
   imports = [
     ./hardware-configuration.nix
@@ -37,6 +47,7 @@ in
     ../../modules/system/users.nix
     ../../modules/system/virtualisation.nix
     ../../modules/system/obs.nix
+    ../../modules/system/polkit.nix
     ./desktop/${desktop}/default.nix
     # Switching desktop: change the let binding above and prepare
     # <host>/desktop/<new desktop>/.
@@ -58,19 +69,13 @@ in
     addEmulatedSystemsToNixSandbox = false;
   };
 
-  # Route nix derivation build temp dirs to /data (root / has limited space;
-  # the sandbox /build is backed by build-dir on the host, which replaces
-  # setting TMPDIR in the nix-daemon systemd unit). It must not sit under a
-  # world-writable path, so /data is 755 and build dir is /data/nixbuild.
-  nix.settings.build-dir = "/data/nixbuild";
-
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # Firebat T5K uses the Clevo keyboard protocol supported by tuxedo-drivers.
   hardware.tuxedo-drivers.enable = true;
   boot.kernelModules = [ "tuxedo_keyboard" "clevo_acpi" ];
 
-  boot.resumeDevice = "/dev/disk/by-uuid/c531a6ba-9945-42f0-821b-9a0553fe100d";
+  boot.resumeDevice = "/dev/disk/by-uuid/2fe9b029-3c41-44df-9d07-9da568b3e58f";
 
   networking.hostName = config.my.hostname;
 

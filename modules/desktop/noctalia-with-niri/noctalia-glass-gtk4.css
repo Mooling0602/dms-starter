@@ -1,0 +1,45 @@
+/* Glass surfaces for GTK 4 applications (adw-gtk3, libadwaita).
+ *
+ * Imported by ~/.config/gtk-4.0/gtk.css, in front of noctalia.css so the
+ * palette variables below are already defined. Rendered into the Nix store by
+ * modules/desktop/noctalia-with-niri/ui.nix.
+ *
+ * Why this file exists: GTK applications draw their own window background, and
+ * nothing outside the process can make that background translucent. niri's
+ * `background-effect { blur true }` only blurs what is BEHIND a window, so
+ * without a translucent background there is nothing to see through. Painting
+ * the background with alpha here is what lets the blur become visible.
+ *
+ * The alpha lives on the window itself, never on the contents, so text and
+ * icons stay fully opaque. That is the point of doing this in the toolkit
+ * instead of with niri's `opacity`, which fades the whole window.
+ *
+ * Why the headerbar and the views are transparent instead of carrying their own
+ * alpha: in GTK 4 the window background is painted across the whole window,
+ * headerbar included. Giving the headerbar alpha as well would stack two 0.85
+ * layers into 0.98, which is visually opaque. adw-gtk3's libadwaita stylesheet
+ * sets those backgrounds through `background-color`, so no `background-image`
+ * reset is needed here, but it is kept for the same reason as in the GTK 3
+ * file: a theme that paints a gradient must not defeat the transparency.
+ *
+ * Keep the values in sync with noctalia-glass-gtk3.css.
+ */
+
+@import url("noctalia.css");
+
+window.background,
+window.background:backdrop {
+  background-color: alpha(@window_bg_color, 0.85);
+  background-image: none;
+}
+
+headerbar,
+.titlebar,
+headerbar:backdrop,
+.titlebar:backdrop,
+.view,
+list,
+listview {
+  background-color: transparent;
+  background-image: none;
+}

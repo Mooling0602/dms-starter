@@ -11,6 +11,9 @@
   (import ./python-fixes.nix)
   (import ./custom-packages.nix { inherit inputs; })
   (import ./tuxedo-firebat.nix)
+  (import ./v4l2loopback-no-depmod.nix)
   (import ./obs-nvenc-qsv.nix)
   (import ./vtk-pegtl-gate.nix)
+  (import ./opencode-hash.nix)
+  (import ./clash-verge-aws-lc.nix)
 ]

@@ -7,6 +7,22 @@ final: prev:
     kernel-final: kernel-prev:
     let
       patched = kernel-prev.tuxedo-drivers.overrideAttrs (oldAttrs: {
+        # Fail if a future source layout change leaves the rules directory empty.
+        postInstall = (oldAttrs.postInstall or "") + ''
+            if [ -z "$(find "$out/etc/udev/rules.d" -name '*.rules' -print -quit 2>/dev/null)" ]; then
+              echo "tuxedo-drivers: no udev rules installed, check the source layout" >&2
+              exit 1
+            fi
+          '';
+
+        # nixpkgs keeps System.map in the kernel dev output since 48c35672,
+        # so the kernel's modules_install now runs depmod for external
+        # modules and writes modules.alias & friends into this package's
+        # own output root, which then collides with the real kernel module
+        # tree during aggregateModules. depmod is a no-op here anyway: the
+        # aggregator regenerates the maps for the merged tree.
+        installFlags = (oldAttrs.installFlags or [ ]) ++ [ "DEPMOD=true" ];
+
         patches = (oldAttrs.patches or [ ]) ++ [
           (builtins.toFile "firebat-t5k-tuxedo-compat.patch" ''
             --- a/src/tuxedo_compatibility_check/tuxedo_compatibility_check.c

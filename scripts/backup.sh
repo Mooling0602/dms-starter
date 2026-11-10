@@ -9,8 +9,10 @@ Commands:
   snapshot              Run snapshot.sh for matching profiles.
   apply [-f|--force]    Run apply.sh for matching profiles.
   apply-missing         Restore missing config only, without confirmation.
+  niri-custom-snapshot  Snapshot the hand written niri overrides.
+  niri-custom-apply     Restore the hand written niri overrides.
 
-If no profile is provided, all profiles with desktop-config scripts are used.
+If no profile is provided, all profiles with the component scripts are used.
 EOF
 }
 
@@ -19,8 +21,9 @@ repo_root="$(cd -- "$script_dir/.." && pwd)"
 profiles_root="$repo_root/user_profiles"
 
 run_for_profiles() {
-  local script_name="$1"
-  shift
+  local component="$1"
+  local script_name="$2"
+  shift 2
 
   local -a profiles=()
   while (($#)) && [[ "$1" != "--" ]]; do
@@ -37,20 +40,20 @@ run_for_profiles() {
   if ((${#profiles[@]} == 0)); then
     shopt -s nullglob
     local profile_dir
-    for profile_dir in "$profiles_root"/*/desktop-config; do
+    for profile_dir in "$profiles_root"/*/"$component"; do
       profiles+=("$(basename -- "$(dirname -- "$profile_dir")")")
     done
     shopt -u nullglob
   fi
 
   if ((${#profiles[@]} == 0)); then
-    printf 'No desktop-config profiles found under %s\n' "$profiles_root" >&2
+    printf 'No %s profiles found under %s\n' "$component" "$profiles_root" >&2
     return 1
   fi
 
   local profile
   for profile in "${profiles[@]}"; do
-    local profile_dir="$profiles_root/$profile/desktop-config"
+    local profile_dir="$profiles_root/$profile/$component"
     local script_path="$profile_dir/$script_name"
 
     if [[ ! -x "$script_path" ]]; then
@@ -63,6 +66,42 @@ run_for_profiles() {
   done
 }
 
+run_apply() {
+  local component="$1"
+  shift
+
+  local -a apply_args=()
+  local -a profiles=()
+
+  while (($#)); do
+    case "$1" in
+      -f|--force)
+        apply_args+=(--force)
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      --)
+        shift
+        profiles+=("$@")
+        break
+        ;;
+      -*)
+        printf 'Unknown argument: %s\n\n' "$1" >&2
+        usage >&2
+        exit 2
+        ;;
+      *)
+        profiles+=("$1")
+        ;;
+    esac
+    shift
+  done
+
+  run_for_profiles "$component" apply.sh "${profiles[@]}" -- "${apply_args[@]}"
+}
+
 if (($# == 0)); then
   usage >&2
   exit 2
@@ -73,42 +112,19 @@ shift
 
 case "$command" in
   snapshot)
-    run_for_profiles snapshot.sh "$@" --
+    run_for_profiles desktop-config snapshot.sh "$@" --
     ;;
   apply)
-    apply_args=()
-    profiles=()
-
-    while (($#)); do
-      case "$1" in
-        -f|--force)
-          apply_args+=(--force)
-          ;;
-        -h|--help)
-          usage
-          exit 0
-          ;;
-        --)
-          shift
-          profiles+=("$@")
-          break
-          ;;
-        -*)
-          printf 'Unknown argument: %s\n\n' "$1" >&2
-          usage >&2
-          exit 2
-          ;;
-        *)
-          profiles+=("$1")
-          ;;
-      esac
-      shift
-    done
-
-    run_for_profiles apply.sh "${profiles[@]}" -- "${apply_args[@]}"
+    run_apply desktop-config "$@"
     ;;
   apply-missing)
-    run_for_profiles apply.sh "$@" -- --force --missing-only
+    run_for_profiles desktop-config apply.sh "$@" -- --force --missing-only
+    ;;
+  niri-custom-snapshot)
+    run_for_profiles niri-noctalia snapshot.sh "$@" --
+    ;;
+  niri-custom-apply)
+    run_apply niri-noctalia "$@"
     ;;
   -h|--help)
     usage
